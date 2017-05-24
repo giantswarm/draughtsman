@@ -6,7 +6,7 @@ This library supports TOML version
 [v0.4.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.4.0.md)
 
 [![GoDoc](https://godoc.org/github.com/pelletier/go-toml?status.svg)](http://godoc.org/github.com/pelletier/go-toml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/goadesign/goa/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/pelletier/go-toml.svg)](https://github.com/pelletier/go-toml/blob/master/LICENSE)
 [![Build Status](https://travis-ci.org/pelletier/go-toml.svg?branch=master)](https://travis-ci.org/pelletier/go-toml)
 [![Coverage Status](https://coveralls.io/repos/github/pelletier/go-toml/badge.svg?branch=master)](https://coveralls.io/github/pelletier/go-toml?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pelletier/go-toml)](https://goreportcard.com/report/github.com/pelletier/go-toml)
@@ -16,9 +16,9 @@ This library supports TOML version
 Go-toml provides the following features for using data parsed from TOML documents:
 
 * Load TOML documents from files and string data
-* Easily navigate TOML structure using TomlTree
+* Easily navigate TOML structure using Tree
 * Line & column position data for all parsed elements
-* Query support similar to JSON-Path
+* [Query support similar to JSON-Path](query/)
 * Syntax errors contain line and column numbers
 
 Go-toml is designed to help cover use-cases not covered by reflection-based TOML parsing:
@@ -61,7 +61,7 @@ if err != nil {
     password := config.Get("postgres.password").(string)
 
     // or using an intermediate object
-    configTree := config.Get("postgres").(*toml.TomlTree)
+    configTree := config.Get("postgres").(*toml.Tree)
     user = configTree.Get("user").(string)
     password = configTree.Get("password").(string)
     fmt.Println("User is ", user, ". Password is ", password)

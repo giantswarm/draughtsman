@@ -1,5 +1,5 @@
-hash: 25c1101b4d7bb96d742502beb39b592190fee45239cea889b92998112eadd95b
-updated: 2017-05-24T16:45:30.595432018+01:00
+hash: 50d965c2a84c7393246b9a49a575950e8923b9c67a707b8cbf92c6bda02dd668
+updated: 2017-05-24T17:36:54.319746776+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -17,12 +17,8 @@ imports:
   - pkg/pathutil
   - pkg/tlsutil
   - pkg/types
-- name: github.com/cpuguy83/go-md2man
-  version: a65d4d2de4d5f7c74868dfa9b202a3c8be315aaa
-  subpackages:
-  - md2man
 - name: github.com/fsnotify/fsnotify
-  version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
+  version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/microkit
@@ -75,7 +71,7 @@ imports:
   - runtime/internal
   - utilities
 - name: github.com/hashicorp/hcl
-  version: 39fa3a62ba92cf550eb0f9cfb84757ef79b8aa30
+  version: 392dba7d905ed5d04a5794ba89f558b27e2ba1ca
   subpackages:
   - hcl/ast
   - hcl/parser
@@ -92,50 +88,48 @@ imports:
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/magiconair/properties
-  version: b3b15ef068fd0b17ddf408a23669f20811d194d2
+  version: 51463bfca2576e06c62a8504b5c0f06d61312647
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
 - name: github.com/mitchellh/mapstructure
-  version: ed105d635dfa9ea7133f7c79f1eb36203fc3a156
+  version: d0303fe809921458f417bcf828397a65db30a7e4
 - name: github.com/pelletier/go-buffruneio
-  version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
+  version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
-  version: a1f048ba24490f9b0674a67e1ce995d685cddf4a
+  version: 5c26a6ff6fd178719e15decac1c8196da0d7d6d1
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: dd2f054febf4a6c00f2343686efb775948a8bff4
+  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: fcdb11ccb4389efb1b210b7ffb623ab71c5fdd60
-- name: github.com/russross/blackfriday
-  version: 5f33e7b7878355cd2b7e6b8eefc48a5472c69f70
-- name: github.com/shurcooL/sanitized_anchor_name
-  version: 1dba4b3954bc059efc3991ec364f9f9a35f597d2
+  version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
+  subpackages:
+  - xfs
 - name: github.com/spf13/afero
-  version: 72b31426848c6ef12a7a8e216708cb0d1530f074
+  version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
   - mem
 - name: github.com/spf13/cast
-  version: 56a7ecbeb18dde53c6db4bd96b541fd9741b8d44
+  version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: 83773614293e6c9406454a53ce5e263500ce6e44
+  version: ca57f0f5dba473a8a58765d16d7e811fb8027add
 - name: github.com/spf13/jwalterweatherman
-  version: fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66
+  version: 0efa5202c04663c757d84f90f5219c1250baf94f
 - name: github.com/spf13/pflag
-  version: 2300d0f8576fe575f71aaa5b9bbe4e1b0dc2eb51
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
   version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
 - name: github.com/tylerb/graceful
@@ -156,11 +150,11 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: dbc2be9168a660ef302e04b6ff6406de6f967473
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 2910a502d2bf9e43193af9d68ca516529614eed3
+  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
   subpackages:
   - transform
   - unicode/norm
@@ -176,5 +170,5 @@ imports:
   - peer
   - transport
 - name: gopkg.in/yaml.v2
-  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []
