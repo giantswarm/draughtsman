@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	description string     = "draughtsman is an in-cluster agent that handles Helm based deployments"
+	description string     = "draughtsman is an in-cluster agent that handles Helm based deployments."
 	f           *flag.Flag = flag.New()
 	gitCommit   string     = "n/a"
 	name        string     = "draughtsman"
