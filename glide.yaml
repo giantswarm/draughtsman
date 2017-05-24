@@ -1,0 +1,19 @@
+package: github.com/giantswarm/draughtsman
+import:
+- package: github.com/giantswarm/microkit
+  version: ef2f8fdba32a0a0275d739abf84371e36880ecdc
+  subpackages:
+  - command
+  - error
+  - flag
+  - logger
+  - server
+- package: github.com/go-kit/kit
+  version: f66b0e13579bfc5a48b9e2a94b1209c107ea1f41
+  subpackages:
+  - endpoint
+  - transport/http
+- package: github.com/juju/errgo
+  version: 08cceb5d0b5331634b9826762a8fd53b29b86ad8
+- package: github.com/spf13/viper
+  version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
