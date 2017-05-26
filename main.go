@@ -73,6 +73,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			go newService.Boot()
 		}
 
 		return newServer

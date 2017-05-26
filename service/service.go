@@ -3,14 +3,13 @@
 package service
 
 import (
-	"sync"
-
 	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/version"
 )
 
@@ -52,6 +51,18 @@ func New(config Config) (*Service, error) {
 
 	var err error
 
+	var deployerService deployer.Deployer
+	{
+		deployerConfig := deployer.DefaultConfig()
+
+		deployerConfig.Logger = config.Logger
+
+		deployerService, err = deployer.New(deployerConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
+
 	var versionService *version.Service
 	{
 		versionConfig := version.DefaultConfig()
@@ -69,10 +80,8 @@ func New(config Config) (*Service, error) {
 
 	newService := &Service{
 		// Dependencies.
-		Version: versionService,
-
-		// Internals
-		bootOnce: sync.Once{},
+		Deployer: deployerService,
+		Version:  versionService,
 	}
 
 	return newService, nil
@@ -80,14 +89,10 @@ func New(config Config) (*Service, error) {
 
 type Service struct {
 	// Dependencies.
-	Version *version.Service
-
-	// Internals.
-	bootOnce sync.Once
+	Deployer deployer.Deployer
+	Version  *version.Service
 }
 
 func (s *Service) Boot() {
-	s.bootOnce.Do(func() {
-		// TODO: Start event loop here.
-	})
+	s.Deployer.Boot()
 }
