@@ -62,14 +62,22 @@ type stubEventer struct {
 	logger micrologger.Logger
 }
 
-func (e *stubEventer) NewDeploymentEvents() ([]DeploymentEvent, time.Duration, error) {
+func (e *stubEventer) NewDeploymentEvents() (chan DeploymentEvent, error) {
 	e.logger.Log("debug", "checking for deployment requests")
 
-	event := DeploymentEvent{
-		Name: "test-project",
-	}
+	ticker := time.NewTicker(10 * time.Second)
+	deploymentEventChannel := make(chan DeploymentEvent)
 
-	return []DeploymentEvent{event}, 10 * time.Second, nil
+	go func() {
+		for range ticker.C {
+			e.logger.Log("debug", "sending deployment event")
+			deploymentEventChannel <- DeploymentEvent{
+				Name: "test-project",
+			}
+		}
+	}()
+
+	return deploymentEventChannel, nil
 }
 
 func (e *stubEventer) SetPending(event DeploymentEvent) error {

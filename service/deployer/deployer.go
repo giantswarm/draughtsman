@@ -1,8 +1,6 @@
 package deployer
 
 import (
-	"time"
-
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
@@ -98,36 +96,31 @@ type standardDeployer struct {
 func (s *standardDeployer) Boot() {
 	s.logger.Log("debug", "starting deployer")
 
-	for {
-		deploymentEvents, waitTime, err := s.eventer.NewDeploymentEvents()
-		if err != nil {
-			s.logger.Log("error", "could not fetch deployment events", "message", err.Error())
+	deploymentEventChannel, err := s.eventer.NewDeploymentEvents()
+	if err != nil {
+		s.logger.Log("debug", "could not get deployment event channel", "message", err.Error())
+	}
+
+	for deploymentEvent := range deploymentEventChannel {
+		s.logger.Log("debug", "installing package", "name", deploymentEvent.Name)
+
+		if err := s.eventer.SetPending(deploymentEvent); err != nil {
+			s.logger.Log("error", "could not set pending event", "message", err.Error())
 		}
 
-		for _, deploymentEvent := range deploymentEvents {
-			s.logger.Log("debug", "installing package", "name", deploymentEvent.Name)
+		installErr := s.installer.Install(deploymentEvent)
+		if installErr == nil {
+			s.logger.Log("debug", "successfully installed package", "name", deploymentEvent.Name)
 
-			if err := s.eventer.SetPending(deploymentEvent); err != nil {
-				s.logger.Log("error", "could not set pending event", "message", err.Error())
+			if err := s.eventer.SetSuccess(deploymentEvent); err != nil {
+				s.logger.Log("error", "could not set success event", "message", err.Error())
 			}
+		} else {
+			s.logger.Log("error", "could not install package", "name", deploymentEvent.Name, "message", err.Error())
 
-			installErr := s.installer.Install(deploymentEvent)
-			if installErr == nil {
-				s.logger.Log("debug", "successfully installed package", "name", deploymentEvent.Name)
-
-				if err := s.eventer.SetSuccess(deploymentEvent); err != nil {
-					s.logger.Log("error", "could not set success event", "message", err.Error())
-				}
-			} else {
-				s.logger.Log("error", "could not install package", "name", deploymentEvent.Name, "message", err.Error())
-
-				if err := s.eventer.SetFailed(deploymentEvent); err != nil {
-					s.logger.Log("error", "could not set failed event", "message", err.Error())
-				}
+			if err := s.eventer.SetFailed(deploymentEvent); err != nil {
+				s.logger.Log("error", "could not set failed event", "message", err.Error())
 			}
 		}
-
-		s.logger.Log("debug", "waiting to check deployment events", "wait time", waitTime.String())
-		time.Sleep(waitTime)
 	}
 }
