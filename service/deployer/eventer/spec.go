@@ -12,7 +12,7 @@ type Eventer interface {
 	// This channel can be ranged over to receive DeploymentEvents as they come
 	// in.
 	// In case of error during setup, the error will be non-nil.
-	NewDeploymentEvents() (chan DeploymentEvent, error)
+	NewDeploymentEvents() (<-chan DeploymentEvent, error)
 
 	// SetPending updates the DeploymentEvent remote state to a pending state.
 	SetPending(DeploymentEvent) error

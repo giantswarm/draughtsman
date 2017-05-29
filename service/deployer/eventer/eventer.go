@@ -62,7 +62,7 @@ type stubEventer struct {
 	logger micrologger.Logger
 }
 
-func (e *stubEventer) NewDeploymentEvents() (chan DeploymentEvent, error) {
+func (e *stubEventer) NewDeploymentEvents() (<-chan DeploymentEvent, error) {
 	e.logger.Log("debug", "watching for deployment events")
 
 	ticker := time.NewTicker(10 * time.Second)
