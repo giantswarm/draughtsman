@@ -123,4 +123,6 @@ func (s *standardDeployer) Boot() {
 			}
 		}
 	}
+
+	s.logger.Log("debug", "finished deployment loop")
 }
