@@ -1,8 +1,6 @@
 package eventer
 
 import (
-	"time"
-
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 )
@@ -27,7 +25,7 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Type: StubEventer,
+		Type: GithubEventer,
 	}
 }
 
@@ -41,8 +39,8 @@ func New(config Config) (Eventer, error) {
 	var newService Eventer
 
 	switch config.Type {
-	case StubEventer:
-		newService = &stubEventer{
+	case GithubEventer:
+		newService = &githubEventer{
 			// Dependencies.
 			logger: config.Logger,
 		}
@@ -51,49 +49,4 @@ func New(config Config) (Eventer, error) {
 	}
 
 	return newService, nil
-}
-
-// StubEventer is an Eventer that just pretends it's a real Eventer.
-var StubEventer EventerType = "StubEventer"
-
-// stubEventer is a stub implementation of the Eventer interface.
-type stubEventer struct {
-	// Dependencies.
-	logger micrologger.Logger
-}
-
-func (e *stubEventer) NewDeploymentEvents() (<-chan DeploymentEvent, error) {
-	e.logger.Log("debug", "watching for deployment events")
-
-	ticker := time.NewTicker(10 * time.Second)
-	deploymentEventChannel := make(chan DeploymentEvent)
-
-	go func() {
-		for range ticker.C {
-			e.logger.Log("debug", "sending deployment event")
-			deploymentEventChannel <- DeploymentEvent{
-				Name: "test-project",
-			}
-		}
-	}()
-
-	return deploymentEventChannel, nil
-}
-
-func (e *stubEventer) SetPending(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting pending", "event name", event.Name)
-
-	return nil
-}
-
-func (e *stubEventer) SetSuccess(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting success", "event name", event.Name)
-
-	return nil
-}
-
-func (e *stubEventer) SetFailed(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting failed", "event name", event.Name)
-
-	return nil
 }
