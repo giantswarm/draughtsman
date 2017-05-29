@@ -1,8 +1,8 @@
 package eventer
 
-// DeploymentEvent represents a request for a package to be deployed.
+// DeploymentEvent represents a request for a chart to be deployed.
 type DeploymentEvent struct {
-	// Name is the name of the project to deploy, e.g: aws-operator.
+	// Name is the name of the project of the chart to deploy, e.g: aws-operator.
 	Name string
 }
 

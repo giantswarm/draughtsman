@@ -102,7 +102,7 @@ func (s *standardDeployer) Boot() {
 	}
 
 	for deploymentEvent := range deploymentEventChannel {
-		s.logger.Log("debug", "installing package", "name", deploymentEvent.Name)
+		s.logger.Log("debug", "installing chart", "name", deploymentEvent.Name)
 
 		if err := s.eventer.SetPending(deploymentEvent); err != nil {
 			s.logger.Log("error", "could not set pending event", "message", err.Error())
@@ -110,13 +110,13 @@ func (s *standardDeployer) Boot() {
 
 		installErr := s.installer.Install(deploymentEvent)
 		if installErr == nil {
-			s.logger.Log("debug", "successfully installed package", "name", deploymentEvent.Name)
+			s.logger.Log("debug", "successfully installed chart", "name", deploymentEvent.Name)
 
 			if err := s.eventer.SetSuccess(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set success event", "message", err.Error())
 			}
 		} else {
-			s.logger.Log("error", "could not install package", "name", deploymentEvent.Name, "message", err.Error())
+			s.logger.Log("error", "could not install chart", "name", deploymentEvent.Name, "message", err.Error())
 
 			if err := s.eventer.SetFailed(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set failed event", "message", err.Error())

@@ -10,7 +10,7 @@ import (
 // InstallerType represents the type of Installer to configure.
 type InstallerType string
 
-// Config represents the configuration used to create an Installer
+// Config represents the configuration used to create an Installer.
 type Config struct {
 	// Dependencies.
 	Logger micrologger.Logger
@@ -31,7 +31,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// New creates a new configured Installer
+// New creates a new configured Installer.
 func New(config Config) (Installer, error) {
 	// Dependencies.
 	if config.Logger == nil {
@@ -63,7 +63,7 @@ type stubInstaller struct {
 }
 
 func (i *stubInstaller) Install(event eventer.DeploymentEvent) error {
-	i.logger.Log("debug", "installing package", "name", event.Name)
+	i.logger.Log("debug", "installing chart", "name", event.Name)
 
 	return nil
 }

@@ -63,7 +63,7 @@ type stubEventer struct {
 }
 
 func (e *stubEventer) NewDeploymentEvents() (chan DeploymentEvent, error) {
-	e.logger.Log("debug", "checking for deployment requests")
+	e.logger.Log("debug", "watching for deployment events")
 
 	ticker := time.NewTicker(10 * time.Second)
 	deploymentEventChannel := make(chan DeploymentEvent)
