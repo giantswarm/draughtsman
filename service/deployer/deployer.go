@@ -1,6 +1,8 @@
 package deployer
 
 import (
+	"time"
+
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
@@ -18,6 +20,14 @@ type Config struct {
 
 	// Settings.
 	Type DeployerType
+
+	// GithubEventer settings.
+	Environment       string
+	HTTPClientTimeout time.Duration
+	OauthToken        string
+	Organisation      string
+	PollInterval      time.Duration
+	ProjectList       []string
 }
 
 // DefaultConfig provides a default configuration to create a new Deployer
@@ -46,6 +56,13 @@ func New(config Config) (Deployer, error) {
 		eventerConfig := eventer.DefaultConfig()
 
 		eventerConfig.Logger = config.Logger
+
+		eventerConfig.Environment = config.Environment
+		eventerConfig.HTTPClientTimeout = config.HTTPClientTimeout
+		eventerConfig.OauthToken = config.OauthToken
+		eventerConfig.Organisation = config.Organisation
+		eventerConfig.PollInterval = config.PollInterval
+		eventerConfig.ProjectList = config.ProjectList
 
 		eventerService, err = eventer.New(eventerConfig)
 		if err != nil {
