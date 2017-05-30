@@ -1,6 +1,7 @@
 package eventer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +18,10 @@ const (
 	// githubDeploymentApiUrlTemplate is the string template for the GitHub
 	// API call to fetch Deployments.
 	githubDeploymentApiUrlTemplate = "https://api.github.com/repos/%s/%s/deployments"
+
+	// githubDeploymentStatusApiUrlTemplate is the string template for the
+	// GitHub API call to post Deployment Statuses.
+	githubDeploymentStatusApiUrlTemplate = "https://api.github.com/repos/%s/%s/deployments/%v/statuses"
 
 	// etagHeader is the header used for etag.
 	// See: https://en.wikipedia.org/wiki/HTTP_ETag.
@@ -54,6 +59,7 @@ var (
 		Name:      "rate_limit_remaining",
 		Help:      "Rate limit remaining for GitHub API requests.",
 	})
+
 	deploymentRequestDuration = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: prometheusNamespace,
@@ -84,18 +90,42 @@ func init() {
 // githubDeployment represents a GitHub API Deployment.
 // See: https://developer.github.com/v3/repos/deployments/#get-a-single-deployment
 type githubDeployment struct {
+	// Environment is the environment field of the GitHub deployment.
+	Environment string `json:"environment"`
+
+	// ID is the ID field of the GitHub deployment.
+	ID int `json:"id"`
+
 	// Sha is the SHA hash of the commit the deployment references.
 	Sha string `json:"sha"`
-
-	// Environment is the environment field of the Github deployment.
-	Environment string `json:"environment"`
 }
 
 // DeploymentEvent returns the githubDeployment as a DeploymentEvent.
 func (g githubDeployment) DeploymentEvent(project string) DeploymentEvent {
 	return DeploymentEvent{
+		ID:   g.ID,
 		Name: project,
+		Sha:  g.Sha,
 	}
+}
+
+// DeploymentEventStatusState represents possible statuses for Deployment Statuses.
+type DeploymentEventStatusState string
+
+var (
+	// pendingState is the state for pending Deployment Statuses.
+	pendingState DeploymentEventStatusState = "pending"
+	// successState is the state for successful Deployment Statuses.
+	successState DeploymentEventStatusState = "success"
+	// failedState is the state for failed Deployment Statuses.
+	failedState DeploymentEventStatusState = "failed"
+)
+
+// githubDeploymentEventStatus represents a GitHub API Deployment Status.
+// See: https://developer.github.com/v3/repos/deployments/#create-a-deployment-status
+type githubDeploymentEventStatus struct {
+	// State is the status of the deployment.
+	State DeploymentEventStatusState `json:"state"`
 }
 
 // GithubEventer is an Eventer that uses Github Deployment Events as a backend.
@@ -234,14 +264,58 @@ func (e *githubEventer) NewDeploymentEvents() (<-chan DeploymentEvent, error) {
 	return deploymentEventChannel, nil
 }
 
-func (e *githubEventer) SetPending(event DeploymentEvent) error {
+func (e *githubEventer) postDeploymentEventStatus(project string, id int, state DeploymentEventStatusState) error {
+	e.logger.Log("debug", "creating deployment status", "state", state)
+
+	status := githubDeploymentEventStatus{
+		State: state,
+	}
+
+	deploymentStatusUrl := fmt.Sprintf(
+		githubDeploymentStatusApiUrlTemplate,
+		e.organisation,
+		project,
+		id,
+	)
+
+	e.logger.Log("debug", "deployment status url", "url", deploymentStatusUrl)
+
+	payload, err := json.Marshal(status)
+	if err != nil {
+		return microerror.MaskAny(err)
+	}
+
+	req, err := http.NewRequest("POST", deploymentStatusUrl, bytes.NewBuffer(payload))
+	if err != nil {
+		return microerror.MaskAny(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", e.oauthToken))
+
+	resp, err := e.client.Do(req)
+	if err != nil {
+		return microerror.MaskAny(err)
+	}
+	defer resp.Body.Close()
+
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", e.oauthToken))
+
+	if resp.StatusCode != http.StatusCreated {
+		e.logger.Log("error", "received a non-200 status code", "code", resp.StatusCode)
+		return microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+	}
+
 	return nil
+}
+
+func (e *githubEventer) SetPending(event DeploymentEvent) error {
+	return e.postDeploymentEventStatus(event.Name, event.ID, pendingState)
 }
 
 func (e *githubEventer) SetSuccess(event DeploymentEvent) error {
-	return nil
+	return e.postDeploymentEventStatus(event.Name, event.ID, successState)
 }
 
 func (e *githubEventer) SetFailed(event DeploymentEvent) error {
-	return nil
+	return e.postDeploymentEventStatus(event.Name, event.ID, failedState)
 }
