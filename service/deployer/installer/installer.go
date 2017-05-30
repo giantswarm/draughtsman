@@ -4,7 +4,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	"github.com/giantswarm/draughtsman/service/deployer/eventer"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
 
 // InstallerType represents the type of Installer to configure.
@@ -62,7 +62,7 @@ type stubInstaller struct {
 	logger micrologger.Logger
 }
 
-func (i *stubInstaller) Install(event eventer.DeploymentEvent) error {
+func (i *stubInstaller) Install(event spec.DeploymentEvent) error {
 	i.logger.Log("debug", "installing chart", "name", event.Name)
 
 	return nil

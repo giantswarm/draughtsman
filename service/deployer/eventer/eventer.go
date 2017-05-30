@@ -1,15 +1,14 @@
 package eventer
 
 import (
-	"net/http"
 	"time"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
-)
 
-// EventerType represents the type of Eventer to configure.
-type EventerType string
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+)
 
 // Config represents the configuration used to create an Eventer.
 type Config struct {
@@ -17,7 +16,7 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Type EventerType
+	Type spec.EventerType
 
 	// GithubEventer settings.
 	Environment       string
@@ -36,57 +35,42 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Type: GithubEventer,
+		Type: github.GithubEventer,
 	}
 }
 
 // New creates a new configured Eventer.
-func New(config Config) (Eventer, error) {
+func New(config Config) (spec.Eventer, error) {
 	// Dependencies.
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
-	if config.Environment == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
-	}
-	if config.HTTPClientTimeout.Seconds() == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "http client timeout must be greater than zero")
-	}
-	if config.OauthToken == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "oauth token must not be empty")
-	}
-	if config.Organisation == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "organisation must not be empty")
-	}
-	if config.PollInterval.Seconds() == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "interval must be greater than zero")
-	}
-	if len(config.ProjectList) == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "project list must not be empty")
-	}
+	var err error
 
-	var newService Eventer
+	var newEventer spec.Eventer
 
 	switch config.Type {
-	case GithubEventer:
-		newService = &githubEventer{
-			// Dependencies.
-			client: &http.Client{
-				Timeout: config.HTTPClientTimeout,
-			},
-			logger: config.Logger,
+	case github.GithubEventer:
+		githubConfig := github.DefaultConfig()
 
-			// Settings.
-			environment:  config.Environment,
-			oauthToken:   config.OauthToken,
-			organisation: config.Organisation,
-			pollInterval: config.PollInterval,
-			projectList:  config.ProjectList,
+		githubConfig.Logger = config.Logger
+
+		githubConfig.Environment = config.Environment
+		githubConfig.HTTPClientTimeout = config.HTTPClientTimeout
+		githubConfig.OauthToken = config.OauthToken
+		githubConfig.Organisation = config.Organisation
+		githubConfig.PollInterval = config.PollInterval
+		githubConfig.ProjectList = config.ProjectList
+
+		newEventer, err = github.New(githubConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
 		}
+
 	default:
 		return nil, microerror.MaskAnyf(invalidConfigError, "could not find eventer type")
 	}
 
-	return newService, nil
+	return newEventer, nil
 }

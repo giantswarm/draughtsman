@@ -7,6 +7,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 )
 
@@ -51,7 +52,7 @@ func New(config Config) (Deployer, error) {
 
 	var err error
 
-	var eventerService eventer.Eventer
+	var eventerService spec.Eventer
 	{
 		eventerConfig := eventer.DefaultConfig()
 
@@ -105,7 +106,7 @@ var StandardDeployer DeployerType = "StandardDeployer"
 type standardDeployer struct {
 	// Dependencies.
 	logger    micrologger.Logger
-	eventer   eventer.Eventer
+	eventer   spec.Eventer
 	installer installer.Installer
 }
 
