@@ -15,6 +15,9 @@ type deployment struct {
 
 	// Sha is the SHA hash of the commit the deployment references.
 	Sha string `json:"sha"`
+
+	// Statuses is the deployment statuses of this deployment.
+	Statuses []deploymentStatus
 }
 
 // Deploymespec.ntEvent returns the deployment as a DeploymentEvent.

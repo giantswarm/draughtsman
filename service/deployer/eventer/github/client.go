@@ -13,12 +13,12 @@ import (
 
 const (
 	// deploymentUrlFormat is the string format for the GitHub
-	// API call to fetch Deployments.
+	// API call for Deployments.
 	// See: https://developer.github.com/v3/repos/deployments/#list-deployments
 	deploymentUrlFormat = "https://api.github.com/repos/%s/%s/deployments"
 
 	// deploymentStatusUrlFormat is the string format for the
-	// GitHub API call to post Deployment Statuses.
+	// GitHub API call for Deployment Statuses.
 	// See: https://developer.github.com/v3/repos/deployments/#create-a-deployment-status
 	deploymentStatusUrlFormat = "https://api.github.com/repos/%s/%s/deployments/%v/statuses"
 
@@ -44,13 +44,37 @@ func (e *GithubEventer) request(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// filterDeployments filters out any deployments we don't want,
-// such as deployments for other installations.
-func (e *GithubEventer) filterDeployments(deployments []deployment) []deployment {
+// filterDeploymentsByEnvironment filters out deployments that do not apply
+// to this environment.
+func (e *GithubEventer) filterDeploymentsByEnvironment(deployments []deployment) []deployment {
 	matches := []deployment{}
 
 	for _, deployment := range deployments {
 		if deployment.Environment == e.environment {
+			matches = append(matches, deployment)
+		}
+	}
+
+	return matches
+}
+
+// filterDeploymentsByStatus filters out deployments that are finished -
+// that is, there exists at least one status that is not pending.
+func (e *GithubEventer) filterDeploymentsByStatus(deployments []deployment) []deployment {
+	matches := []deployment{}
+
+	for _, deployment := range deployments {
+		// If there are any statuses apart from pending, we consider the
+		// deployment finished, and do not act on it.
+		isPending := true
+		for _, status := range deployment.Statuses {
+			if status.State != pendingState {
+				isPending = false
+				break
+			}
+		}
+
+		if isPending {
 			matches = append(matches, deployment)
 		}
 	}
@@ -113,7 +137,18 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 		return nil, microerror.MaskAny(err)
 	}
 
-	deployments = e.filterDeployments(deployments)
+	deployments = e.filterDeploymentsByEnvironment(deployments)
+
+	for index, deployment := range deployments {
+		deploymentStatuses, err := e.fetchDeploymentStatus(project, deployment)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+
+		deployments[index].Statuses = deploymentStatuses
+	}
+
+	deployments = e.filterDeploymentsByStatus(deployments)
 
 	if len(deployments) > 0 {
 		e.logger.Log("debug", "found new deployment events", "project", project)
@@ -122,7 +157,48 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 	return deployments, nil
 }
 
-// postDeploymentEventStatus posts a Deployment Status for the given Deployment.
+// fetchDeploymentStatus fetches Deployment Statuses for the given Deployment.
+func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deployment) ([]deploymentStatus, error) {
+	url := fmt.Sprintf(
+		deploymentStatusUrlFormat,
+		e.organisation,
+		project,
+		deployment.ID,
+	)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, microerror.MaskAny(err)
+	}
+
+	startTime := time.Now()
+
+	resp, err := e.request(req)
+	if err != nil {
+		return nil, microerror.MaskAny(err)
+	}
+	defer resp.Body.Close()
+
+	updateDeploymentStatusMetrics("GET", e.organisation, project, resp.StatusCode, startTime)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+	}
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, microerror.MaskAny(err)
+	}
+
+	var deploymentStatuses []deploymentStatus
+	if err := json.Unmarshal(bytes, &deploymentStatuses); err != nil {
+		return nil, microerror.MaskAny(err)
+	}
+
+	return deploymentStatuses, nil
+}
+
+// postDeploymentStatus posts a Deployment Status for the given Deployment.
 func (e *GithubEventer) postDeploymentStatus(project string, id int, state deploymentStatusState) error {
 	e.logger.Log("debug", "posting deployment status", "project", project, "id", id, "state", state)
 
@@ -155,7 +231,7 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 	}
 	defer resp.Body.Close()
 
-	updateDeploymentStatusMetrics(e.organisation, project, resp.StatusCode, startTime)
+	updateDeploymentStatusMetrics("POST", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusCreated {
 		return microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
