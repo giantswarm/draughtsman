@@ -44,9 +44,9 @@ func (e *GithubEventer) request(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// filterDeployments filters out any deployments we don't want,
-// such as deployments for other installations.
-func (e *GithubEventer) filterDeployments(deployments []deployment) []deployment {
+// filterDeploymentsByEnvironment filters out deployments that do not apply
+// to this environment.
+func (e *GithubEventer) filterDeploymentsByEnvironment(deployments []deployment) []deployment {
 	matches := []deployment{}
 
 	for _, deployment := range deployments {
@@ -113,7 +113,7 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 		return nil, microerror.MaskAny(err)
 	}
 
-	deployments = e.filterDeployments(deployments)
+	deployments = e.filterDeploymentsByEnvironment(deployments)
 
 	if len(deployments) > 0 {
 		e.logger.Log("debug", "found new deployment events", "project", project)
