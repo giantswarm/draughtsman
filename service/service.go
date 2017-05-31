@@ -35,6 +35,10 @@ func DefaultConfig() Config {
 		// Dependencies.
 		Logger: nil,
 
+		// Settings.
+		Flag:  nil,
+		Viper: nil,
+
 		Description: "",
 		GitCommit:   "",
 		Name:        "",
@@ -56,6 +60,9 @@ func New(config Config) (*Service, error) {
 		deployerConfig := deployer.DefaultConfig()
 
 		deployerConfig.Logger = config.Logger
+
+		deployerConfig.Flag = config.Flag
+		deployerConfig.Viper = config.Viper
 
 		deployerService, err = deployer.New(deployerConfig)
 		if err != nil {

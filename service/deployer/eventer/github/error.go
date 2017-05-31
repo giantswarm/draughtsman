@@ -1,4 +1,4 @@
-package eventer
+package github
 
 import (
 	"github.com/juju/errgo"

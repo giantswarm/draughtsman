@@ -1,10 +1,14 @@
 package deployer
 
 import (
+	"github.com/spf13/viper"
+
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
+	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 )
 
@@ -17,6 +21,9 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
+	Flag  *flag.Flag
+	Viper *viper.Viper
+
 	Type DeployerType
 }
 
@@ -28,6 +35,9 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
+		Flag:  nil,
+		Viper: nil,
+
 		Type: StandardDeployer,
 	}
 }
@@ -41,11 +51,14 @@ func New(config Config) (Deployer, error) {
 
 	var err error
 
-	var eventerService eventer.Eventer
+	var eventerService spec.Eventer
 	{
 		eventerConfig := eventer.DefaultConfig()
 
 		eventerConfig.Logger = config.Logger
+
+		eventerConfig.Flag = config.Flag
+		eventerConfig.Viper = config.Viper
 
 		eventerService, err = eventer.New(eventerConfig)
 		if err != nil {
@@ -88,7 +101,7 @@ var StandardDeployer DeployerType = "StandardDeployer"
 type standardDeployer struct {
 	// Dependencies.
 	logger    micrologger.Logger
-	eventer   eventer.Eventer
+	eventer   spec.Eventer
 	installer installer.Installer
 }
 

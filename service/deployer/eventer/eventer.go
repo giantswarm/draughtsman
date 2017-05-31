@@ -1,14 +1,15 @@
 package eventer
 
 import (
-	"time"
+	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
-)
 
-// EventerType represents the type of Eventer to configure.
-type EventerType string
+	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
+	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+)
 
 // Config represents the configuration used to create an Eventer.
 type Config struct {
@@ -16,7 +17,10 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Type EventerType
+	Flag  *flag.Flag
+	Viper *viper.Viper
+
+	Type spec.EventerType
 }
 
 // DefaultConfig provides a default configuration to create a new Eventer
@@ -27,73 +31,53 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Type: StubEventer,
+		Flag:  nil,
+		Viper: nil,
+
+		Type: github.GithubEventerType,
 	}
 }
 
 // New creates a new configured Eventer.
-func New(config Config) (Eventer, error) {
+func New(config Config) (spec.Eventer, error) {
 	// Dependencies.
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
-	var newService Eventer
-
-	switch config.Type {
-	case StubEventer:
-		newService = &stubEventer{
-			// Dependencies.
-			logger: config.Logger,
-		}
-	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "could not find eventer type")
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
 	}
 
-	return newService, nil
-}
+	var err error
 
-// StubEventer is an Eventer that just pretends it's a real Eventer.
-var StubEventer EventerType = "StubEventer"
+	var newEventer spec.Eventer
 
-// stubEventer is a stub implementation of the Eventer interface.
-type stubEventer struct {
-	// Dependencies.
-	logger micrologger.Logger
-}
+	switch config.Type {
+	case github.GithubEventerType:
+		githubConfig := github.DefaultConfig()
 
-func (e *stubEventer) NewDeploymentEvents() (<-chan DeploymentEvent, error) {
-	e.logger.Log("debug", "watching for deployment events")
+		githubConfig.Logger = config.Logger
 
-	ticker := time.NewTicker(10 * time.Second)
-	deploymentEventChannel := make(chan DeploymentEvent)
+		githubConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Environment)
+		githubConfig.HTTPClientTimeout = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
+		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
+		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)
+		githubConfig.PollInterval = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.PollInterval)
+		githubConfig.ProjectList = config.Viper.GetStringSlice(config.Flag.Service.Deployer.Eventer.GitHub.ProjectList)
 
-	go func() {
-		for range ticker.C {
-			e.logger.Log("debug", "sending deployment event")
-			deploymentEventChannel <- DeploymentEvent{
-				Name: "test-project",
-			}
+		newEventer, err = github.New(githubConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
 		}
-	}()
 
-	return deploymentEventChannel, nil
-}
+	default:
+		return nil, microerror.MaskAnyf(invalidConfigError, "eventer type not implemented")
+	}
 
-func (e *stubEventer) SetPending(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting pending", "event name", event.Name)
-
-	return nil
-}
-
-func (e *stubEventer) SetSuccess(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting success", "event name", event.Name)
-
-	return nil
-}
-
-func (e *stubEventer) SetFailed(event DeploymentEvent) error {
-	e.logger.Log("debug", "setting failed", "event name", event.Name)
-
-	return nil
+	return newEventer, nil
 }
