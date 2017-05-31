@@ -14,10 +14,12 @@ import (
 const (
 	// deploymentUrlFormat is the string format for the GitHub
 	// API call to fetch Deployments.
+	// See: https://developer.github.com/v3/repos/deployments/#list-deployments
 	deploymentUrlFormat = "https://api.github.com/repos/%s/%s/deployments"
 
 	// deploymentStatusUrlFormat is the string format for the
 	// GitHub API call to post Deployment Statuses.
+	// See: https://developer.github.com/v3/repos/deployments/#create-a-deployment-status
 	deploymentStatusUrlFormat = "https://api.github.com/repos/%s/%s/deployments/%v/statuses"
 
 	// etagHeader is the header used for etag.
