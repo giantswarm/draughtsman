@@ -11,7 +11,7 @@ import (
 )
 
 // GithubEventer is an Eventer that uses Github Deployment Events as a backend.
-var GithubEventer spec.EventerType = "GithubEventer"
+var GithubEventerType spec.EventerType = "GithubEventer"
 
 // Config represents the configuration used to create a GitHub Eventer.
 type Config struct {
@@ -36,7 +36,7 @@ func DefaultConfig() Config {
 }
 
 // New creates a new configured GitHub Eventer.
-func New(config Config) (spec.Eventer, error) {
+func New(config Config) (*GithubEventer, error) {
 	if config.Environment == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
 	}
@@ -56,7 +56,7 @@ func New(config Config) (spec.Eventer, error) {
 		return nil, microerror.MaskAnyf(invalidConfigError, "project list must not be empty")
 	}
 
-	eventer := &githubEventer{
+	eventer := &GithubEventer{
 		// Dependencies.
 		client: &http.Client{
 			Timeout: config.HTTPClientTimeout,
@@ -74,9 +74,9 @@ func New(config Config) (spec.Eventer, error) {
 	return eventer, nil
 }
 
-// githubEventer is an implementation of the Eventer interface,
+// GithubEventer is an implementation of the Eventer interface,
 // that uses GitHub Deployment Events as a backend.
-type githubEventer struct {
+type GithubEventer struct {
 	// Dependencies.
 	client *http.Client
 	logger micrologger.Logger
@@ -89,7 +89,7 @@ type githubEventer struct {
 	projectList  []string
 }
 
-func (e *githubEventer) NewDeploymentEvents() (<-chan spec.DeploymentEvent, error) {
+func (e *GithubEventer) NewDeploymentEvents() (<-chan spec.DeploymentEvent, error) {
 	e.logger.Log("debug", "starting polling for github deployment events", "interval", e.pollInterval)
 
 	deploymentEventChannel := make(chan spec.DeploymentEvent)
@@ -115,14 +115,14 @@ func (e *githubEventer) NewDeploymentEvents() (<-chan spec.DeploymentEvent, erro
 	return deploymentEventChannel, nil
 }
 
-func (e *githubEventer) SetPending(event spec.DeploymentEvent) error {
+func (e *GithubEventer) SetPending(event spec.DeploymentEvent) error {
 	return e.postDeploymentStatus(event.Name, event.ID, pendingState)
 }
 
-func (e *githubEventer) SetSuccess(event spec.DeploymentEvent) error {
+func (e *GithubEventer) SetSuccess(event spec.DeploymentEvent) error {
 	return e.postDeploymentStatus(event.Name, event.ID, successState)
 }
 
-func (e *githubEventer) SetFailed(event spec.DeploymentEvent) error {
+func (e *GithubEventer) SetFailed(event spec.DeploymentEvent) error {
 	return e.postDeploymentStatus(event.Name, event.ID, failedState)
 }

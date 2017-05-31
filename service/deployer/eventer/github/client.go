@@ -28,7 +28,7 @@ const (
 )
 
 // request makes a request, handling any metrics and logging.
-func (e *githubEventer) request(req *http.Request) (*http.Response, error) {
+func (e *GithubEventer) request(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", fmt.Sprintf("token %s", e.oauthToken))
 
 	resp, err := e.client.Do(req)
@@ -46,7 +46,7 @@ func (e *githubEventer) request(req *http.Request) (*http.Response, error) {
 
 // filterDeployments filters out any deployments we don't want,
 // such as deployments for other installations.
-func (e *githubEventer) filterDeployments(deployments []deployment) []deployment {
+func (e *GithubEventer) filterDeployments(deployments []deployment) []deployment {
 	matches := []deployment{}
 
 	for _, deployment := range deployments {
@@ -60,7 +60,7 @@ func (e *githubEventer) filterDeployments(deployments []deployment) []deployment
 
 // fetchNewDeploymentEvents fetches any new GitHub Deployment Events for the
 // given project.
-func (e *githubEventer) fetchNewDeploymentEvents(project string, etagMap map[string]string) ([]deployment, error) {
+func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[string]string) ([]deployment, error) {
 	e.logger.Log("debug", "fetching deployments", "project", project)
 
 	url := fmt.Sprintf(
@@ -123,7 +123,7 @@ func (e *githubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 }
 
 // postDeploymentEventStatus posts a Deployment Status for the given Deployment.
-func (e *githubEventer) postDeploymentStatus(project string, id int, state deploymentStatusState) error {
+func (e *GithubEventer) postDeploymentStatus(project string, id int, state deploymentStatusState) error {
 	e.logger.Log("debug", "posting deployment status", "project", project, "id", id, "state", state)
 
 	url := fmt.Sprintf(

@@ -35,7 +35,7 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Type: github.GithubEventer,
+		Type: github.GithubEventerType,
 	}
 }
 
@@ -51,7 +51,7 @@ func New(config Config) (spec.Eventer, error) {
 	var newEventer spec.Eventer
 
 	switch config.Type {
-	case github.GithubEventer:
+	case github.GithubEventerType:
 		githubConfig := github.DefaultConfig()
 
 		githubConfig.Logger = config.Logger
