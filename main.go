@@ -45,21 +45,15 @@ func main() {
 		{
 			serviceConfig := service.DefaultConfig()
 
-			serviceConfig.Flag = f
 			serviceConfig.Logger = newLogger
+
+			serviceConfig.Flag = f
 			serviceConfig.Viper = v
 
 			serviceConfig.Description = description
 			serviceConfig.GitCommit = gitCommit
 			serviceConfig.Name = name
 			serviceConfig.Source = source
-
-			serviceConfig.Environment = v.GetString(f.Service.Deployer.Eventer.GitHub.Environment)
-			serviceConfig.HTTPClientTimeout = v.GetDuration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
-			serviceConfig.OAuthToken = v.GetString(f.Service.Deployer.Eventer.GitHub.OAuthToken)
-			serviceConfig.Organisation = v.GetString(f.Service.Deployer.Eventer.GitHub.Organisation)
-			serviceConfig.PollInterval = v.GetDuration(f.Service.Deployer.Eventer.GitHub.PollInterval)
-			serviceConfig.ProjectList = v.GetStringSlice(f.Service.Deployer.Eventer.GitHub.ProjectList)
 
 			newService, err = service.New(serviceConfig)
 			if err != nil {

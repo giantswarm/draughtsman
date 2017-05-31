@@ -1,11 +1,12 @@
 package deployer
 
 import (
-	"time"
+	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
+	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
@@ -20,15 +21,10 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Type DeployerType
+	Flag  *flag.Flag
+	Viper *viper.Viper
 
-	// GithubEventer settings.
-	Environment       string
-	HTTPClientTimeout time.Duration
-	OAuthToken        string
-	Organisation      string
-	PollInterval      time.Duration
-	ProjectList       []string
+	Type DeployerType
 }
 
 // DefaultConfig provides a default configuration to create a new Deployer
@@ -39,6 +35,9 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
+		Flag:  nil,
+		Viper: nil,
+
 		Type: StandardDeployer,
 	}
 }
@@ -58,12 +57,8 @@ func New(config Config) (Deployer, error) {
 
 		eventerConfig.Logger = config.Logger
 
-		eventerConfig.Environment = config.Environment
-		eventerConfig.HTTPClientTimeout = config.HTTPClientTimeout
-		eventerConfig.OAuthToken = config.OAuthToken
-		eventerConfig.Organisation = config.Organisation
-		eventerConfig.PollInterval = config.PollInterval
-		eventerConfig.ProjectList = config.ProjectList
+		eventerConfig.Flag = config.Flag
+		eventerConfig.Viper = config.Viper
 
 		eventerService, err = eventer.New(eventerConfig)
 		if err != nil {

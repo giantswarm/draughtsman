@@ -3,8 +3,6 @@
 package service
 
 import (
-	"time"
-
 	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
@@ -28,14 +26,6 @@ type Config struct {
 	GitCommit   string
 	Name        string
 	Source      string
-
-	// GithubEventer settings.
-	Environment       string
-	HTTPClientTimeout time.Duration
-	OAuthToken        string
-	Organisation      string
-	PollInterval      time.Duration
-	ProjectList       []string
 }
 
 // DefaultConfig provides a default configuration to create a new service by
@@ -44,6 +34,10 @@ func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
 		Logger: nil,
+
+		// Settings.
+		Flag:  nil,
+		Viper: nil,
 
 		Description: "",
 		GitCommit:   "",
@@ -67,12 +61,8 @@ func New(config Config) (*Service, error) {
 
 		deployerConfig.Logger = config.Logger
 
-		deployerConfig.Environment = config.Environment
-		deployerConfig.HTTPClientTimeout = config.HTTPClientTimeout
-		deployerConfig.OAuthToken = config.OAuthToken
-		deployerConfig.Organisation = config.Organisation
-		deployerConfig.PollInterval = config.PollInterval
-		deployerConfig.ProjectList = config.ProjectList
+		deployerConfig.Flag = config.Flag
+		deployerConfig.Viper = config.Viper
 
 		deployerService, err = deployer.New(deployerConfig)
 		if err != nil {

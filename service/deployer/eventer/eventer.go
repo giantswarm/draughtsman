@@ -1,11 +1,12 @@
 package eventer
 
 import (
-	"time"
+	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
+	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
@@ -16,15 +17,10 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Type spec.EventerType
+	Flag  *flag.Flag
+	Viper *viper.Viper
 
-	// GithubEventer settings.
-	Environment       string
-	HTTPClientTimeout time.Duration
-	OAuthToken        string
-	Organisation      string
-	PollInterval      time.Duration
-	ProjectList       []string
+	Type spec.EventerType
 }
 
 // DefaultConfig provides a default configuration to create a new Eventer
@@ -35,6 +31,9 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
+		Flag:  nil,
+		Viper: nil,
+
 		Type: github.GithubEventerType,
 	}
 }
@@ -44,6 +43,14 @@ func New(config Config) (spec.Eventer, error) {
 	// Dependencies.
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	}
+
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -56,12 +63,12 @@ func New(config Config) (spec.Eventer, error) {
 
 		githubConfig.Logger = config.Logger
 
-		githubConfig.Environment = config.Environment
-		githubConfig.HTTPClientTimeout = config.HTTPClientTimeout
-		githubConfig.OAuthToken = config.OAuthToken
-		githubConfig.Organisation = config.Organisation
-		githubConfig.PollInterval = config.PollInterval
-		githubConfig.ProjectList = config.ProjectList
+		githubConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Environment)
+		githubConfig.HTTPClientTimeout = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
+		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
+		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)
+		githubConfig.PollInterval = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.PollInterval)
+		githubConfig.ProjectList = config.Viper.GetStringSlice(config.Flag.Service.Deployer.Eventer.GitHub.ProjectList)
 
 		newEventer, err = github.New(githubConfig)
 		if err != nil {
