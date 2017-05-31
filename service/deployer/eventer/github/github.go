@@ -20,7 +20,7 @@ type Config struct {
 
 	Environment       string
 	HTTPClientTimeout time.Duration
-	OauthToken        string
+	OAuthToken        string
 	Organisation      string
 	PollInterval      time.Duration
 	ProjectList       []string
@@ -43,7 +43,7 @@ func New(config Config) (spec.Eventer, error) {
 	if config.HTTPClientTimeout.Seconds() == 0 {
 		return nil, microerror.MaskAnyf(invalidConfigError, "http client timeout must be greater than zero")
 	}
-	if config.OauthToken == "" {
+	if config.OAuthToken == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "oauth token must not be empty")
 	}
 	if config.Organisation == "" {
@@ -65,7 +65,7 @@ func New(config Config) (spec.Eventer, error) {
 
 		// Settings.
 		environment:  config.Environment,
-		oauthToken:   config.OauthToken,
+		oauthToken:   config.OAuthToken,
 		organisation: config.Organisation,
 		pollInterval: config.PollInterval,
 		projectList:  config.ProjectList,

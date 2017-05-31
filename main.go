@@ -56,7 +56,7 @@ func main() {
 
 			serviceConfig.Environment = v.GetString(f.Service.Deployer.Eventer.GitHub.Environment)
 			serviceConfig.HTTPClientTimeout = v.GetDuration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
-			serviceConfig.OauthToken = v.GetString(f.Service.Deployer.Eventer.GitHub.OauthToken)
+			serviceConfig.OAuthToken = v.GetString(f.Service.Deployer.Eventer.GitHub.OAuthToken)
 			serviceConfig.Organisation = v.GetString(f.Service.Deployer.Eventer.GitHub.Organisation)
 			serviceConfig.PollInterval = v.GetDuration(f.Service.Deployer.Eventer.GitHub.PollInterval)
 			serviceConfig.ProjectList = v.GetStringSlice(f.Service.Deployer.Eventer.GitHub.ProjectList)
@@ -110,7 +110,7 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Environment, "", "Environment name that draughtsman is running in.")
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout, 10*time.Second, "Timeout for requests to GitHub.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.OauthToken, "", "OAuth token for authenticating against GitHub. Needs 'repo_deployment' scope.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.OAuthToken, "", "OAuth token for authenticating against GitHub. Needs 'repo_deployment' scope.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Organisation, "", "Organisation under which to check for deployments.")
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.PollInterval, 1*time.Minute, "Interval to poll for new deployments.")
 	daemonCommand.PersistentFlags().StringSlice(f.Service.Deployer.Eventer.GitHub.ProjectList, []string{}, "List of GitHub projects to check for deployments.")

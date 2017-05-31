@@ -25,7 +25,7 @@ type Config struct {
 	// GithubEventer settings.
 	Environment       string
 	HTTPClientTimeout time.Duration
-	OauthToken        string
+	OAuthToken        string
 	Organisation      string
 	PollInterval      time.Duration
 	ProjectList       []string
@@ -60,7 +60,7 @@ func New(config Config) (Deployer, error) {
 
 		eventerConfig.Environment = config.Environment
 		eventerConfig.HTTPClientTimeout = config.HTTPClientTimeout
-		eventerConfig.OauthToken = config.OauthToken
+		eventerConfig.OAuthToken = config.OAuthToken
 		eventerConfig.Organisation = config.Organisation
 		eventerConfig.PollInterval = config.PollInterval
 		eventerConfig.ProjectList = config.ProjectList
