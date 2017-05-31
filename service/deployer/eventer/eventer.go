@@ -69,7 +69,7 @@ func New(config Config) (spec.Eventer, error) {
 		}
 
 	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "could not find eventer type")
+		return nil, microerror.MaskAnyf(invalidConfigError, "eventer type not implemented")
 	}
 
 	return newEventer, nil
