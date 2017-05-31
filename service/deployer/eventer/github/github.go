@@ -74,7 +74,7 @@ func New(config Config) (spec.Eventer, error) {
 	return eventer, nil
 }
 
-// githubEventer is an implementer of the Eventer interface,
+// githubEventer is an implementation of the Eventer interface,
 // that uses GitHub Deployment Events as a backend.
 type githubEventer struct {
 	// Dependencies.
