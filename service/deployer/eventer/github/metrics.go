@@ -70,7 +70,7 @@ var (
 			Name:      "github_deployment_status_duration_milliseconds",
 			Help:      "Time taken to request GitHub deployment statuses.",
 		},
-		[]string{"organisation", "project", "code"},
+		[]string{"method", "organisation", "project", "code"},
 	)
 	deploymentStatusResponseCodeTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -79,7 +79,7 @@ var (
 			Name:      "github_deployment_status_response_code",
 			Help:      "Response codes of GitHub API requests for deployment statuses.",
 		},
-		[]string{"organisation", "project", "code"},
+		[]string{"method", "organisation", "project", "code"},
 	)
 )
 
@@ -132,8 +132,9 @@ func updateDeploymentMetrics(organisation, project string, statusCode int, start
 
 // updateDeploymentStatusMetrics is a utility function for updating metrics
 // related to Deployment Status API calls.
-func updateDeploymentStatusMetrics(organisation, project string, statusCode int, startTime time.Time) {
+func updateDeploymentStatusMetrics(method, organisation, project string, statusCode int, startTime time.Time) {
 	deploymentStatusRequestDuration.WithLabelValues(
+		method,
 		organisation,
 		project,
 		strconv.Itoa(statusCode),
@@ -142,6 +143,7 @@ func updateDeploymentStatusMetrics(organisation, project string, statusCode int,
 	)
 
 	deploymentStatusResponseCodeTotal.WithLabelValues(
+		method,
 		organisation,
 		project,
 		strconv.Itoa(statusCode),
