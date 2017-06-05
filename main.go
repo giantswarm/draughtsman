@@ -109,8 +109,8 @@ func main() {
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.PollInterval, 1*time.Minute, "Interval to poll for new deployments.")
 	daemonCommand.PersistentFlags().StringSlice(f.Service.Deployer.Eventer.GitHub.ProjectList, []string{}, "List of GitHub projects to check for deployments.")
 
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.HelmImage, "quay.io/giantswarm/docker-helm", "Docker image to run Helm with. Image needs CNR registry plugin installed.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.HelmImageTag, "006b0db51ec484be8b1bd49990804784a9737ece", "Tag of the Helm image.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.HelmBinaryPath, "/usr/local/bin/helm", "Path to Helm binary. Needs CNR registry plugin installed.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Organisation, "", "Organisation of Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Password, "", "Password for Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Registry, "quay.io", "URL for Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")

@@ -129,6 +129,8 @@ func (s *standardDeployer) Boot() {
 				s.logger.Log("error", "could not set success event", "message", err.Error())
 			}
 		} else {
+			s.logger.Log("error", "could not install chart", "message", installErr.Error())
+
 			if err := s.eventer.SetFailed(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set failed event", "message", err.Error())
 			}

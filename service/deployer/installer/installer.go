@@ -63,8 +63,8 @@ func New(config Config) (spec.Installer, error) {
 
 		helmConfig.Logger = config.Logger
 
-		helmConfig.HelmImage = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmImage)
-		helmConfig.HelmImageTag = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmImageTag)
+		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
+		helmConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Organisation)
 		helmConfig.Password = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Password)
 		helmConfig.Registry = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Registry)
 		helmConfig.Username = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Username)
