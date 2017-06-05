@@ -108,21 +108,14 @@ func (i *HelmInstaller) versionedChartName(project, sha string) string {
 	)
 }
 
-// tarballPath creates a tarball path, given a project name and a sha.
-func (i *HelmInstaller) tarballPath(project, sha string) (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", microerror.MaskAny(err)
-	}
-
-	tarballName := fmt.Sprintf(
+// tarballName builds a tarball name, given a project name and sha.
+func (i *HelmInstaller) tarballName(project, sha string) string {
+	return fmt.Sprintf(
 		"%v_%v-chart_1.0.0-%v.tar.gz",
 		i.organisation,
 		project,
 		sha,
 	)
-
-	return path.Join(dir, tarballName), nil
 }
 
 // runHelmCommand runs the given Helm command.
@@ -186,13 +179,16 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		return microerror.MaskAny(err)
 	}
 
-	tarballPath, err := i.tarballPath(project, sha)
+	dir, err := os.Getwd()
 	if err != nil {
 		return microerror.MaskAny(err)
 	}
+
+	tarballPath := path.Join(dir, i.tarballName(project, sha))
 	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
 		return microerror.MaskAnyf(helmError, "could not find downloaded tarball")
 	}
+
 	defer os.Remove(tarballPath)
 
 	i.logger.Log("debug", "downloaded chart", "tarball", tarballPath)
