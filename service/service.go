@@ -64,6 +64,8 @@ func New(config Config) (*Service, error) {
 		deployerConfig.Flag = config.Flag
 		deployerConfig.Viper = config.Viper
 
+		deployerConfig.Type = deployer.DeployerType(config.Viper.GetString(config.Flag.Service.Deployer.Type))
+
 		deployerService, err = deployer.New(deployerConfig)
 		if err != nil {
 			return nil, microerror.MaskAny(err)

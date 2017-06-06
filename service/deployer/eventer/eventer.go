@@ -33,8 +33,6 @@ func DefaultConfig() Config {
 		// Settings.
 		Flag:  nil,
 		Viper: nil,
-
-		Type: github.GithubEventerType,
 	}
 }
 
