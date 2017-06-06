@@ -8,4 +8,5 @@ import (
 type Deployer struct {
 	Eventer   eventer.Eventer
 	Installer installer.Installer
+	Type      string
 }

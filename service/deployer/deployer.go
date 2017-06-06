@@ -38,8 +38,6 @@ func DefaultConfig() Config {
 		// Settings.
 		Flag:  nil,
 		Viper: nil,
-
-		Type: StandardDeployer,
 	}
 }
 
@@ -61,6 +59,8 @@ func New(config Config) (Deployer, error) {
 		eventerConfig.Flag = config.Flag
 		eventerConfig.Viper = config.Viper
 
+		eventerConfig.Type = eventerspec.EventerType(config.Viper.GetString(config.Flag.Service.Deployer.Eventer.Type))
+
 		eventerService, err = eventer.New(eventerConfig)
 		if err != nil {
 			return nil, microerror.MaskAny(err)
@@ -75,6 +75,8 @@ func New(config Config) (Deployer, error) {
 
 		installerConfig.Flag = config.Flag
 		installerConfig.Viper = config.Viper
+
+		installerConfig.Type = installerspec.InstallerType(config.Viper.GetString(config.Flag.Service.Deployer.Installer.Type))
 
 		installerService, err = installer.New(installerConfig)
 		if err != nil {

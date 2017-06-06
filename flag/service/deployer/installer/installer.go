@@ -6,4 +6,5 @@ import (
 
 type Installer struct {
 	Helm helm.Helm
+	Type string
 }
