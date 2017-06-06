@@ -1,14 +1,15 @@
 package installer
 
 import (
+	"github.com/spf13/viper"
+
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
-
-// InstallerType represents the type of Installer to configure.
-type InstallerType string
 
 // Config represents the configuration used to create an Installer.
 type Config struct {
@@ -16,7 +17,10 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Type InstallerType
+	Flag  *flag.Flag
+	Viper *viper.Viper
+
+	Type spec.InstallerType
 }
 
 // DefaultConfig provides a default configuration to create a new Installer
@@ -27,43 +31,52 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Type: StubInstaller,
+		Flag:  nil,
+		Viper: nil,
+
+		Type: helm.HelmInstallerType,
 	}
 }
 
 // New creates a new configured Installer.
-func New(config Config) (Installer, error) {
+func New(config Config) (spec.Installer, error) {
 	// Dependencies.
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
-	var newService Installer
-
-	switch config.Type {
-	case StubInstaller:
-		newService = &stubInstaller{
-			// Dependencies.
-			logger: config.Logger,
-		}
-	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "could not find installer type")
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
 	}
 
-	return newService, nil
-}
+	var err error
 
-// StubInstaller is an Installer that just pretends it's a real Installer.
-var StubInstaller InstallerType = "StubInstaller"
+	var newInstaller spec.Installer
 
-// stubInstaller is a stub implementation of the Installer interface.
-type stubInstaller struct {
-	// Dependencies.
-	logger micrologger.Logger
-}
+	switch config.Type {
+	case helm.HelmInstallerType:
+		helmConfig := helm.DefaultConfig()
 
-func (i *stubInstaller) Install(event spec.DeploymentEvent) error {
-	i.logger.Log("debug", "installing chart", "name", event.Name)
+		helmConfig.Logger = config.Logger
 
-	return nil
+		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
+		helmConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Organisation)
+		helmConfig.Password = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Password)
+		helmConfig.Registry = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Registry)
+		helmConfig.Username = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Username)
+
+		newInstaller, err = helm.New(helmConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+
+	default:
+		return nil, microerror.MaskAnyf(invalidConfigError, "installer type not implemented")
+	}
+
+	return newInstaller, nil
 }

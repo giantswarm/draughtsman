@@ -8,8 +8,9 @@ import (
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
+	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -51,7 +52,7 @@ func New(config Config) (Deployer, error) {
 
 	var err error
 
-	var eventerService spec.Eventer
+	var eventerService eventerspec.Eventer
 	{
 		eventerConfig := eventer.DefaultConfig()
 
@@ -66,11 +67,14 @@ func New(config Config) (Deployer, error) {
 		}
 	}
 
-	var installerService installer.Installer
+	var installerService installerspec.Installer
 	{
 		installerConfig := installer.DefaultConfig()
 
 		installerConfig.Logger = config.Logger
+
+		installerConfig.Flag = config.Flag
+		installerConfig.Viper = config.Viper
 
 		installerService, err = installer.New(installerConfig)
 		if err != nil {
@@ -101,8 +105,8 @@ var StandardDeployer DeployerType = "StandardDeployer"
 type standardDeployer struct {
 	// Dependencies.
 	logger    micrologger.Logger
-	eventer   spec.Eventer
-	installer installer.Installer
+	eventer   eventerspec.Eventer
+	installer installerspec.Installer
 }
 
 // Boot starts the deployer.
@@ -115,21 +119,17 @@ func (s *standardDeployer) Boot() {
 	}
 
 	for deploymentEvent := range deploymentEventChannel {
-		s.logger.Log("debug", "installing chart", "name", deploymentEvent.Name)
-
 		if err := s.eventer.SetPending(deploymentEvent); err != nil {
 			s.logger.Log("error", "could not set pending event", "message", err.Error())
 		}
 
 		installErr := s.installer.Install(deploymentEvent)
 		if installErr == nil {
-			s.logger.Log("debug", "successfully installed chart", "name", deploymentEvent.Name)
-
 			if err := s.eventer.SetSuccess(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set success event", "message", err.Error())
 			}
 		} else {
-			s.logger.Log("error", "could not install chart", "name", deploymentEvent.Name, "message", err.Error())
+			s.logger.Log("error", "could not install chart", "message", installErr.Error())
 
 			if err := s.eventer.SetFailed(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set failed event", "message", err.Error())

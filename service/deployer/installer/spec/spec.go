@@ -1,8 +1,11 @@
-package installer
+package spec
 
 import (
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
+
+// InstallerType represents the type of Installer to configure.
+type InstallerType string
 
 // Installer represents a Service that installs charts.
 type Installer interface {

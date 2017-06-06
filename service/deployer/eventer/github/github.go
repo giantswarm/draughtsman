@@ -10,7 +10,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
 
-// GithubEventer is an Eventer that uses Github Deployment Events as a backend.
+// GithubEventerType is an Eventer that uses Github Deployment Events as a backend.
 var GithubEventerType spec.EventerType = "GithubEventer"
 
 // Config represents the configuration used to create a GitHub Eventer.
