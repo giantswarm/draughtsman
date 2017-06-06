@@ -16,6 +16,15 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
 
+const (
+	// versionedChartFormat is the format the CNR registry uses to address
+	// charts. For example, we use this to address that chart to pull.
+	versionedChartFormat = "%v/%v/%v-chart@1.0.0-%v"
+
+	// tarballNameFormat is the format for the name of the chart tarball.
+	tarballNameFormat = "%v_%v-chart_1.0.0-%v.tar.gz"
+)
+
 // HelmInstallerType is an Installer that uses Helm.
 var HelmInstallerType spec.InstallerType = "HelmInstaller"
 
@@ -100,7 +109,7 @@ type HelmInstaller struct {
 // given a project name and a sha.
 func (i *HelmInstaller) versionedChartName(project, sha string) string {
 	return fmt.Sprintf(
-		"%v/%v/%v-chart@1.0.0-%v",
+		versionedChartFormat,
 		i.registry,
 		i.organisation,
 		project,
@@ -111,7 +120,7 @@ func (i *HelmInstaller) versionedChartName(project, sha string) string {
 // tarballName builds a tarball name, given a project name and sha.
 func (i *HelmInstaller) tarballName(project, sha string) string {
 	return fmt.Sprintf(
-		"%v_%v-chart_1.0.0-%v.tar.gz",
+		tarballNameFormat,
 		i.organisation,
 		project,
 		sha,
