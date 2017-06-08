@@ -13,6 +13,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	configurerspec "github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
 
@@ -31,7 +32,8 @@ var HelmInstallerType spec.InstallerType = "HelmInstaller"
 // Config represents the configuration used to create a Helm Installer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	Logger     micrologger.Logger
+	Configurer configurerspec.Configurer
 
 	// Settings.
 	HelmBinaryPath string
@@ -46,7 +48,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		Logger:     nil,
+		Configurer: nil,
 	}
 }
 
@@ -74,7 +77,8 @@ func New(config Config) (*HelmInstaller, error) {
 
 	installer := &HelmInstaller{
 		// Dependencies.
-		logger: config.Logger,
+		logger:     config.Logger,
+		configurer: config.Configurer,
 
 		// Settings.
 		helmBinaryPath: config.HelmBinaryPath,
@@ -91,11 +95,12 @@ func New(config Config) (*HelmInstaller, error) {
 	return installer, nil
 }
 
-// HelmInstaller is an implementation of the Helm interface,
+// HelmInstaller is an implementation of the Installer interface,
 // that uses Helm to install charts.
 type HelmInstaller struct {
 	// Dependencies.
-	logger micrologger.Logger
+	logger     micrologger.Logger
+	configurer configurerspec.Configurer
 
 	// Settings.
 	helmBinaryPath string
@@ -202,12 +207,17 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	i.logger.Log("debug", "downloaded chart", "tarball", tarballPath)
 
+	valuesFile, err := i.configurer.File()
+	if err != nil {
+		return microerror.MaskAny(err)
+	}
+
 	if err := i.runHelmCommand(
 		"install",
 		"install",
 		tarballPath,
-		// "--values",
-		// "./values.yaml",
+		"--values",
+		valuesFile,
 		"--wait",
 	); err != nil {
 		return microerror.MaskAny(err)

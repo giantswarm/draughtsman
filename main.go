@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/draughtsman/service"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/file"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 )
 
@@ -108,6 +109,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(file.FileConfigurerType), "Which configurer to use for configuration management.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Environment, "", "Environment name that draughtsman is running in.")
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout, 10*time.Second, "Timeout for requests to GitHub.")
@@ -121,6 +123,8 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Password, "", "Password for Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Registry, "quay.io", "URL for Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")
+
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
 
 	newCommand.CobraCommand().Execute()
 }

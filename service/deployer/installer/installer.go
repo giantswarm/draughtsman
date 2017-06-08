@@ -7,6 +7,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer"
+	configurerspec "github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
@@ -53,6 +55,25 @@ func New(config Config) (spec.Installer, error) {
 
 	var err error
 
+	var configurerService configurerspec.Configurer
+	{
+		configurerConfig := configurer.DefaultConfig()
+
+		configurerConfig.Logger = config.Logger
+
+		configurerConfig.Flag = config.Flag
+		configurerConfig.Viper = config.Viper
+
+		configurerConfig.Type = configurerspec.ConfigurerType(
+			config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Type),
+		)
+
+		configurerService, err = configurer.New(configurerConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
+
 	var newInstaller spec.Installer
 
 	switch config.Type {
@@ -60,6 +81,7 @@ func New(config Config) (spec.Installer, error) {
 		helmConfig := helm.DefaultConfig()
 
 		helmConfig.Logger = config.Logger
+		helmConfig.Configurer = configurerService
 
 		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
 		helmConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Organisation)
