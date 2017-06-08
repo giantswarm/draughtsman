@@ -106,7 +106,7 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 			deployments: []deployment{
 				deployment{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: failedState},
+						deploymentStatus{State: failureState},
 					},
 				},
 			},
@@ -132,7 +132,7 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 				deployment{
 					Statuses: []deploymentStatus{
 						deploymentStatus{State: pendingState},
-						deploymentStatus{State: failedState},
+						deploymentStatus{State: failureState},
 					},
 				},
 			},
