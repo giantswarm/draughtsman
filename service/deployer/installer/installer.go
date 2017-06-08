@@ -64,7 +64,9 @@ func New(config Config) (spec.Installer, error) {
 		configurerConfig.Flag = config.Flag
 		configurerConfig.Viper = config.Viper
 
-		configurerConfig.Type = configurerspec.ConfigurerType(config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Type))
+		configurerConfig.Type = configurerspec.ConfigurerType(
+			config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Type),
+		)
 
 		configurerService, err = configurer.New(configurerConfig)
 		if err != nil {
