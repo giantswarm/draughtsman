@@ -91,7 +91,7 @@ func New(config Config) (*HelmInstaller, error) {
 	return installer, nil
 }
 
-// HelmInstaller is an implementation of the Helm interface,
+// HelmInstaller is an implementation of the Installer interface,
 // that uses Helm to install charts.
 type HelmInstaller struct {
 	// Dependencies.
