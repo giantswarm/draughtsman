@@ -124,5 +124,5 @@ func (e *GithubEventer) SetSuccess(event spec.DeploymentEvent) error {
 }
 
 func (e *GithubEventer) SetFailed(event spec.DeploymentEvent) error {
-	return e.postDeploymentStatus(event.Name, event.ID, failedState)
+	return e.postDeploymentStatus(event.Name, event.ID, failureState)
 }

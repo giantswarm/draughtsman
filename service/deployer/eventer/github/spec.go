@@ -44,6 +44,6 @@ var (
 	pendingState deploymentStatusState = "pending"
 	// successState is the state for successful Deployment Status states.
 	successState deploymentStatusState = "success"
-	// failedState is the state for failed Deployment Status states.
-	failedState deploymentStatusState = "failed"
+	// failureState is the state for failed Deployment Status states.
+	failureState deploymentStatusState = "failure"
 )
