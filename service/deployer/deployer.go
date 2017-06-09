@@ -11,6 +11,8 @@ import (
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
+	"github.com/giantswarm/draughtsman/service/deployer/notifier"
+	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -84,15 +86,33 @@ func New(config Config) (Deployer, error) {
 		}
 	}
 
+	var notifierService notifierspec.Notifier
+	{
+		notifierConfig := notifier.DefaultConfig()
+
+		notifierConfig.Logger = config.Logger
+
+		notifierConfig.Flag = config.Flag
+		notifierConfig.Viper = config.Viper
+
+		notifierConfig.Type = notifierspec.NotifierType(config.Viper.GetString(config.Flag.Service.Deployer.Notifier.Type))
+
+		notifierService, err = notifier.New(notifierConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
+
 	var newService Deployer
 
 	switch config.Type {
 	case StandardDeployer:
 		newService = &standardDeployer{
 			// Dependencies.
-			logger:    config.Logger,
 			eventer:   eventerService,
 			installer: installerService,
+			logger:    config.Logger,
+			notifier:  notifierService,
 		}
 	default:
 		return nil, microerror.MaskAnyf(invalidConfigError, "could not find deployer type")
@@ -106,9 +126,10 @@ var StandardDeployer DeployerType = "StandardDeployer"
 // standardDeployer is an implementation of the Deployer interface.
 type standardDeployer struct {
 	// Dependencies.
-	logger    micrologger.Logger
 	eventer   eventerspec.Eventer
 	installer installerspec.Installer
+	logger    micrologger.Logger
+	notifier  notifierspec.Notifier
 }
 
 // Boot starts the deployer.
@@ -130,11 +151,19 @@ func (s *standardDeployer) Boot() {
 			if err := s.eventer.SetSuccess(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set success event", "message", err.Error())
 			}
+
+			if err := s.notifier.Success(deploymentEvent); err != nil {
+				s.logger.Log("error", "could not notify of success", "message", err.Error())
+			}
 		} else {
 			s.logger.Log("error", "could not install chart", "message", installErr.Error())
 
 			if err := s.eventer.SetFailed(deploymentEvent); err != nil {
 				s.logger.Log("error", "could not set failed event", "message", err.Error())
+			}
+
+			if err := s.notifier.Failed(deploymentEvent, installErr.Error()); err != nil {
+				s.logger.Log("error", "could not notify of failure", "message", err.Error())
 			}
 		}
 	}
