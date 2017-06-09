@@ -83,6 +83,7 @@ func New(config Config) (*ConfigmapConfigurer, error) {
 		return nil, microerror.MaskAny(err)
 	}
 
+	// Create a temporary file to use for holding the values file for Helm to read.
 	tempFile, err := ioutil.TempFile("", "draughtsman")
 	if err != nil {
 		return nil, microerror.MaskAny(err)
