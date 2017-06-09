@@ -115,26 +115,24 @@ func (n *SlackNotifier) postSlackMessage(event eventerspec.DeploymentEvent, erro
 	startTime := time.Now()
 	defer updateSlackMetrics(startTime)
 
-	success := true
-	if len(errorMessage) > 0 {
-		success = false
+	success := false
+	if len(errorMessage) == 0 {
+		success = true
 	}
 
 	attachment := slack.Attachment{}
 
+	attachment.Color = dangerColour
 	if success {
 		attachment.Color = goodColour
-	} else {
-		attachment.Color = dangerColour
 	}
 
 	attachment.MarkdownIn = []string{"text"}
 
 	attachment.Title = fmt.Sprintf(titleFormat, event.Name, event.Sha)
+	attachment.Text = fmt.Sprintf(failedMessageFormat, errorMessage)
 	if success {
 		attachment.Text = successMessage
-	} else {
-		attachment.Text = fmt.Sprintf(failedMessageFormat, errorMessage)
 	}
 	attachment.Footer = fmt.Sprintf(footerFormat, n.environment, event.ID)
 
