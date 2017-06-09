@@ -29,6 +29,7 @@ type Config struct {
 	CAFilePath  string
 	CrtFilePath string
 	InCluster   bool
+	// Key is the key to reference the values data in the configmap.
 	Key         string
 	KeyFilePath string
 	Name        string
