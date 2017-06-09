@@ -119,8 +119,7 @@ type ConfigmapConfigurer struct {
 }
 
 func (c *ConfigmapConfigurer) File() (string, error) {
-	startTime := time.Now()
-	defer updateConfigmapMetrics(startTime)
+	defer updateConfigmapMetrics(time.Now())
 
 	c.logger.Log("debug", "fetching configuration from configmap", "name", c.name, "namespace", c.namespace)
 
