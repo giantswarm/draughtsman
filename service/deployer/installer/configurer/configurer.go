@@ -7,6 +7,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/file"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
 )
@@ -56,6 +57,25 @@ func New(config Config) (spec.Configurer, error) {
 	var newConfigurer spec.Configurer
 
 	switch config.Type {
+	case configmap.ConfigmapConfigurerType:
+		configmapConfig := configmap.DefaultConfig()
+
+		configmapConfig.Logger = config.Logger
+
+		configmapConfig.Address = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Address)
+		configmapConfig.CAFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.CAFilePath)
+		configmapConfig.CrtFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.CrtFilePath)
+		configmapConfig.InCluster = config.Viper.GetBool(config.Flag.Service.Deployer.Installer.Configurer.Configmap.InCluster)
+		configmapConfig.Key = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Key)
+		configmapConfig.KeyFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.KeyFilePath)
+		configmapConfig.Name = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Name)
+		configmapConfig.Namespace = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Namespace)
+
+		newConfigurer, err = configmap.New(configmapConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+
 	case file.FileConfigurerType:
 		fileConfig := file.DefaultConfig()
 
