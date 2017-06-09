@@ -20,12 +20,17 @@ const (
 	dangerColour = "danger"
 
 	// titleFormat is the format for titles for Slack messages.
+	// Templated with the repository name, and sha.
+	// e.g: "api - 12345"
 	titleFormat = "%v - %v"
 	// successMessage is the message for success Slack messages.
 	successMessage = "Successfully deployed"
 	// failedMessageFormat is the format for failure Slack messages.
+	// Templated with the error message itself.
 	failedMessageFormat = "Encountered an error ```%v```"
 	// footerFormat is the format for footers for Slack messages.
+	// Templated with the environment name, and the deployment ID.
+	// e.g: "jabberwocky (12345)"
 	footerFormat = "%v (%v)"
 )
 
