@@ -17,6 +17,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/file"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
+	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 )
 
 var (
@@ -110,8 +111,10 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(file.FileConfigurerType), "Which configurer to use for configuration management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slack.SlackNotifierType), "Which notifier to use for notification management.")
 
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Environment, "", "Environment name that draughtsman is running in.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
+
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout, 10*time.Second, "Timeout for requests to GitHub.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.OAuthToken, "", "OAuth token for authenticating against GitHub. Needs 'repo_deployment' scope.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Organisation, "", "Organisation under which to check for deployments.")
@@ -125,6 +128,11 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
+
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.SlackToken, "", "Token to post Slack notifications with.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Username, "draughtsman", "Username to post Slack notifications with.")
 
 	newCommand.CobraCommand().Execute()
 }

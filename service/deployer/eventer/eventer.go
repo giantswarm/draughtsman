@@ -61,7 +61,7 @@ func New(config Config) (spec.Eventer, error) {
 
 		githubConfig.Logger = config.Logger
 
-		githubConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Environment)
+		githubConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Environment)
 		githubConfig.HTTPClientTimeout = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
 		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
 		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)

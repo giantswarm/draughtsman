@@ -1,5 +1,5 @@
 hash: 50d965c2a84c7393246b9a49a575950e8923b9c67a707b8cbf92c6bda02dd668
-updated: 2017-05-24T17:36:54.319746776+01:00
+updated: 2017-06-09T11:38:25.085528119+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -22,7 +22,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/microkit
-  version: ef2f8fdba32a0a0275d739abf84371e36880ecdc
+  version: 725ff3a04ac4bad327dc9c149c8cc091048eff9e
   subpackages:
   - command
   - command/daemon
@@ -95,10 +95,12 @@ imports:
   - pbutil
 - name: github.com/mitchellh/mapstructure
   version: d0303fe809921458f417bcf828397a65db30a7e4
+- name: github.com/nlopes/slack
+  version: f243c7602fdf906248fc1f165284daa4e4d2d09e
 - name: github.com/pelletier/go-buffruneio
   version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
-  version: 5c26a6ff6fd178719e15decac1c8196da0d7d6d1
+  version: fe7536c3dee2596cdd23ee9976a17c22bdaae286
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -115,7 +117,7 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
+  version: a66a2f8b6f3fe82a95a1bed0bb3705bac8031717
   subpackages:
   - xfs
 - name: github.com/spf13/afero
@@ -125,7 +127,7 @@ imports:
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: ca57f0f5dba473a8a58765d16d7e811fb8027add
+  version: 99ff9334bda26384b5ef4a4aaa4d444d29bdde73
 - name: github.com/spf13/jwalterweatherman
   version: 0efa5202c04663c757d84f90f5219c1250baf94f
 - name: github.com/spf13/pflag
@@ -149,12 +151,13 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
+  - websocket
 - name: golang.org/x/sys
-  version: dbc2be9168a660ef302e04b6ff6406de6f967473
+  version: 0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
+  version: 210eee5cf7323015d097341bcf7166130d001cd8
   subpackages:
   - transform
   - unicode/norm
