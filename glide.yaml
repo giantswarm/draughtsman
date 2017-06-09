@@ -1,12 +1,30 @@
 package: github.com/giantswarm/draughtsman
 import:
 - package: github.com/giantswarm/microkit
-  version: master
   subpackages:
   - command
   - error
   - flag
   - logger
   - server
+- package: github.com/giantswarm/operatorkit
+  subpackages:
+  - client/k8s
 - package: github.com/juju/errgo
-- package: github.com/spf13/viper
+- package: github.com/nlopes/slack
+  version: ^0.1.0
+- package: github.com/prometheus/client_golang
+  version: ^0.8.0
+  subpackages:
+  - prometheus
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+- package: k8s.io/client-go
+  version: 3.0.0-beta.0
+  subpackages:
+  - kubernetes
+- package: github.com/golang/protobuf
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+- package: google.golang.org/grpc
+  version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0

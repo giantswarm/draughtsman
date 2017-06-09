@@ -79,6 +79,7 @@ func New(config Config) (*SlackNotifier, error) {
 
 	client := slack.New(config.SlackToken)
 
+	config.Logger.Log("debug", "checking connection to Slack")
 	if _, err := client.AuthTest(); err != nil {
 		return nil, microerror.MaskAnyf(err, "could not authenticate with slack")
 	}

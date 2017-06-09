@@ -15,7 +15,7 @@ import (
 	"github.com/giantswarm/draughtsman/service"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/file"
+	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 )
@@ -110,7 +110,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(file.FileConfigurerType), "Which configurer to use for configuration management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigmapConfigurerType), "Which configurer to use for configuration management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slack.SlackNotifierType), "Which notifier to use for notification management.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
@@ -128,6 +128,15 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
+
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Address, "", "Address of Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.CAFilePath, "", "Path to CA file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.CrtFilePath, "", "Path to crt file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().Bool(f.Service.Deployer.Installer.Configurer.Configmap.InCluster, true, "Whether draughtsman is running inside a Kubernetes cluster.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Key, "values", "Key in configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.KeyFilePath, "", "Path to key file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Name, "draughtsman", "Name of configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Namespace, "default", "Namespace of configmap holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")
