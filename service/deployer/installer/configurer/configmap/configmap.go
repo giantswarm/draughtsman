@@ -130,7 +130,7 @@ func (c *ConfigmapConfigurer) File() (string, error) {
 
 	valuesData, ok := cm.Data[c.key]
 	if !ok {
-		return "", microerror.MaskAnyf(kubernetesError, "key '%v' not found in configmap", c.key)
+		return "", microerror.MaskAnyf(keyMissingError, "key '%v' not found in configmap", c.key)
 	}
 
 	c.logger.Log("debug", "writing configuration to temp file", "path", c.tempFile.Name())

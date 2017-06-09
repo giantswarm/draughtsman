@@ -11,9 +11,9 @@ func IsInvalidConfig(err error) bool {
 	return errgo.Cause(err) == invalidConfigError
 }
 
-var kubernetesError = errgo.New("kubernetes")
+var keyMissingError = errgo.New("key missing")
 
-// IsKubernetes asserts kubernetesError.
-func IsKubernetes(err error) bool {
-	return errgo.Cause(err) == kubernetesError
+// IsKeyMissing asserts keyMissingError
+func IsKeyMissing(err error) bool {
+	return errgo.Cause(err) == keyMissingError
 }
