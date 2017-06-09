@@ -152,7 +152,7 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	)
 
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.MaskAnyf(err, stdErrBuf.String())
 	}
 
 	if strings.Contains(stdOutBuf.String(), "Error") {
