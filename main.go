@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	nlopesslack "github.com/nlopes/slack"
+	"github.com/nlopes/slack"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -21,7 +21,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
-	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
+	slacknotifier "github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
@@ -82,7 +82,7 @@ func main() {
 
 		var newSlackClient slackspec.Client
 		{
-			newSlackClient = nlopesslack.New(v.GetString(f.Service.SlackToken))
+			newSlackClient = slack.New(v.GetString(f.Service.SlackToken))
 		}
 
 		// Create a new custom service which implements business logic.
@@ -154,7 +154,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigmapConfigurerType), "Which configurer to use for configuration management.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slack.SlackNotifierType), "Which notifier to use for notification management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slacknotifier.SlackNotifierType), "Which notifier to use for notification management.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
 

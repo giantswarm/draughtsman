@@ -10,19 +10,19 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/http"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/version"
-	"github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	HTTPClient       http.Client
+	HTTPClient       httpspec.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
-	SlackClient      slack.Client
+	SlackClient      slackspec.Client
 
 	// Settings.
 	Flag  *flag.Flag

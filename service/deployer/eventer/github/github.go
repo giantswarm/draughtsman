@@ -6,7 +6,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	"github.com/giantswarm/draughtsman/http"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
 
@@ -16,7 +16,7 @@ var GithubEventerType spec.EventerType = "GithubEventer"
 // Config represents the configuration used to create a GitHub Eventer.
 type Config struct {
 	// Dependencies.
-	HTTPClient http.Client
+	HTTPClient httpspec.Client
 	Logger     micrologger.Logger
 
 	Environment  string
@@ -81,7 +81,7 @@ func New(config Config) (*GithubEventer, error) {
 // that uses GitHub Deployment Events as a backend.
 type GithubEventer struct {
 	// Dependencies.
-	client http.Client
+	client httpspec.Client
 	logger micrologger.Logger
 
 	// Settings.

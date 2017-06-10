@@ -8,14 +8,14 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/http"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier"
 	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	"github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -24,10 +24,10 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
-	HTTPClient       http.Client
+	HTTPClient       httpspec.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
-	SlackClient      slack.Client
+	SlackClient      slackspec.Client
 
 	// Settings.
 	Flag  *flag.Flag

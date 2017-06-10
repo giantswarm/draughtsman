@@ -7,7 +7,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/http"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
@@ -15,7 +15,7 @@ import (
 // Config represents the configuration used to create an Eventer.
 type Config struct {
 	// Dependencies.
-	HTTPClient http.Client
+	HTTPClient httpspec.Client
 	Logger     micrologger.Logger
 
 	// Settings.

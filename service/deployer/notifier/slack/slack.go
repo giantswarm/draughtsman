@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	nlopesslack "github.com/nlopes/slack"
+	"github.com/nlopes/slack"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	"github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 const (
@@ -42,7 +42,7 @@ var SlackNotifierType spec.NotifierType = "SlackNotifier"
 type Config struct {
 	// Dependencies.
 	Logger      micrologger.Logger
-	SlackClient slack.Client
+	SlackClient slackspec.Client
 
 	// Settings.
 	Channel     string
@@ -107,7 +107,7 @@ func New(config Config) (*SlackNotifier, error) {
 // that uses Slack.
 type SlackNotifier struct {
 	// Dependencies.
-	client slack.Client
+	client slackspec.Client
 	logger micrologger.Logger
 
 	// Settings.
@@ -128,7 +128,7 @@ func (n *SlackNotifier) postSlackMessage(event eventerspec.DeploymentEvent, erro
 		success = true
 	}
 
-	attachment := nlopesslack.Attachment{}
+	attachment := slack.Attachment{}
 
 	attachment.Color = dangerColour
 	if success {
@@ -144,11 +144,11 @@ func (n *SlackNotifier) postSlackMessage(event eventerspec.DeploymentEvent, erro
 	}
 	attachment.Footer = fmt.Sprintf(footerFormat, n.environment, event.ID)
 
-	params := nlopesslack.PostMessageParameters{}
+	params := slack.PostMessageParameters{}
 
 	params.Username = n.username
 	params.IconEmoji = n.emoji
-	params.Attachments = []nlopesslack.Attachment{attachment}
+	params.Attachments = []slack.Attachment{attachment}
 
 	_, _, err := n.client.PostMessage(n.channel, "", params)
 	if err != nil {
