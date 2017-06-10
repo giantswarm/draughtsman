@@ -7,6 +7,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
@@ -14,7 +15,8 @@ import (
 // Config represents the configuration used to create an Eventer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient http.Client
+	Logger     micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -28,7 +30,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient: nil,
+		Logger:     nil,
 
 		// Settings.
 		Flag:  nil,
@@ -38,11 +41,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured Eventer.
 func New(config Config) (spec.Eventer, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
-	}
-
 	// Settings.
 	if config.Flag == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
@@ -54,15 +52,14 @@ func New(config Config) (spec.Eventer, error) {
 	var err error
 
 	var newEventer spec.Eventer
-
 	switch config.Type {
 	case github.GithubEventerType:
 		githubConfig := github.DefaultConfig()
 
+		githubConfig.HTTPClient = config.HTTPClient
 		githubConfig.Logger = config.Logger
 
 		githubConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Environment)
-		githubConfig.HTTPClientTimeout = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.HTTPClientTimeout)
 		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
 		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)
 		githubConfig.PollInterval = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.PollInterval)

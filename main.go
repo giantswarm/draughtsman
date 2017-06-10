@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"time"
 
@@ -31,7 +32,6 @@ var (
 func main() {
 	var err error
 
-	// Create a new logger which is used by all packages.
 	var newLogger logger.Logger
 	{
 		loggerConfig := logger.DefaultConfig()
@@ -45,11 +45,24 @@ func main() {
 	// We define a server factory to create the custom server once all command
 	// line flags are parsed and all microservice configuration is storted out.
 	newServerFactory := func(v *viper.Viper) microserver.Server {
+		var newHttpClient *http.Client
+		{
+			httpClientTimeout := v.GetDuration(f.Service.HTTPClientTimeout)
+			if httpClientTimeout.Seconds() == 0 {
+				panic("http client timeout must be greater than zero")
+			}
+
+			newHttpClient = &http.Client{
+				Timeout: httpClientTimeout,
+			}
+		}
+
 		// Create a new custom service which implements business logic.
 		var newService *service.Service
 		{
 			serviceConfig := service.DefaultConfig()
 
+			serviceConfig.HTTPClient = newHttpClient
 			serviceConfig.Logger = newLogger
 
 			serviceConfig.Flag = f
@@ -115,7 +128,7 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
 
-	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.HTTPClientTimeout, 10*time.Second, "Timeout for requests to GitHub.")
+	daemonCommand.PersistentFlags().Duration(f.Service.HTTPClientTimeout, 10*time.Second, "Timeout for HTTP requests.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.OAuthToken, "", "OAuth token for authenticating against GitHub. Needs 'repo_deployment' scope.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Organisation, "", "Organisation under which to check for deployments.")
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.PollInterval, 1*time.Minute, "Interval to poll for new deployments.")

@@ -5,5 +5,6 @@ import (
 )
 
 type Service struct {
-	Deployer deployer.Deployer
+	Deployer          deployer.Deployer
+	HTTPClientTimeout string
 }

@@ -9,6 +9,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/version"
 )
@@ -16,7 +17,8 @@ import (
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient http.Client
+	Logger     micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -33,7 +35,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient: nil,
+		Logger:     nil,
 
 		// Settings.
 		Flag:  nil,
@@ -48,9 +51,12 @@ func DefaultConfig() Config {
 
 // New creates a new configured service object.
 func New(config Config) (*Service, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -59,6 +65,7 @@ func New(config Config) (*Service, error) {
 	{
 		deployerConfig := deployer.DefaultConfig()
 
+		deployerConfig.HTTPClient = config.HTTPClient
 		deployerConfig.Logger = config.Logger
 
 		deployerConfig.Flag = config.Flag

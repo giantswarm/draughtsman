@@ -7,6 +7,7 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
@@ -21,7 +22,8 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient http.Client
+	Logger     micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -35,7 +37,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient: nil,
+		Logger:     nil,
 
 		// Settings.
 		Flag:  nil,
@@ -50,12 +53,21 @@ func New(config Config) (Deployer, error) {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+	}
+
 	var err error
 
 	var eventerService eventerspec.Eventer
 	{
 		eventerConfig := eventer.DefaultConfig()
 
+		eventerConfig.HTTPClient = config.HTTPClient
 		eventerConfig.Logger = config.Logger
 
 		eventerConfig.Flag = config.Flag
