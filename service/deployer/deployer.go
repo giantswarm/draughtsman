@@ -124,7 +124,6 @@ func New(config Config) (Deployer, error) {
 	}
 
 	var newService Deployer
-
 	switch config.Type {
 	case StandardDeployer:
 		newService = &standardDeployer{

@@ -52,7 +52,6 @@ func New(config Config) (spec.Notifier, error) {
 	var err error
 
 	var newNotifier spec.Notifier
-
 	switch config.Type {
 	case slack.SlackNotifierType:
 		slackConfig := slack.DefaultConfig()

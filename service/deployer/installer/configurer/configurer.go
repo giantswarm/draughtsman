@@ -53,7 +53,6 @@ func New(config Config) (spec.Configurer, error) {
 	var err error
 
 	var newConfigurer spec.Configurer
-
 	switch config.Type {
 	case configmap.ConfigmapConfigurerType:
 		configmapConfig := configmap.DefaultConfig()

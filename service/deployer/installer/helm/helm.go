@@ -32,8 +32,8 @@ var HelmInstallerType spec.InstallerType = "HelmInstaller"
 // Config represents the configuration used to create a Helm Installer.
 type Config struct {
 	// Dependencies.
-	Logger     micrologger.Logger
 	Configurer configurerspec.Configurer
+	Logger     micrologger.Logger
 
 	// Settings.
 	HelmBinaryPath string
@@ -48,13 +48,20 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger:     nil,
 		Configurer: nil,
+		Logger:     nil,
 	}
 }
 
 // New creates a new configured Helm Installer.
 func New(config Config) (*HelmInstaller, error) {
+	if config.Configurer == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "configurer must not be empty")
+	}
+	if config.Logger == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	}
+
 	if config.HelmBinaryPath == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "helm binary path must not be empty")
 	}
@@ -77,8 +84,8 @@ func New(config Config) (*HelmInstaller, error) {
 
 	installer := &HelmInstaller{
 		// Dependencies.
-		logger:     config.Logger,
 		configurer: config.Configurer,
+		logger:     config.Logger,
 
 		// Settings.
 		helmBinaryPath: config.HelmBinaryPath,
