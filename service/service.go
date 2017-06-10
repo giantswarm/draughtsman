@@ -13,6 +13,7 @@ import (
 	"github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/version"
+	"github.com/giantswarm/draughtsman/slack"
 )
 
 // Config represents the configuration used to create a new service.
@@ -21,6 +22,7 @@ type Config struct {
 	HTTPClient       http.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
+	SlackClient      slack.Client
 
 	// Settings.
 	Flag  *flag.Flag
@@ -40,6 +42,7 @@ func DefaultConfig() Config {
 		HTTPClient:       nil,
 		KubernetesClient: nil,
 		Logger:           nil,
+		SlackClient:      nil,
 
 		// Settings.
 		Flag:  nil,
@@ -71,6 +74,7 @@ func New(config Config) (*Service, error) {
 		deployerConfig.HTTPClient = config.HTTPClient
 		deployerConfig.KubernetesClient = config.KubernetesClient
 		deployerConfig.Logger = config.Logger
+		deployerConfig.SlackClient = config.SlackClient
 
 		deployerConfig.Flag = config.Flag
 		deployerConfig.Viper = config.Viper

@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	nlopesslack "github.com/nlopes/slack"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 var (
@@ -78,6 +80,11 @@ func main() {
 			}
 		}
 
+		var newSlackClient slackspec.Client
+		{
+			newSlackClient = nlopesslack.New(v.GetString(f.Service.SlackToken))
+		}
+
 		// Create a new custom service which implements business logic.
 		var newService *service.Service
 		{
@@ -86,6 +93,7 @@ func main() {
 			serviceConfig.HTTPClient = newHttpClient
 			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger
+			serviceConfig.SlackClient = newSlackClient
 
 			serviceConfig.Flag = f
 			serviceConfig.Viper = v
@@ -175,7 +183,7 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.SlackToken, "", "Token to post Slack notifications with.")
+	daemonCommand.PersistentFlags().String(f.Service.SlackToken, "", "Token to post Slack notifications with.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Username, "draughtsman", "Username to post Slack notifications with.")
 
 	newCommand.CobraCommand().Execute()

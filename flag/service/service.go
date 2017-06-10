@@ -14,4 +14,6 @@ type Service struct {
 	KubernetesCrtFilePath string
 	KubernetesInCluster   string
 	KubernetesKeyFilePath string
+
+	SlackToken string
 }

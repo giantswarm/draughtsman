@@ -15,6 +15,7 @@ import (
 	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier"
 	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	"github.com/giantswarm/draughtsman/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -26,6 +27,7 @@ type Config struct {
 	HTTPClient       http.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
+	SlackClient      slack.Client
 
 	// Settings.
 	Flag  *flag.Flag
@@ -42,6 +44,7 @@ func DefaultConfig() Config {
 		HTTPClient:       nil,
 		KubernetesClient: nil,
 		Logger:           nil,
+		SlackClient:      nil,
 
 		// Settings.
 		Flag:  nil,
@@ -107,6 +110,7 @@ func New(config Config) (Deployer, error) {
 		notifierConfig := notifier.DefaultConfig()
 
 		notifierConfig.Logger = config.Logger
+		notifierConfig.SlackClient = config.SlackClient
 
 		notifierConfig.Flag = config.Flag
 		notifierConfig.Viper = config.Viper
