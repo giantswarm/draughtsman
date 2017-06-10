@@ -10,7 +10,6 @@ import (
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
-	"github.com/giantswarm/operatorkit/client/k8s"
 
 	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
 )
@@ -22,18 +21,14 @@ var ConfigmapConfigurerType spec.ConfigurerType = "ConfigmapConfigurer"
 // Config represents the configuration used to create a Configmap Configurer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
 
 	// Settings.
-	Address     string
-	CAFilePath  string
-	CrtFilePath string
-	InCluster   bool
 	// Key is the key to reference the values data in the configmap.
-	Key         string
-	KeyFilePath string
-	Name        string
-	Namespace   string
+	Key       string
+	Name      string
+	Namespace string
 }
 
 // DefaultConfig provides a default configuration to create a new Configmap
@@ -41,16 +36,18 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		KubernetesClient: nil,
+		Logger:           nil,
 	}
 }
 
 // New creates a new configured Configmap Configurer.
 func New(config Config) (*ConfigmapConfigurer, error) {
-	if !config.InCluster {
-		if config.Address == "" {
-			return nil, microerror.MaskAnyf(invalidConfigError, "address must not be empty")
-		}
+	if config.KubernetesClient == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "kubernetes client must not be empty")
+	}
+	if config.Logger == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
 	if config.Key == "" {
@@ -63,24 +60,8 @@ func New(config Config) (*ConfigmapConfigurer, error) {
 		return nil, microerror.MaskAnyf(invalidConfigError, "namespace must not be empty")
 	}
 
-	k8sConfig := k8s.Config{
-		Logger: config.Logger,
-
-		Address:   config.Address,
-		InCluster: config.InCluster,
-		TLS: k8s.TLSClientConfig{
-			CAFile:  config.CAFilePath,
-			CrtFile: config.CrtFilePath,
-			KeyFile: config.KeyFilePath,
-		},
-	}
-	client, err := k8s.NewClient(k8sConfig)
-	if err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
 	config.Logger.Log("debug", "checking connection to Kubernetes")
-	if _, err := client.CoreV1().Namespaces().Get("default", v1.GetOptions{}); err != nil {
+	if _, err := config.KubernetesClient.CoreV1().Namespaces().Get("default", v1.GetOptions{}); err != nil {
 		return nil, microerror.MaskAny(err)
 	}
 
@@ -92,7 +73,7 @@ func New(config Config) (*ConfigmapConfigurer, error) {
 
 	configurer := &ConfigmapConfigurer{
 		// Dependencies.
-		client: client,
+		client: config.KubernetesClient,
 		logger: config.Logger,
 
 		// Settings.

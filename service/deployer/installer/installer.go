@@ -2,6 +2,7 @@ package installer
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
@@ -16,7 +17,8 @@ import (
 // Config represents the configuration used to create an Installer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -30,7 +32,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		KubernetesClient: nil,
+		Logger:           nil,
 
 		// Settings.
 		Flag:  nil,
@@ -40,11 +43,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured Installer.
 func New(config Config) (spec.Installer, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
-	}
-
 	// Settings.
 	if config.Flag == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
@@ -59,6 +57,7 @@ func New(config Config) (spec.Installer, error) {
 	{
 		configurerConfig := configurer.DefaultConfig()
 
+		configurerConfig.KubernetesClient = config.KubernetesClient
 		configurerConfig.Logger = config.Logger
 
 		configurerConfig.Flag = config.Flag

@@ -2,6 +2,7 @@ package deployer
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
@@ -22,8 +23,9 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
-	HTTPClient http.Client
-	Logger     micrologger.Logger
+	HTTPClient       http.Client
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -37,8 +39,9 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		HTTPClient: nil,
-		Logger:     nil,
+		HTTPClient:       nil,
+		KubernetesClient: nil,
+		Logger:           nil,
 
 		// Settings.
 		Flag:  nil,
@@ -85,6 +88,7 @@ func New(config Config) (Deployer, error) {
 	{
 		installerConfig := installer.DefaultConfig()
 
+		installerConfig.KubernetesClient = config.KubernetesClient
 		installerConfig.Logger = config.Logger
 
 		installerConfig.Flag = config.Flag

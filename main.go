@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/microkit/command"
 	"github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/operatorkit/client/k8s"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/server"
@@ -57,12 +59,32 @@ func main() {
 			}
 		}
 
+		var newKubernetesClient kubernetes.Interface
+		{
+			k8sConfig := k8s.Config{
+				Logger: newLogger,
+
+				Address:   v.GetString(f.Service.KubernetesAddress),
+				InCluster: v.GetBool(f.Service.KubernetesInCluster),
+				TLS: k8s.TLSClientConfig{
+					CAFile:  v.GetString(f.Service.KubernetesCAFilePath),
+					CrtFile: v.GetString(f.Service.KubernetesCrtFilePath),
+					KeyFile: v.GetString(f.Service.KubernetesKeyFilePath),
+				},
+			}
+			newKubernetesClient, err = k8s.NewClient(k8sConfig)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		// Create a new custom service which implements business logic.
 		var newService *service.Service
 		{
 			serviceConfig := service.DefaultConfig()
 
 			serviceConfig.HTTPClient = newHttpClient
+			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger
 
 			serviceConfig.Flag = f
@@ -142,12 +164,12 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
 
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Address, "", "Address of Kubernetes API server.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.CAFilePath, "", "Path to CA file for Kubernetes API server.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.CrtFilePath, "", "Path to crt file for Kubernetes API server.")
-	daemonCommand.PersistentFlags().Bool(f.Service.Deployer.Installer.Configurer.Configmap.InCluster, true, "Whether draughtsman is running inside a Kubernetes cluster.")
+	daemonCommand.PersistentFlags().String(f.Service.KubernetesAddress, "", "Address of Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.KubernetesCAFilePath, "", "Path to CA file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.KubernetesCrtFilePath, "", "Path to crt file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().Bool(f.Service.KubernetesInCluster, true, "Whether draughtsman is running inside a Kubernetes cluster.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Key, "values", "Key in configmap holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.KeyFilePath, "", "Path to key file for Kubernetes API server.")
+	daemonCommand.PersistentFlags().String(f.Service.KubernetesKeyFilePath, "", "Path to key file for Kubernetes API server.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Name, "draughtsman", "Name of configmap holding values data.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Namespace, "default", "Namespace of configmap holding values data.")
 

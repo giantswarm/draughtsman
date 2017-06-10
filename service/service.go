@@ -4,6 +4,7 @@ package service
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
@@ -17,8 +18,9 @@ import (
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	HTTPClient http.Client
-	Logger     micrologger.Logger
+	HTTPClient       http.Client
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -35,8 +37,9 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		HTTPClient: nil,
-		Logger:     nil,
+		HTTPClient:       nil,
+		KubernetesClient: nil,
+		Logger:           nil,
 
 		// Settings.
 		Flag:  nil,
@@ -66,6 +69,7 @@ func New(config Config) (*Service, error) {
 		deployerConfig := deployer.DefaultConfig()
 
 		deployerConfig.HTTPClient = config.HTTPClient
+		deployerConfig.KubernetesClient = config.KubernetesClient
 		deployerConfig.Logger = config.Logger
 
 		deployerConfig.Flag = config.Flag
