@@ -2,17 +2,20 @@ package deployer
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier"
 	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -21,7 +24,10 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient       httpspec.Client
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
+	SlackClient      slackspec.Client
 
 	// Settings.
 	Flag  *flag.Flag
@@ -35,7 +41,10 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient:       nil,
+		KubernetesClient: nil,
+		Logger:           nil,
+		SlackClient:      nil,
 
 		// Settings.
 		Flag:  nil,
@@ -50,12 +59,21 @@ func New(config Config) (Deployer, error) {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+	}
+
 	var err error
 
 	var eventerService eventerspec.Eventer
 	{
 		eventerConfig := eventer.DefaultConfig()
 
+		eventerConfig.HTTPClient = config.HTTPClient
 		eventerConfig.Logger = config.Logger
 
 		eventerConfig.Flag = config.Flag
@@ -73,6 +91,7 @@ func New(config Config) (Deployer, error) {
 	{
 		installerConfig := installer.DefaultConfig()
 
+		installerConfig.KubernetesClient = config.KubernetesClient
 		installerConfig.Logger = config.Logger
 
 		installerConfig.Flag = config.Flag
@@ -91,6 +110,7 @@ func New(config Config) (Deployer, error) {
 		notifierConfig := notifier.DefaultConfig()
 
 		notifierConfig.Logger = config.Logger
+		notifierConfig.SlackClient = config.SlackClient
 
 		notifierConfig.Flag = config.Flag
 		notifierConfig.Viper = config.Viper
@@ -104,7 +124,6 @@ func New(config Config) (Deployer, error) {
 	}
 
 	var newService Deployer
-
 	switch config.Type {
 	case StandardDeployer:
 		newService = &standardDeployer{

@@ -2,6 +2,7 @@ package configurer
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
@@ -15,7 +16,8 @@ import (
 // Config represents the configuration used to create a Configurer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
 
 	// Settings.
 	Flag  *flag.Flag
@@ -29,7 +31,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		KubernetesClient: nil,
+		Logger:           nil,
 
 		// Settings.
 		Flag:  nil,
@@ -39,11 +42,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured Configurer.
 func New(config Config) (spec.Configurer, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
-	}
-
 	// Settings.
 	if config.Flag == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
@@ -55,19 +53,14 @@ func New(config Config) (spec.Configurer, error) {
 	var err error
 
 	var newConfigurer spec.Configurer
-
 	switch config.Type {
 	case configmap.ConfigmapConfigurerType:
 		configmapConfig := configmap.DefaultConfig()
 
+		configmapConfig.KubernetesClient = config.KubernetesClient
 		configmapConfig.Logger = config.Logger
 
-		configmapConfig.Address = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Address)
-		configmapConfig.CAFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.CAFilePath)
-		configmapConfig.CrtFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.CrtFilePath)
-		configmapConfig.InCluster = config.Viper.GetBool(config.Flag.Service.Deployer.Installer.Configurer.Configmap.InCluster)
 		configmapConfig.Key = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Key)
-		configmapConfig.KeyFilePath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.KeyFilePath)
 		configmapConfig.Name = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Name)
 		configmapConfig.Namespace = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Namespace)
 

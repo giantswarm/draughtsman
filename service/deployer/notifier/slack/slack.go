@@ -11,6 +11,7 @@ import (
 
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 const (
@@ -40,13 +41,13 @@ var SlackNotifierType spec.NotifierType = "SlackNotifier"
 // Config represents the configuration used to create a Slack Notifier..
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	Logger      micrologger.Logger
+	SlackClient slackspec.Client
 
 	// Settings.
 	Channel     string
 	Emoji       string
 	Environment string
-	SlackToken  string
 	Username    string
 }
 
@@ -55,12 +56,20 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		Logger:      nil,
+		SlackClient: nil,
 	}
 }
 
 // New creates a new configured Slack Notifier.
 func New(config Config) (*SlackNotifier, error) {
+	if config.Logger == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	}
+	if config.SlackClient == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "slack client must not be empty")
+	}
+
 	if config.Channel == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "channel must not be empty")
 	}
@@ -70,30 +79,24 @@ func New(config Config) (*SlackNotifier, error) {
 	if config.Environment == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
 	}
-	if config.SlackToken == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "slack token must not be empty")
-	}
 	if config.Username == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "username must not be empty")
 	}
 
-	client := slack.New(config.SlackToken)
-
 	config.Logger.Log("debug", "checking connection to Slack")
-	if _, err := client.AuthTest(); err != nil {
+	if _, err := config.SlackClient.AuthTest(); err != nil {
 		return nil, microerror.MaskAnyf(err, "could not authenticate with slack")
 	}
 
 	notifier := &SlackNotifier{
 		// Dependencies.
-		client: client,
+		client: config.SlackClient,
 		logger: config.Logger,
 
 		// Settings.
 		channel:     config.Channel,
 		emoji:       config.Emoji,
 		environment: config.Environment,
-		slackToken:  config.SlackToken,
 		username:    config.Username,
 	}
 
@@ -104,14 +107,13 @@ func New(config Config) (*SlackNotifier, error) {
 // that uses Slack.
 type SlackNotifier struct {
 	// Dependencies.
-	client *slack.Client
+	client slackspec.Client
 	logger micrologger.Logger
 
 	// Settings.
 	channel     string
 	emoji       string
 	environment string
-	slackToken  string
 	username    string
 }
 

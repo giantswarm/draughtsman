@@ -32,6 +32,10 @@ func DefaultConfig() Config {
 
 // New creates a new configured File Configurer.
 func New(config Config) (*FileConfigurer, error) {
+	if config.Logger == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	}
+
 	if config.Path == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "path must not be empty")
 	}

@@ -4,19 +4,25 @@ package service
 
 import (
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/version"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient       httpspec.Client
+	KubernetesClient kubernetes.Interface
+	Logger           micrologger.Logger
+	SlackClient      slackspec.Client
 
 	// Settings.
 	Flag  *flag.Flag
@@ -33,7 +39,10 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient:       nil,
+		KubernetesClient: nil,
+		Logger:           nil,
+		SlackClient:      nil,
 
 		// Settings.
 		Flag:  nil,
@@ -48,9 +57,12 @@ func DefaultConfig() Config {
 
 // New creates a new configured service object.
 func New(config Config) (*Service, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -59,7 +71,10 @@ func New(config Config) (*Service, error) {
 	{
 		deployerConfig := deployer.DefaultConfig()
 
+		deployerConfig.HTTPClient = config.HTTPClient
+		deployerConfig.KubernetesClient = config.KubernetesClient
 		deployerConfig.Logger = config.Logger
+		deployerConfig.SlackClient = config.SlackClient
 
 		deployerConfig.Flag = config.Flag
 		deployerConfig.Viper = config.Viper

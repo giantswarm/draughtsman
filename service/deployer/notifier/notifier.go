@@ -9,12 +9,14 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // Config represents the configuration used to create a Notifier.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	Logger      micrologger.Logger
+	SlackClient slackspec.Client
 
 	// Settings.
 	Flag  *flag.Flag
@@ -28,7 +30,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		Logger:      nil,
+		SlackClient: nil,
 
 		// Settings.
 		Flag:  nil,
@@ -38,11 +41,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured Notifier.
 func New(config Config) (spec.Notifier, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
-	}
-
 	// Settings.
 	if config.Flag == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
@@ -54,17 +52,16 @@ func New(config Config) (spec.Notifier, error) {
 	var err error
 
 	var newNotifier spec.Notifier
-
 	switch config.Type {
 	case slack.SlackNotifierType:
 		slackConfig := slack.DefaultConfig()
 
 		slackConfig.Logger = config.Logger
+		slackConfig.SlackClient = config.SlackClient
 
 		slackConfig.Channel = config.Viper.GetString(config.Flag.Service.Deployer.Notifier.Slack.Channel)
 		slackConfig.Emoji = config.Viper.GetString(config.Flag.Service.Deployer.Notifier.Slack.Emoji)
 		slackConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Environment)
-		slackConfig.SlackToken = config.Viper.GetString(config.Flag.Service.Deployer.Notifier.Slack.SlackToken)
 		slackConfig.Username = config.Viper.GetString(config.Flag.Service.Deployer.Notifier.Slack.Username)
 
 		newNotifier, err = slack.New(slackConfig)

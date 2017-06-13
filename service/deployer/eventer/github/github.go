@@ -1,12 +1,12 @@
 package github
 
 import (
-	"net/http"
 	"time"
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
+	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 )
 
@@ -16,14 +16,14 @@ var GithubEventerType spec.EventerType = "GithubEventer"
 // Config represents the configuration used to create a GitHub Eventer.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	HTTPClient httpspec.Client
+	Logger     micrologger.Logger
 
-	Environment       string
-	HTTPClientTimeout time.Duration
-	OAuthToken        string
-	Organisation      string
-	PollInterval      time.Duration
-	ProjectList       []string
+	Environment  string
+	OAuthToken   string
+	Organisation string
+	PollInterval time.Duration
+	ProjectList  []string
 }
 
 // DefaultConfig provides a default configuration to create a new GitHub
@@ -31,17 +31,22 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger: nil,
+		HTTPClient: nil,
+		Logger:     nil,
 	}
 }
 
 // New creates a new configured GitHub Eventer.
 func New(config Config) (*GithubEventer, error) {
+	if config.HTTPClient == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "http client must not be empty")
+	}
+	if config.Logger == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+	}
+
 	if config.Environment == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
-	}
-	if config.HTTPClientTimeout.Seconds() == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "http client timeout must be greater than zero")
 	}
 	if config.OAuthToken == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "oauth token must not be empty")
@@ -58,9 +63,7 @@ func New(config Config) (*GithubEventer, error) {
 
 	eventer := &GithubEventer{
 		// Dependencies.
-		client: &http.Client{
-			Timeout: config.HTTPClientTimeout,
-		},
+		client: config.HTTPClient,
 		logger: config.Logger,
 
 		// Settings.
@@ -78,7 +81,7 @@ func New(config Config) (*GithubEventer, error) {
 // that uses GitHub Deployment Events as a backend.
 type GithubEventer struct {
 	// Dependencies.
-	client *http.Client
+	client httpspec.Client
 	logger micrologger.Logger
 
 	// Settings.
