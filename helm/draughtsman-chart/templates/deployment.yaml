@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: draughtsman
+  namespace: draughtsman
+  labels:
+    app: draughtsman
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: draughtsman
+    spec:
+      volumes:
+      - name: configmap
+        configMap:
+          name: draughtsman
+      - name: secret
+        secret:
+          secretName: draughtsman
+      containers:
+      - name: draughtsman
+        image: quay.io/giantswarm/draughtsman:{{ .SHA }}
+        args:
+        - "daemon"
+        - "--config.dirs=/var/run/draughtsman/configmap/"
+        - "--config.dirs=/var/run/draughtsman/secret/"
+        - "--config.files=config"
+        - "--config.files=secret"
+        volumeMounts:
+        - name: configmap
+          mountPath: /var/run/draughtsman/configmap/
+          readOnly: true
+        - name: secret
+          mountPath: /var/run/draughtsman/secret/
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+      imagePullSecrets:
+      - name: giantswarm-registry
