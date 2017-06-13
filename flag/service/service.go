@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/giantswarm/draughtsman/flag/service/deployer"
+	"github.com/giantswarm/draughtsman/flag/service/kubernetes"
 )
 
 type Service struct {
@@ -9,11 +10,7 @@ type Service struct {
 
 	HTTPClientTimeout string
 
-	KubernetesAddress     string
-	KubernetesCAFilePath  string
-	KubernetesCrtFilePath string
-	KubernetesInCluster   string
-	KubernetesKeyFilePath string
+	Kubernetes kubernetes.Kubernetes
 
 	SlackToken string
 }

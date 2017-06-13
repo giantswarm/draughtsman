@@ -66,12 +66,12 @@ func main() {
 			k8sConfig := k8s.Config{
 				Logger: newLogger,
 
-				Address:   v.GetString(f.Service.KubernetesAddress),
-				InCluster: v.GetBool(f.Service.KubernetesInCluster),
+				Address:   v.GetString(f.Service.Kubernetes.Address),
+				InCluster: v.GetBool(f.Service.Kubernetes.InCluster),
 				TLS: k8s.TLSClientConfig{
-					CAFile:  v.GetString(f.Service.KubernetesCAFilePath),
-					CrtFile: v.GetString(f.Service.KubernetesCrtFilePath),
-					KeyFile: v.GetString(f.Service.KubernetesKeyFilePath),
+					CAFile:  v.GetString(f.Service.Kubernetes.TLS.CaFile),
+					CrtFile: v.GetString(f.Service.Kubernetes.TLS.CrtFile),
+					KeyFile: v.GetString(f.Service.Kubernetes.TLS.KeyFile),
 				},
 			}
 			newKubernetesClient, err = k8s.NewClient(k8sConfig)
@@ -172,12 +172,13 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
 
-	daemonCommand.PersistentFlags().String(f.Service.KubernetesAddress, "", "Address of Kubernetes API server.")
-	daemonCommand.PersistentFlags().String(f.Service.KubernetesCAFilePath, "", "Path to CA file for Kubernetes API server.")
-	daemonCommand.PersistentFlags().String(f.Service.KubernetesCrtFilePath, "", "Path to crt file for Kubernetes API server.")
-	daemonCommand.PersistentFlags().Bool(f.Service.KubernetesInCluster, true, "Whether draughtsman is running inside a Kubernetes cluster.")
+	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.Address, "", "Address used to connect to Kubernetes. When empty in-cluster config is created.")
+	daemonCommand.PersistentFlags().Bool(f.Service.Kubernetes.InCluster, true, "Whether to use the in-cluster config to authenticate with Kubernetes.")
+	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.CaFile, "", "Certificate authority file path to use to authenticate with Kubernetes.")
+	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.CrtFile, "", "Certificate file path to use to authenticate with Kubernetes.")
+	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.KeyFile, "", "Key file path to use to authenticate with Kubernetes.")
+
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Key, "values", "Key in configmap holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.KubernetesKeyFilePath, "", "Path to key file for Kubernetes API server.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Name, "draughtsman", "Name of configmap holding values data.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Namespace, "default", "Namespace of configmap holding values data.")
 
