@@ -82,7 +82,7 @@ func main() {
 
 		var newSlackClient slackspec.Client
 		{
-			newSlackClient = slack.New(v.GetString(f.Service.SlackToken))
+			newSlackClient = slack.New(v.GetString(f.Service.Slack.Token))
 		}
 
 		// Create a new custom service which implements business logic.
@@ -184,7 +184,7 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")
-	daemonCommand.PersistentFlags().String(f.Service.SlackToken, "", "Token to post Slack notifications with.")
+	daemonCommand.PersistentFlags().String(f.Service.Slack.Token, "", "Token to post Slack notifications with.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Username, "draughtsman", "Username to post Slack notifications with.")
 
 	newCommand.CobraCommand().Execute()
