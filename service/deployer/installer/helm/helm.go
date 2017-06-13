@@ -219,14 +219,15 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		return microerror.MaskAny(err)
 	}
 
-	if err := i.runHelmCommand(
-		"install",
-		"install",
-		tarballPath,
+	installCommand := []string{
+		"upgrade",
+		"--install",
 		"--values",
 		valuesFile,
-		"--wait",
-	); err != nil {
+		project,
+		tarballPath,
+	}
+	if err := i.runHelmCommand("install", installCommand...); err != nil {
 		return microerror.MaskAny(err)
 	}
 
