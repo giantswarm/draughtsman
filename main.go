@@ -51,7 +51,7 @@ func main() {
 	newServerFactory := func(v *viper.Viper) microserver.Server {
 		var newHttpClient *http.Client
 		{
-			httpClientTimeout := v.GetDuration(f.Service.HTTPClientTimeout)
+			httpClientTimeout := v.GetDuration(f.Service.HTTPClient.Timeout)
 			if httpClientTimeout.Seconds() == 0 {
 				panic("http client timeout must be greater than zero")
 			}
@@ -158,7 +158,7 @@ func main() {
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
 
-	daemonCommand.PersistentFlags().Duration(f.Service.HTTPClientTimeout, 10*time.Second, "Timeout for HTTP requests.")
+	daemonCommand.PersistentFlags().Duration(f.Service.HTTPClient.Timeout, 10*time.Second, "Timeout for HTTP requests.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.OAuthToken, "", "OAuth token for authenticating against GitHub. Needs 'repo_deployment' scope.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.GitHub.Organisation, "", "Organisation under which to check for deployments.")
 	daemonCommand.PersistentFlags().Duration(f.Service.Deployer.Eventer.GitHub.PollInterval, 1*time.Minute, "Interval to poll for new deployments.")

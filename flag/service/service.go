@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/giantswarm/draughtsman/flag/service/deployer"
+	"github.com/giantswarm/draughtsman/flag/service/httpclient"
 	"github.com/giantswarm/draughtsman/flag/service/kubernetes"
 	"github.com/giantswarm/draughtsman/flag/service/slack"
 )
@@ -9,8 +10,7 @@ import (
 type Service struct {
 	Deployer deployer.Deployer
 
-	HTTPClientTimeout string
-
+	HTTPClient httpclient.HTTPClient
 	Kubernetes kubernetes.Kubernetes
 	Slack      slack.Slack
 }
