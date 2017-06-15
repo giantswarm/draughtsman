@@ -1,6 +1,8 @@
 package eventer
 
 import (
+	"strings"
+
 	"github.com/spf13/viper"
 
 	microerror "github.com/giantswarm/microkit/error"
@@ -63,7 +65,9 @@ func New(config Config) (spec.Eventer, error) {
 		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
 		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)
 		githubConfig.PollInterval = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.PollInterval)
-		githubConfig.ProjectList = config.Viper.GetStringSlice(config.Flag.Service.Deployer.Eventer.GitHub.ProjectList)
+
+		projectList := config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.ProjectList)
+		githubConfig.ProjectList = strings.Split(projectList, ",")
 
 		newEventer, err = github.New(githubConfig)
 		if err != nil {
