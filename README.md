@@ -21,7 +21,7 @@ metadata:
     app: draughtsman
 type: Opaque
 data:
-  secret.yml: <SECRET-CONFIGURATION-BASE64-ENCODED-HERE>
+  secret.yaml: <SECRET-CONFIGURATION-BASE64-ENCODED-HERE>
 ```
 
 with the secret configuration (for example) as follows:
