@@ -57,4 +57,4 @@ spec:
             cpu: 100m
             memory: 100Mi
       imagePullSecrets:
-      - name: giantswarm-registry
+      - name: draughtsman-pull-secret
