@@ -22,7 +22,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 	slacknotifier "github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 var (

@@ -8,14 +8,14 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer"
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer"
 	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier"
 	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	httpspec "github.com/giantswarm/draughtsman/service/http"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.

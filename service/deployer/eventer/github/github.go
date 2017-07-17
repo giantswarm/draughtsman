@@ -6,8 +6,8 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	httpspec "github.com/giantswarm/draughtsman/service/http"
 )
 
 // GithubEventerType is an Eventer that uses Github Deployment Events as a backend.

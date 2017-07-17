@@ -11,7 +11,7 @@ import (
 
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 const (
