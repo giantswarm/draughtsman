@@ -7,8 +7,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
-	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	"github.com/giantswarm/draughtsman/service/notifier/slack"
+	"github.com/giantswarm/draughtsman/service/notifier/spec"
 	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 

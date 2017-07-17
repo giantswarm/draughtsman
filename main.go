@@ -20,8 +20,8 @@ import (
 	"github.com/giantswarm/draughtsman/service/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
-	slacknotifier "github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 	"github.com/giantswarm/draughtsman/service/eventer/github"
+	slacknotifier "github.com/giantswarm/draughtsman/service/notifier/slack"
 	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
