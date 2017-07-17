@@ -32,8 +32,8 @@ var HelmInstallerType spec.InstallerType = "HelmInstaller"
 // Config represents the configuration used to create a Helm Installer.
 type Config struct {
 	// Dependencies.
-	Configurer configurerspec.Configurer
-	Logger     micrologger.Logger
+	Configurers []configurerspec.Configurer
+	Logger      micrologger.Logger
 
 	// Settings.
 	HelmBinaryPath string
@@ -48,15 +48,15 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Configurer: nil,
-		Logger:     nil,
+		Configurers: nil,
+		Logger:      nil,
 	}
 }
 
 // New creates a new configured Helm Installer.
 func New(config Config) (*HelmInstaller, error) {
-	if config.Configurer == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "configurer must not be empty")
+	if config.Configurers == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "configurers must not be empty")
 	}
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
@@ -84,8 +84,8 @@ func New(config Config) (*HelmInstaller, error) {
 
 	installer := &HelmInstaller{
 		// Dependencies.
-		configurer: config.Configurer,
-		logger:     config.Logger,
+		configurers: config.Configurers,
+		logger:      config.Logger,
 
 		// Settings.
 		helmBinaryPath: config.HelmBinaryPath,
@@ -106,8 +106,8 @@ func New(config Config) (*HelmInstaller, error) {
 // that uses Helm to install charts.
 type HelmInstaller struct {
 	// Dependencies.
-	logger     micrologger.Logger
-	configurer configurerspec.Configurer
+	configurers []configurerspec.Configurer
+	logger      micrologger.Logger
 
 	// Settings.
 	helmBinaryPath string
@@ -214,21 +214,32 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	i.logger.Log("debug", "downloaded chart", "tarball", tarballPath)
 
-	valuesFile, err := i.configurer.File()
-	if err != nil {
-		return microerror.MaskAny(err)
+	// The intaller accepts multiple configurers during initialization. Here we
+	// iterate over all of them to get all the files they provide.
+	var valuesFilesArgs []string
+	for _, c := range i.configurers {
+		fileName, err := c.File()
+		if err != nil {
+			return microerror.MaskAny(err)
+		}
+		valuesFilesArgs = append(valuesFilesArgs, "--values", fileName)
 	}
 
-	installCommand := []string{
-		"upgrade",
-		"--install",
-		"--values",
-		valuesFile,
-		project,
-		tarballPath,
-	}
-	if err := i.runHelmCommand("install", installCommand...); err != nil {
-		return microerror.MaskAny(err)
+	// The arguments used to execute Helm for app installation can take multiple
+	// values files. At the end the command looks something like this.
+	//
+	//     helm upgrade --install --values ${file1} --values $(file2) ${project} ${tarball_path}
+	//
+	var installCommand []string
+	{
+		installCommand = append(installCommand, "upgrade", "--install")
+		installCommand = append(installCommand, valuesFilesArgs...)
+		installCommand = append(installCommand, project, tarballPath)
+
+		err := i.runHelmCommand("install", installCommand...)
+		if err != nil {
+			return microerror.MaskAny(err)
+		}
 	}
 
 	return nil

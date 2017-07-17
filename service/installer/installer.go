@@ -78,7 +78,7 @@ func New(config Config) (spec.Installer, error) {
 	case helm.HelmInstallerType:
 		helmConfig := helm.DefaultConfig()
 
-		helmConfig.Configurer = configurerService
+		helmConfig.Configurers = []configurerspec.Configurer{configurerService}
 		helmConfig.Logger = config.Logger
 
 		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
