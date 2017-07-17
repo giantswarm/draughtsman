@@ -10,8 +10,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer"
+	httpspec "github.com/giantswarm/draughtsman/service/http"
 	"github.com/giantswarm/draughtsman/service/version"
 	slackspec "github.com/giantswarm/draughtsman/slack"
 )

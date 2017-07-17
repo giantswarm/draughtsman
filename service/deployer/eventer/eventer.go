@@ -9,9 +9,9 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	httpspec "github.com/giantswarm/draughtsman/http"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
 	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	httpspec "github.com/giantswarm/draughtsman/service/http"
 )
 
 // Config represents the configuration used to create an Eventer.
