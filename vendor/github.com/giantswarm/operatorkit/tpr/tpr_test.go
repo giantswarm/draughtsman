@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/pkg/api/v1"
 )
@@ -23,13 +24,12 @@ func newClientset(nodes int) *fake.Clientset {
 func TestKindGroupAndAPIVersion(t *testing.T) {
 	clientset := newClientset(3)
 
-	config := Config{
-		Clientset: clientset,
+	config := DefaultConfig()
+	config.K8sClient = clientset
 
-		Name:        "test-name.example.com",
-		Version:     "v1test1",
-		Description: "Test Desc",
-	}
+	config.Name = "test-name.example.com"
+	config.Version = "v1test1"
+	config.Description = "Test Desc"
 
 	tpr, err := New(config)
 	assert.NoError(t, err, "New")
@@ -45,13 +45,12 @@ func TestKindGroupAndAPIVersion(t *testing.T) {
 func TestEndpoint(t *testing.T) {
 	clientset := newClientset(3)
 
-	config := Config{
-		Clientset: clientset,
+	config := DefaultConfig()
+	config.K8sClient = clientset
 
-		Name:        "test-name.example.com",
-		Version:     "v1test1",
-		Description: "Test Desc",
-	}
+	config.Name = "test-name.example.com"
+	config.Version = "v1test1"
+	config.Description = "Test Desc"
 
 	tpr, err := New(config)
 	assert.NoError(t, err, "New")
@@ -78,13 +77,12 @@ func TestEndpoint(t *testing.T) {
 func TestWatchEndpoint(t *testing.T) {
 	clientset := newClientset(3)
 
-	config := Config{
-		Clientset: clientset,
+	config := DefaultConfig()
+	config.K8sClient = clientset
 
-		Name:        "test-name.example.com",
-		Version:     "v1test1",
-		Description: "Test Desc",
-	}
+	config.Name = "test-name.example.com"
+	config.Version = "v1test1"
+	config.Description = "Test Desc"
 
 	tpr, err := New(config)
 	assert.NoError(t, err, "New")
@@ -111,24 +109,23 @@ func TestWatchEndpoint(t *testing.T) {
 func TestCreateTPR(t *testing.T) {
 	clientset := newClientset(3)
 
-	config := Config{
-		Clientset: clientset,
+	config := DefaultConfig()
+	config.K8sClient = clientset
 
-		Name:        "test-name.example.com",
-		Version:     "v1test1",
-		Description: "Test Desc",
-	}
+	config.Name = "test-name.example.com"
+	config.Version = "v1test1"
+	config.Description = "Test Desc"
 
 	tpr, err := New(config)
 	assert.NoError(t, err, "New")
 
-	resp, err := clientset.ExtensionsV1beta1().ThirdPartyResources().List(v1.ListOptions{})
+	resp, err := clientset.ExtensionsV1beta1().ThirdPartyResources().List(apismetav1.ListOptions{})
 	assert.Equal(t, 0, len(resp.Items))
 
 	err = tpr.create()
 	assert.Nil(t, err)
 
-	resp, err = clientset.ExtensionsV1beta1().ThirdPartyResources().List(v1.ListOptions{})
+	resp, err = clientset.ExtensionsV1beta1().ThirdPartyResources().List(apismetav1.ListOptions{})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(resp.Items))
 	assert.Equal(t, config.Name, resp.Items[0].Name)
