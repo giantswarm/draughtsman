@@ -10,8 +10,8 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/configurer"
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
+	"github.com/giantswarm/draughtsman/service/installer/helm"
+	"github.com/giantswarm/draughtsman/service/installer/spec"
 )
 
 // Config represents the configuration used to create an Installer.
