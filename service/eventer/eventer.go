@@ -9,8 +9,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	"github.com/giantswarm/draughtsman/service/eventer/github"
+	"github.com/giantswarm/draughtsman/service/eventer/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
 )
 

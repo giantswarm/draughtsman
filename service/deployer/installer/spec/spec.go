@@ -1,7 +1,7 @@
 package spec
 
 import (
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	"github.com/giantswarm/draughtsman/service/eventer/spec"
 )
 
 // InstallerType represents the type of Installer to configure.

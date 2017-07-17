@@ -1,7 +1,7 @@
 package github
 
 import (
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
+	"github.com/giantswarm/draughtsman/service/eventer/spec"
 )
 
 // deployment represents a GitHub API Deployment.
