@@ -22,23 +22,23 @@ func TestFilterDeploymentsByEnvironment(t *testing.T) {
 		// Test that a deployment for the installation is kept.
 		{
 			deployments: []deployment{
-				deployment{Environment: "production"},
+				{Environment: "production"},
 			},
 			environment: "production",
 			expectedDeployments: []deployment{
-				deployment{Environment: "production"},
+				{Environment: "production"},
 			},
 		},
 
 		// Test that only this environment's deployments are kept.
 		{
 			deployments: []deployment{
-				deployment{Environment: "development"},
-				deployment{Environment: "production"},
+				{Environment: "development"},
+				{Environment: "production"},
 			},
 			environment: "development",
 			expectedDeployments: []deployment{
-				deployment{Environment: "development"},
+				{Environment: "development"},
 			},
 		},
 	}
@@ -74,16 +74,16 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 		// Test that a pending deployment is kept.
 		{
 			deployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: pendingState},
+						{State: pendingState},
 					},
 				},
 			},
 			expectedDeployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: pendingState},
+						{State: pendingState},
 					},
 				},
 			},
@@ -92,9 +92,9 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 		// Test that a success only deployment is not kept.
 		{
 			deployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: successState},
+						{State: successState},
 					},
 				},
 			},
@@ -104,9 +104,9 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 		// Test that a failure only deployment is not kept.
 		{
 			deployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: failureState},
+						{State: failureState},
 					},
 				},
 			},
@@ -116,10 +116,10 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 		// Test that a deployment that was pending, and is now successful, is not kept.
 		{
 			deployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: pendingState},
-						deploymentStatus{State: successState},
+						{State: pendingState},
+						{State: successState},
 					},
 				},
 			},
@@ -129,10 +129,10 @@ func TestFilterDeploymentsByStatus(t *testing.T) {
 		// Test that a deployment that was pending, and is now failed, is not kept.
 		{
 			deployments: []deployment{
-				deployment{
+				{
 					Statuses: []deploymentStatus{
-						deploymentStatus{State: pendingState},
-						deploymentStatus{State: failureState},
+						{State: pendingState},
+						{State: failureState},
 					},
 				},
 			},

@@ -8,8 +8,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer"
-	configurerspec "github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
+	"github.com/giantswarm/draughtsman/service/configurer"
+	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )

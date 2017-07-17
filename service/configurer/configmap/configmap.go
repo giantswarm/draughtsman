@@ -11,7 +11,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
+	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
 // ConfigmapConfigurerType is a Configurer that is backed by a Kubernetes

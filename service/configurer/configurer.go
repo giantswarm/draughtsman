@@ -8,9 +8,9 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/file"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
+	"github.com/giantswarm/draughtsman/service/configurer/configmap"
+	"github.com/giantswarm/draughtsman/service/configurer/file"
+	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
 // Config represents the configuration used to create a Configurer.

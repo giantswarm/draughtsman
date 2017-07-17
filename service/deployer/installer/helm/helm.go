@@ -12,8 +12,8 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
+	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
 	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
-	configurerspec "github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
 	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
 )
 

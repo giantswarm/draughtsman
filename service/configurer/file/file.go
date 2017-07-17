@@ -6,7 +6,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/spec"
+	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
 // FileConfigurerType is a Configurer that uses a normal file.
