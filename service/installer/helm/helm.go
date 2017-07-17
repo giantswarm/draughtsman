@@ -13,8 +13,8 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
-	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/spec"
+	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
+	"github.com/giantswarm/draughtsman/service/installer/spec"
 )
 
 const (

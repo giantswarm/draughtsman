@@ -9,8 +9,8 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 
-	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
-	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
+	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
+	"github.com/giantswarm/draughtsman/service/notifier/spec"
 	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
