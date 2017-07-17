@@ -9,7 +9,7 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
 	"github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 // Config represents the configuration used to create a Notifier.

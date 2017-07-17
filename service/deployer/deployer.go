@@ -15,7 +15,7 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer/notifier"
 	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.

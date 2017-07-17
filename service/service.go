@@ -12,8 +12,8 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 	"github.com/giantswarm/draughtsman/service/version"
-	slackspec "github.com/giantswarm/draughtsman/slack"
 )
 
 // Config represents the configuration used to create a new service.
