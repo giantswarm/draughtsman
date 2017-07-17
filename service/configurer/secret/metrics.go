@@ -1,4 +1,4 @@
-package configmap
+package secret
 
 import (
 	"time"
@@ -13,7 +13,7 @@ const (
 
 	// prometheusSubsystem is the subsystem to use for Prometheus metrics.
 	// See: https://godoc.org/github.com/prometheus/client_golang/prometheus#Opts
-	prometheusSubsystem = "configmap_configurer"
+	prometheusSubsystem = "secret_configurer"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_duration_milliseconds",
-			Help:      "Time taken to request Configmap manifests from Kubernetes.",
+			Help:      "Time taken to request Secret manifests from Kubernetes.",
 		},
 	)
 	requestTotal = prometheus.NewCounter(
@@ -30,7 +30,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_total",
-			Help:      "Number of requests to fetch Configmap manifests from Kubernetes.",
+			Help:      "Number of requests to fetch Secret manifests from Kubernetes.",
 		},
 	)
 )
@@ -40,7 +40,7 @@ func init() {
 	prometheus.MustRegister(requestTotal)
 }
 
-func updateConfigmapMetrics(startTime time.Time) {
+func updateSecretMetrics(startTime time.Time) {
 	requestDuration.Set(float64(time.Since(startTime) / time.Millisecond))
 	requestTotal.Inc()
 }
