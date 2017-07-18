@@ -55,7 +55,7 @@ func New(config Config) (spec.Configurer, error) {
 
 	var newConfigurer spec.Configurer
 	switch config.Type {
-	case configmap.ConfigMapConfigurerType:
+	case configmap.ConfigurerType:
 		configmapConfig := configmap.DefaultConfig()
 
 		configmapConfig.KubernetesClient = config.KubernetesClient
@@ -70,7 +70,7 @@ func New(config Config) (spec.Configurer, error) {
 			return nil, microerror.MaskAny(err)
 		}
 
-	case file.FileConfigurerType:
+	case file.ConfigurerType:
 		fileConfig := file.DefaultConfig()
 
 		fileConfig.Logger = config.Logger
@@ -82,7 +82,7 @@ func New(config Config) (spec.Configurer, error) {
 			return nil, microerror.MaskAny(err)
 		}
 
-	case secret.SecretConfigurerType:
+	case secret.ConfigurerType:
 		secretConfig := secret.DefaultConfig()
 
 		secretConfig.KubernetesClient = config.KubernetesClient
