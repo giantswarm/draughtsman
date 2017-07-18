@@ -7,7 +7,7 @@ import (
 )
 
 type Configurer struct {
-	Configmap configmap.Configmap
+	ConfigMap configmap.ConfigMap
 	File      file.File
 	Secret    secret.Secret
 	Type      string

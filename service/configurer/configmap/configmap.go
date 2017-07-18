@@ -14,11 +14,11 @@ import (
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
-// ConfigmapConfigurerType is a Configurer that is backed by a Kubernetes
-// Configmap.
-var ConfigmapConfigurerType spec.ConfigurerType = "ConfigmapConfigurer"
+// ConfigMapConfigurerType is a Configurer that is backed by a Kubernetes
+// ConfigMap.
+var ConfigMapConfigurerType spec.ConfigurerType = "ConfigMapConfigurer"
 
-// Config represents the configuration used to create a Configmap Configurer.
+// Config represents the configuration used to create a ConfigMap Configurer.
 type Config struct {
 	// Dependencies.
 	KubernetesClient kubernetes.Interface
@@ -31,7 +31,7 @@ type Config struct {
 	Namespace string
 }
 
-// DefaultConfig provides a default configuration to create a new Configmap
+// DefaultConfig provides a default configuration to create a new ConfigMap
 // Configurer by best effort.
 func DefaultConfig() Config {
 	return Config{
@@ -41,8 +41,8 @@ func DefaultConfig() Config {
 	}
 }
 
-// New creates a new configured Configmap Configurer.
-func New(config Config) (*ConfigmapConfigurer, error) {
+// New creates a new configured ConfigMap Configurer.
+func New(config Config) (*ConfigMapConfigurer, error) {
 	if config.KubernetesClient == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "kubernetes client must not be empty")
 	}
@@ -71,7 +71,7 @@ func New(config Config) (*ConfigmapConfigurer, error) {
 		return nil, microerror.MaskAny(err)
 	}
 
-	configurer := &ConfigmapConfigurer{
+	configurer := &ConfigMapConfigurer{
 		// Dependencies.
 		client: config.KubernetesClient,
 		logger: config.Logger,
@@ -86,9 +86,9 @@ func New(config Config) (*ConfigmapConfigurer, error) {
 	return configurer, nil
 }
 
-// ConfigmapConfigurer is an implementation of the Configurer interface,
-// that uses a Kubernetes Configmap to hold configuration.
-type ConfigmapConfigurer struct {
+// ConfigMapConfigurer is an implementation of the Configurer interface,
+// that uses a Kubernetes ConfigMap to hold configuration.
+type ConfigMapConfigurer struct {
 	// Dependencies.
 	client kubernetes.Interface
 	logger micrologger.Logger
@@ -100,8 +100,8 @@ type ConfigmapConfigurer struct {
 	tempFile  *os.File
 }
 
-func (c *ConfigmapConfigurer) File() (string, error) {
-	defer updateConfigmapMetrics(time.Now())
+func (c *ConfigMapConfigurer) File() (string, error) {
+	defer updateConfigMapMetrics(time.Now())
 
 	c.logger.Log("debug", "fetching configuration from configmap", "name", c.name, "namespace", c.namespace)
 
