@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nlopes/slack"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -90,6 +91,7 @@ func main() {
 		{
 			serviceConfig := service.DefaultConfig()
 
+			serviceConfig.FileSystem = afero.NewOsFs()
 			serviceConfig.HTTPClient = newHttpClient
 			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger

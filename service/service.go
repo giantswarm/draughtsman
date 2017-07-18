@@ -3,6 +3,7 @@
 package service
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -19,6 +20,7 @@ import (
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
+	FileSystem       afero.Fs
 	HTTPClient       httpspec.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
@@ -39,6 +41,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		FileSystem:       afero.NewMemMapFs(),
 		HTTPClient:       nil,
 		KubernetesClient: nil,
 		Logger:           nil,
@@ -71,6 +74,7 @@ func New(config Config) (*Service, error) {
 	{
 		deployerConfig := deployer.DefaultConfig()
 
+		deployerConfig.FileSystem = config.FileSystem
 		deployerConfig.HTTPClient = config.HTTPClient
 		deployerConfig.KubernetesClient = config.KubernetesClient
 		deployerConfig.Logger = config.Logger

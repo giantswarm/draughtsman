@@ -1,6 +1,7 @@
 package configurer
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -17,6 +18,7 @@ import (
 // Config represents the configuration used to create a Configurer.
 type Config struct {
 	// Dependencies.
+	FileSystem       afero.Fs
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
 
@@ -32,6 +34,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		FileSystem:       afero.NewMemMapFs(),
 		KubernetesClient: nil,
 		Logger:           nil,
 
@@ -73,6 +76,7 @@ func New(config Config) (spec.Configurer, error) {
 	case file.ConfigurerType:
 		fileConfig := file.DefaultConfig()
 
+		fileConfig.FileSystem = config.FileSystem
 		fileConfig.Logger = config.Logger
 
 		fileConfig.Path = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.File.Path)
