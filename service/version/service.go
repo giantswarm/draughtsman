@@ -1,9 +1,8 @@
 package version
 
 import (
+	"context"
 	"runtime"
-
-	"golang.org/x/net/context"
 
 	microerror "github.com/giantswarm/microkit/error"
 )

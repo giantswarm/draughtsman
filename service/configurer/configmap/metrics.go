@@ -22,7 +22,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_duration_milliseconds",
-			Help:      "Time taken to request Configmaps.",
+			Help:      "Time taken to request Configmap manifests from Kubernetes.",
 		},
 	)
 	requestTotal = prometheus.NewCounter(
@@ -30,7 +30,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_total",
-			Help:      "Number of Configmap requests.",
+			Help:      "Number of requests to fetch Configmap manifests from Kubernetes.",
 		},
 	)
 )

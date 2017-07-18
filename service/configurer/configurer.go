@@ -10,6 +10,7 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/configurer/file"
+	"github.com/giantswarm/draughtsman/service/configurer/secret"
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
@@ -77,6 +78,21 @@ func New(config Config) (spec.Configurer, error) {
 		fileConfig.Path = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.File.Path)
 
 		newConfigurer, err = file.New(fileConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+
+	case secret.SecretConfigurerType:
+		secretConfig := secret.DefaultConfig()
+
+		secretConfig.KubernetesClient = config.KubernetesClient
+		secretConfig.Logger = config.Logger
+
+		secretConfig.Key = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Secret.Key)
+		secretConfig.Name = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Secret.Name)
+		secretConfig.Namespace = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Secret.Namespace)
+
+		newConfigurer, err = secret.New(secretConfig)
 		if err != nil {
 			return nil, microerror.MaskAny(err)
 		}
