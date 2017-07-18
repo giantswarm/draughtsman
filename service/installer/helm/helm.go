@@ -276,20 +276,6 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, project, tarballPath)
 
-		// TODO debug
-		{
-			fmt.Printf("installCommand: %#v\n", installCommand)
-			fileInfos, err := afero.ReadDir(i.fileSystem, tmpDir)
-			fmt.Printf("fileInfos: %#v\n", fileInfos)
-			fmt.Printf("err: %#v\n", err)
-			for _, i := range fileInfos {
-				fmt.Printf("i: %#v\n", i)
-				fmt.Printf("i.Name(): %#v\n", i.Name())
-			}
-			fmt.Printf("sleeping 10 minutes\n")
-			time.Sleep(10 * time.Minute)
-		}
-
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
 			return microerror.MaskAny(err)
