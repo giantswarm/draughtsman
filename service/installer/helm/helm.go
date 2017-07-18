@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -250,7 +251,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	// values file we have to create a file in the tmp dir we created above.
 	var valuesFilesArgs []string
 	for _, c := range i.configurers {
-		fileName := fmt.Sprintf("%s-values.yaml", strings.ToLower(string(c.Type())))
+		fileName := filepath.Join(tmpDir, fmt.Sprintf("%s-values.yaml", strings.ToLower(string(c.Type()))))
 		values, err := c.Values()
 		if err != nil {
 			return microerror.MaskAny(err)
