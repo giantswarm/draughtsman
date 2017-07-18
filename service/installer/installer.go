@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -17,6 +18,7 @@ import (
 // Config represents the configuration used to create an Installer.
 type Config struct {
 	// Dependencies.
+	FileSystem       afero.Fs
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
 
@@ -32,6 +34,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		FileSystem:       afero.NewMemMapFs(),
 		KubernetesClient: nil,
 		Logger:           nil,
 
@@ -57,6 +60,7 @@ func New(config Config) (spec.Installer, error) {
 	{
 		configurerConfig := configurer.DefaultConfig()
 
+		configurerConfig.FileSystem = config.FileSystem
 		configurerConfig.KubernetesClient = config.KubernetesClient
 		configurerConfig.Logger = config.Logger
 

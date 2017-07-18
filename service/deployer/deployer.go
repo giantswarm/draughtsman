@@ -1,6 +1,7 @@
 package deployer
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -24,6 +25,7 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
+	FileSystem       afero.Fs
 	HTTPClient       httpspec.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
@@ -31,9 +33,8 @@ type Config struct {
 
 	// Settings.
 	Flag  *flag.Flag
+	Type  DeployerType
 	Viper *viper.Viper
-
-	Type DeployerType
 }
 
 // DefaultConfig provides a default configuration to create a new Deployer
@@ -41,6 +42,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		FileSystem:       afero.NewMemMapFs(),
 		HTTPClient:       nil,
 		KubernetesClient: nil,
 		Logger:           nil,
@@ -48,6 +50,7 @@ func DefaultConfig() Config {
 
 		// Settings.
 		Flag:  nil,
+		Type:  "",
 		Viper: nil,
 	}
 }
@@ -91,6 +94,7 @@ func New(config Config) (Deployer, error) {
 	{
 		installerConfig := installer.DefaultConfig()
 
+		installerConfig.FileSystem = config.FileSystem
 		installerConfig.KubernetesClient = config.KubernetesClient
 		installerConfig.Logger = config.Logger
 

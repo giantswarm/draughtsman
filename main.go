@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nlopes/slack"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -90,6 +91,7 @@ func main() {
 		{
 			serviceConfig := service.DefaultConfig()
 
+			serviceConfig.FileSystem = afero.NewOsFs()
 			serviceConfig.HTTPClient = newHttpClient
 			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger
@@ -156,7 +158,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigMapConfigurerType), "Which configurer to use for configuration management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigurerType), "Which configurer to use for configuration management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slacknotifier.SlackNotifierType), "Which notifier to use for notification management.")
 
 	// Client configuration.

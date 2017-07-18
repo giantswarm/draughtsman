@@ -1,8 +1,6 @@
 package secret
 
 import (
-	"io/ioutil"
-	"os"
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,9 +14,9 @@ import (
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
 
-// SecretConfigurerType is a Configurer that is backed by a Kubernetes
+// ConfigurerType is the kind of a Configurer that is backed by a Kubernetes
 // Secret.
-var SecretConfigurerType spec.ConfigurerType = "SecretConfigurer"
+var ConfigurerType spec.ConfigurerType = "SecretConfigurer"
 
 // Config represents the configuration used to create a Secret Configurer.
 type Config struct {
@@ -27,6 +25,7 @@ type Config struct {
 	Logger           micrologger.Logger
 
 	// Settings.
+
 	// Key is the key to reference the values data in the secret.
 	Key       string
 	Name      string
@@ -40,11 +39,17 @@ func DefaultConfig() Config {
 		// Dependencies.
 		KubernetesClient: nil,
 		Logger:           nil,
+
+		// Settings.
+		Key:       "",
+		Name:      "",
+		Namespace: "",
 	}
 }
 
 // New creates a new configured Secret Configurer.
 func New(config Config) (*SecretConfigurer, error) {
+	// Dependencies.
 	if config.KubernetesClient == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "kubernetes client must not be empty")
 	}
@@ -52,6 +57,7 @@ func New(config Config) (*SecretConfigurer, error) {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
+	// Settings.
 	if config.Key == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "key must not be empty")
 	}
@@ -63,12 +69,7 @@ func New(config Config) (*SecretConfigurer, error) {
 	}
 
 	config.Logger.Log("debug", "checking connection to Kubernetes")
-	if _, err := config.KubernetesClient.CoreV1().Namespaces().Get("default", v1.GetOptions{}); err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
-	// Create a temporary file to use for holding the values file for Helm to read.
-	tempFile, err := ioutil.TempFile("", "draughtsman")
+	_, err := config.KubernetesClient.CoreV1().Namespaces().Get("default", v1.GetOptions{})
 	if err != nil {
 		return nil, microerror.MaskAny(err)
 	}
@@ -88,12 +89,11 @@ func New(config Config) (*SecretConfigurer, error) {
 
 	configurer := &SecretConfigurer{
 		// Dependencies.
-		client: config.KubernetesClient,
-		logger: config.Logger,
+		kubernetesClient: config.KubernetesClient,
+		logger:           config.Logger,
 
 		// Internals.
 		decodeModifier: decodeModifier,
-		tempFile:       tempFile,
 
 		// Settings.
 		key:       config.Key,
@@ -108,12 +108,11 @@ func New(config Config) (*SecretConfigurer, error) {
 // a Kubernetes Secret to hold configuration.
 type SecretConfigurer struct {
 	// Dependencies.
-	client kubernetes.Interface
-	logger micrologger.Logger
+	kubernetesClient kubernetes.Interface
+	logger           micrologger.Logger
 
 	// Internals.
 	decodeModifier valuemodifier.ValueModifier
-	tempFile       *os.File
 
 	// Settings.
 	key       string
@@ -121,12 +120,16 @@ type SecretConfigurer struct {
 	namespace string
 }
 
-func (c *SecretConfigurer) File() (string, error) {
+func (c *SecretConfigurer) Type() spec.ConfigurerType {
+	return ConfigurerType
+}
+
+func (c *SecretConfigurer) Values() (string, error) {
 	defer updateSecretMetrics(time.Now())
 
 	c.logger.Log("debug", "fetching configuration from secret", "name", c.name, "namespace", c.namespace)
 
-	s, err := c.client.CoreV1().Secrets(c.namespace).Get(c.name, v1.GetOptions{})
+	s, err := c.kubernetesClient.CoreV1().Secrets(c.namespace).Get(c.name, v1.GetOptions{})
 	if err != nil {
 		return "", microerror.MaskAny(err)
 	}
@@ -144,12 +147,5 @@ func (c *SecretConfigurer) File() (string, error) {
 		valuesData = string(m)
 	}
 
-	c.logger.Log("debug", "writing credentials to temp file", "path", c.tempFile.Name())
-
-	_, err = c.tempFile.WriteString(valuesData)
-	if err != nil {
-		return "", microerror.MaskAny(err)
-	}
-
-	return c.tempFile.Name(), nil
+	return valuesData, nil
 }

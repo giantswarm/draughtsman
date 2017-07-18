@@ -5,6 +5,10 @@ type ConfigurerType string
 
 // Configurer represents a Service that provides a Helm configuration file.
 type Configurer interface {
-	// File returns a path to a file to use for Helm values.
-	File() (string, error)
+	// Type returns the configurer type of the current implementation.
+	Type() ConfigurerType
+	// Values returns content of a file to use for Helm values. The caller is
+	// responsible for persisting and cleaning up eventual files on the file
+	// system.
+	Values() (string, error)
 }

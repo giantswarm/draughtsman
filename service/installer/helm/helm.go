@@ -11,6 +11,7 @@ import (
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/spf13/afero"
 
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
 	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
@@ -33,6 +34,7 @@ var HelmInstallerType spec.InstallerType = "HelmInstaller"
 type Config struct {
 	// Dependencies.
 	Configurers []configurerspec.Configurer
+	FileSystem  afero.Fs
 	Logger      micrologger.Logger
 
 	// Settings.
@@ -49,19 +51,32 @@ func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
 		Configurers: nil,
+		FileSystem:  afero.NewMemMapFs(),
 		Logger:      nil,
+
+		// Settings.
+		HelmBinaryPath: "",
+		Organisation:   "",
+		Password:       "",
+		Registry:       "",
+		Username:       "",
 	}
 }
 
 // New creates a new configured Helm Installer.
 func New(config Config) (*HelmInstaller, error) {
+	// Dependencies.
 	if config.Configurers == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "configurers must not be empty")
+	}
+	if config.FileSystem == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "file system must not be empty")
 	}
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 
+	// Settings.
 	if config.HelmBinaryPath == "" {
 		return nil, microerror.MaskAnyf(invalidConfigError, "helm binary path must not be empty")
 	}
@@ -85,6 +100,7 @@ func New(config Config) (*HelmInstaller, error) {
 	installer := &HelmInstaller{
 		// Dependencies.
 		configurers: config.Configurers,
+		fileSystem:  config.FileSystem,
 		logger:      config.Logger,
 
 		// Settings.
@@ -107,6 +123,7 @@ func New(config Config) (*HelmInstaller, error) {
 type HelmInstaller struct {
 	// Dependencies.
 	configurers []configurerspec.Configurer
+	fileSystem  afero.Fs
 	logger      micrologger.Logger
 
 	// Settings.
@@ -143,7 +160,7 @@ func (i *HelmInstaller) tarballName(project, sha string) string {
 func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	i.logger.Log("debug", "running helm command", "name", name)
 
-	startTime := time.Now()
+	defer updateHelmMetrics(name, time.Now())
 
 	cmd := exec.Command(i.helmBinaryPath, args...)
 
@@ -165,8 +182,6 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	if strings.Contains(stdOutBuf.String(), "Error") {
 		return microerror.MaskAnyf(helmError, stdOutBuf.String())
 	}
-
-	updateHelmMetrics(name, startTime)
 
 	return nil
 }
@@ -214,14 +229,38 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	i.logger.Log("debug", "downloaded chart", "tarball", tarballPath)
 
-	// The intaller accepts multiple configurers during initialization. Here we
-	// iterate over all of them to get all the files they provide.
-	var valuesFilesArgs []string
-	for _, c := range i.configurers {
-		fileName, err := c.File()
+	// We create a tmp dir in which all Helm values files are written to. After we
+	// are done we can just remove the whole tmp dir to clean up.
+	var tmpDir string
+	{
+		tmpDir, err = afero.TempDir(i.fileSystem, "", "draughtsman-installer")
 		if err != nil {
 			return microerror.MaskAny(err)
 		}
+		defer func() {
+			err := i.fileSystem.RemoveAll(tmpDir)
+			if err != nil {
+				i.logger.Log("error", fmt.Sprintf("could not remove tmp dir: %#v", err), "name", project, "sha", sha)
+			}
+		}()
+	}
+
+	// The intaller accepts multiple configurers during initialization. Here we
+	// iterate over all of them to get all the values they provide. For each
+	// values file we have to create a file in the tmp dir we created above.
+	var valuesFilesArgs []string
+	for _, c := range i.configurers {
+		fileName := fmt.Sprintf("%s-values.yaml", strings.ToLower(string(c.Type())))
+		values, err := c.Values()
+		if err != nil {
+			return microerror.MaskAny(err)
+		}
+
+		err = afero.WriteFile(i.fileSystem, fileName, []byte(values), os.FileMode(0644))
+		if err != nil {
+			return microerror.MaskAny(err)
+		}
+
 		valuesFilesArgs = append(valuesFilesArgs, "--values", fileName)
 	}
 
