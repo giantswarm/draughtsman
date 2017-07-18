@@ -29,3 +29,4 @@ import:
 - package: google.golang.org/grpc
   version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
 - package: github.com/giantswarm/valuemodifier
+- package: github.com/spf13/afero
