@@ -83,6 +83,7 @@ func New(config Config) (spec.Installer, error) {
 		helmConfig := helm.DefaultConfig()
 
 		helmConfig.Configurers = []configurerspec.Configurer{configurerService}
+		helmConfig.FileSystem = config.FileSystem
 		helmConfig.Logger = config.Logger
 
 		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
