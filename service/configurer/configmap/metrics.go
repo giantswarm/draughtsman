@@ -22,7 +22,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_duration_milliseconds",
-			Help:      "Time taken to request Configmap manifests from Kubernetes.",
+			Help:      "Time taken to request ConfigMap manifests from Kubernetes.",
 		},
 	)
 	requestTotal = prometheus.NewCounter(
@@ -30,7 +30,7 @@ var (
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
 			Name:      "request_total",
-			Help:      "Number of requests to fetch Configmap manifests from Kubernetes.",
+			Help:      "Number of requests to fetch ConfigMap manifests from Kubernetes.",
 		},
 	)
 )
@@ -40,7 +40,7 @@ func init() {
 	prometheus.MustRegister(requestTotal)
 }
 
-func updateConfigmapMetrics(startTime time.Time) {
+func updateConfigMapMetrics(startTime time.Time) {
 	requestDuration.Set(float64(time.Since(startTime) / time.Millisecond))
 	requestTotal.Inc()
 }

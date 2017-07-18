@@ -55,15 +55,15 @@ func New(config Config) (spec.Configurer, error) {
 
 	var newConfigurer spec.Configurer
 	switch config.Type {
-	case configmap.ConfigmapConfigurerType:
+	case configmap.ConfigMapConfigurerType:
 		configmapConfig := configmap.DefaultConfig()
 
 		configmapConfig.KubernetesClient = config.KubernetesClient
 		configmapConfig.Logger = config.Logger
 
-		configmapConfig.Key = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Key)
-		configmapConfig.Name = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Name)
-		configmapConfig.Namespace = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Configmap.Namespace)
+		configmapConfig.Key = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.ConfigMap.Key)
+		configmapConfig.Name = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.ConfigMap.Name)
+		configmapConfig.Namespace = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.ConfigMap.Namespace)
 
 		newConfigurer, err = configmap.New(configmapConfig)
 		if err != nil {
