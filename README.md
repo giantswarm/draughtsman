@@ -21,7 +21,7 @@ metadata:
     app: draughtsman
 type: Opaque
 data:
-  secret.yml: <SECRET-CONFIGURATION-BASE64-ENCODED-HERE>
+  secret.yaml: <SECRET-CONFIGURATION-BASE64-ENCODED-HERE>
 ```
 
 with the secret configuration (for example) as follows:
@@ -49,7 +49,7 @@ service:
 
 This file needs to be updated, the file contents base64 encoded, and then inserted into the secret.
 
-A second ConfigMap is also necessary, if using the ConfigMap Configurer (the default). 
+A second ConfigMap is also necessary, if using the ConfigMap Configurer (the default).
 By default, this configmap is named `draughtsman-values`, and is in the `draughtsman` namespace.
 
 For example:
