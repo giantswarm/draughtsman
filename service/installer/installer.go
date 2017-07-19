@@ -59,8 +59,8 @@ func New(config Config) (spec.Installer, error) {
 	var err error
 
 	var configurerServices []configurerspec.Configurer
-	split := strings.Split(config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Types), ",")
-	for _, t := range split {
+	types := strings.Split(config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Types), ",")
+	for _, t := range types {
 		configurerConfig := configurer.DefaultConfig()
 
 		configurerConfig.FileSystem = config.FileSystem
