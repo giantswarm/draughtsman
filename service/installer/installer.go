@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"strings"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
@@ -56,8 +58,9 @@ func New(config Config) (spec.Installer, error) {
 
 	var err error
 
-	var configurerService configurerspec.Configurer
-	{
+	var configurerServices []configurerspec.Configurer
+	types := strings.Split(config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Types), ",")
+	for _, t := range types {
 		configurerConfig := configurer.DefaultConfig()
 
 		configurerConfig.FileSystem = config.FileSystem
@@ -65,16 +68,15 @@ func New(config Config) (spec.Installer, error) {
 		configurerConfig.Logger = config.Logger
 
 		configurerConfig.Flag = config.Flag
+		configurerConfig.Type = configurerspec.ConfigurerType(t)
 		configurerConfig.Viper = config.Viper
 
-		configurerConfig.Type = configurerspec.ConfigurerType(
-			config.Viper.GetString(config.Flag.Service.Deployer.Installer.Configurer.Type),
-		)
-
-		configurerService, err = configurer.New(configurerConfig)
+		configurerService, err := configurer.New(configurerConfig)
 		if err != nil {
 			return nil, microerror.MaskAny(err)
 		}
+
+		configurerServices = append(configurerServices, configurerService)
 	}
 
 	var newInstaller spec.Installer
@@ -82,7 +84,7 @@ func New(config Config) (spec.Installer, error) {
 	case helm.HelmInstallerType:
 		helmConfig := helm.DefaultConfig()
 
-		helmConfig.Configurers = []configurerspec.Configurer{configurerService}
+		helmConfig.Configurers = configurerServices
 		helmConfig.FileSystem = config.FileSystem
 		helmConfig.Logger = config.Logger
 

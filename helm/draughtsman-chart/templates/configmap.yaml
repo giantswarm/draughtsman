@@ -4,7 +4,7 @@ metadata:
   name: draughtsman
   namespace: draughtsman
 data:
-  config.yml: |
+  config.yaml: |
     server:
       listen:
         address: 'http://0.0.0.0:8000'
