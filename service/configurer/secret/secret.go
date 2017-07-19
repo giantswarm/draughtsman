@@ -8,8 +8,6 @@ import (
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
-	"github.com/giantswarm/valuemodifier"
-	decodemodifier "github.com/giantswarm/valuemodifier/base64/decode"
 
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
@@ -74,26 +72,10 @@ func New(config Config) (*SecretConfigurer, error) {
 		return nil, microerror.MaskAny(err)
 	}
 
-	// The content of the secret manifests we are fetching is base64 decoded. We
-	// need an decoder to write the secret data to the values file Helm can use.
-	// We use the decoder from the valuemodifier package we also use to decode
-	// them in opsctl.
-	var decodeModifier valuemodifier.ValueModifier
-	{
-		modifierConfig := decodemodifier.DefaultConfig()
-		decodeModifier, err = decodemodifier.New(modifierConfig)
-		if err != nil {
-			return nil, microerror.MaskAny(err)
-		}
-	}
-
 	configurer := &SecretConfigurer{
 		// Dependencies.
 		kubernetesClient: config.KubernetesClient,
 		logger:           config.Logger,
-
-		// Internals.
-		decodeModifier: decodeModifier,
 
 		// Settings.
 		key:       config.Key,
@@ -110,9 +92,6 @@ type SecretConfigurer struct {
 	// Dependencies.
 	kubernetesClient kubernetes.Interface
 	logger           micrologger.Logger
-
-	// Internals.
-	decodeModifier valuemodifier.ValueModifier
 
 	// Settings.
 	key       string
@@ -140,11 +119,7 @@ func (c *SecretConfigurer) Values() (string, error) {
 		if !ok {
 			return "", microerror.MaskAnyf(keyMissingError, "key '%v' not found in secret", c.key)
 		}
-		m, err := c.decodeModifier.Modify(b)
-		if err != nil {
-			return "", microerror.MaskAny(err)
-		}
-		valuesData = string(m)
+		valuesData = string(b)
 	}
 
 	return valuesData, nil
