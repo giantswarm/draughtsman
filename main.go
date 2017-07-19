@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nlopes/slack"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -17,12 +18,12 @@ import (
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/server"
 	"github.com/giantswarm/draughtsman/service"
+	"github.com/giantswarm/draughtsman/service/configurer/configmap"
 	"github.com/giantswarm/draughtsman/service/deployer"
-	"github.com/giantswarm/draughtsman/service/deployer/eventer/github"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/configurer/configmap"
-	"github.com/giantswarm/draughtsman/service/deployer/installer/helm"
-	slacknotifier "github.com/giantswarm/draughtsman/service/deployer/notifier/slack"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	"github.com/giantswarm/draughtsman/service/eventer/github"
+	"github.com/giantswarm/draughtsman/service/installer/helm"
+	slacknotifier "github.com/giantswarm/draughtsman/service/notifier/slack"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 var (
@@ -90,6 +91,7 @@ func main() {
 		{
 			serviceConfig := service.DefaultConfig()
 
+			serviceConfig.FileSystem = afero.NewOsFs()
 			serviceConfig.HTTPClient = newHttpClient
 			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger
@@ -156,7 +158,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigmapConfigurerType), "Which configurer to use for configuration management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigurerType), "Which configurer to use for configuration management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slacknotifier.SlackNotifierType), "Which notifier to use for notification management.")
 
 	// Client configuration.
@@ -182,11 +184,15 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Registry, "quay.io", "URL for Helm CNR registry.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")
 
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Key, "values", "Key in configmap holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Name, "draughtsman-values", "Name of configmap holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Configmap.Namespace, "draughtsman", "Namespace of configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Key, "values", "Key in configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Name, "draughtsman-values", "Name of configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Namespace, "draughtsman", "Namespace of configmap holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
+
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Key, "values", "Key in secret holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Name, "draughtsman-values", "Name of secret holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Namespace, "draughtsman", "Namespace of secret holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")

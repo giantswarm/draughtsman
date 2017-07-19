@@ -1,6 +1,7 @@
 package deployer
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -8,14 +9,14 @@ import (
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	httpspec "github.com/giantswarm/draughtsman/http"
-	"github.com/giantswarm/draughtsman/service/deployer/eventer"
-	eventerspec "github.com/giantswarm/draughtsman/service/deployer/eventer/spec"
-	"github.com/giantswarm/draughtsman/service/deployer/installer"
-	installerspec "github.com/giantswarm/draughtsman/service/deployer/installer/spec"
-	"github.com/giantswarm/draughtsman/service/deployer/notifier"
-	notifierspec "github.com/giantswarm/draughtsman/service/deployer/notifier/spec"
-	slackspec "github.com/giantswarm/draughtsman/slack"
+	"github.com/giantswarm/draughtsman/service/eventer"
+	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
+	httpspec "github.com/giantswarm/draughtsman/service/http"
+	"github.com/giantswarm/draughtsman/service/installer"
+	installerspec "github.com/giantswarm/draughtsman/service/installer/spec"
+	"github.com/giantswarm/draughtsman/service/notifier"
+	notifierspec "github.com/giantswarm/draughtsman/service/notifier/spec"
+	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
 
 // DeployerType represents the type of Deployer to configure.
@@ -24,6 +25,7 @@ type DeployerType string
 // Config represents the configuration used to create a Deployer.
 type Config struct {
 	// Dependencies.
+	FileSystem       afero.Fs
 	HTTPClient       httpspec.Client
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
@@ -31,9 +33,8 @@ type Config struct {
 
 	// Settings.
 	Flag  *flag.Flag
+	Type  DeployerType
 	Viper *viper.Viper
-
-	Type DeployerType
 }
 
 // DefaultConfig provides a default configuration to create a new Deployer
@@ -41,6 +42,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		FileSystem:       afero.NewMemMapFs(),
 		HTTPClient:       nil,
 		KubernetesClient: nil,
 		Logger:           nil,
@@ -48,6 +50,7 @@ func DefaultConfig() Config {
 
 		// Settings.
 		Flag:  nil,
+		Type:  "",
 		Viper: nil,
 	}
 }
@@ -91,6 +94,7 @@ func New(config Config) (Deployer, error) {
 	{
 		installerConfig := installer.DefaultConfig()
 
+		installerConfig.FileSystem = config.FileSystem
 		installerConfig.KubernetesClient = config.KubernetesClient
 		installerConfig.Logger = config.Logger
 

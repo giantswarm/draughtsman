@@ -1,6 +1,6 @@
 package configmap
 
-type Configmap struct {
+type ConfigMap struct {
 	Key       string
 	Name      string
 	Namespace string
