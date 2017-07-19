@@ -192,7 +192,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Key, "values", "Key in secret holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Name, "draughtsman-values", "Name of secret holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Name, "draughtsman-values-secret", "Name of secret holding values data.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Namespace, "draughtsman", "Namespace of secret holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")
