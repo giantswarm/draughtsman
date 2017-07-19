@@ -19,6 +19,7 @@ import (
 	"github.com/giantswarm/draughtsman/server"
 	"github.com/giantswarm/draughtsman/service"
 	"github.com/giantswarm/draughtsman/service/configurer/configmap"
+	"github.com/giantswarm/draughtsman/service/configurer/secret"
 	"github.com/giantswarm/draughtsman/service/deployer"
 	"github.com/giantswarm/draughtsman/service/eventer/github"
 	"github.com/giantswarm/draughtsman/service/installer/helm"
@@ -158,7 +159,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Eventer.Type, string(github.GithubEventerType), "Which eventer to use for event management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Type, string(helm.HelmInstallerType), "Which installer to use for installation management.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Type, string(configmap.ConfigurerType), "Which configurer to use for configuration management.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Types, string(configmap.ConfigurerType)+","+string(secret.ConfigurerType), "Comma separated list of configurers to use for configuration management.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Type, string(slacknotifier.SlackNotifierType), "Which notifier to use for notification management.")
 
 	// Client configuration.
@@ -191,7 +192,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Key, "values", "Key in secret holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Name, "draughtsman-values", "Name of secret holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Name, "draughtsman-values-secret", "Name of secret holding values data.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.Secret.Namespace, "draughtsman", "Namespace of secret holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Channel, "", "Channel to post Slack notifications to.")

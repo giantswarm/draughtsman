@@ -10,5 +10,5 @@ type Configurer struct {
 	ConfigMap configmap.ConfigMap
 	File      file.File
 	Secret    secret.Secret
-	Type      string
+	Types     string
 }
