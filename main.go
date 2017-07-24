@@ -186,7 +186,7 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Helm.Username, "", "Username for Helm CNR registry.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Key, "values", "Key in configmap holding values data.")
-	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Name, "draughtsman-values", "Name of configmap holding values data.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Name, "draughtsman-values-configmap", "Name of configmap holding values data.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.ConfigMap.Namespace, "draughtsman", "Namespace of configmap holding values data.")
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Installer.Configurer.File.Path, "", "Path to values file.")
