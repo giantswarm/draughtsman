@@ -4,7 +4,7 @@ RUN apt-get -y update \
     && apt-get -y install \
     wget
 
-RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.4.2-linux-amd64.tar.gz -qO- | tar xzf - linux-amd64/helm \
+RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.5.0-linux-amd64.tar.gz -qO- | tar xzf - linux-amd64/helm \
     && chmod +x ./linux-amd64/helm \
     && mv ./linux-amd64/helm /bin/helm \
     && rm -rf ./linux-amd64
