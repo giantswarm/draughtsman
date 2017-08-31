@@ -180,7 +180,8 @@ Installation:
 ## Deployments
 Github deployments events are created by interacting with the github API directly. Run the following curl command in order to create a deployment event manually:
 ```
-curl --request POST   --url https://api.github.com/repos/yourorg/yourproject/deployments  --header 'authorization: token XXX'   --header 'content-type: application/json'   --data '{  "ref": "XXX",  "environment": "incluster-minikube",     "auto_merge": false }' ```
+curl --request POST   --url https://api.github.com/repos/yourorg/yourproject/deployments  --header 'authorization: token XXX'   --header 'content-type: application/json'   --data '{  "ref": "XXX",  "environment": "incluster-minikube",     "auto_merge": false }'
+```
 
 Note that the project has to be in the projectlist of the `values.yaml` from above. The authorization token has to be a github oauthtoken with deploy rights and the `ref` has to be the commit SHA.
 
