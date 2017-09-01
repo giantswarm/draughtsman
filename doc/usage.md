@@ -228,7 +228,7 @@ Note that the project has to be in the projectlist of the `values.yaml` and `dra
 A successful deployment should produce log outputs in draughtsman similar to these and be reported to slack:
 ```
 {... "debug":"fetching deployments","project":"XXX", ...}
-{... "debug":"found new deployment events","project":"XXX","time":"17-08-31 08:40:55.047"}
+{... "debug":"found new deployment events","project":"XXX", ...}
 {... "debug":"posting deployment status","id":XXX,"project":"XXX","state":"pending", ...}
 {... "debug":"installing chart","name":"XXX","sha":"XXX", ...}
 {... "debug":"running helm command","name":"pull", ...}
