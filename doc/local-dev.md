@@ -1,6 +1,8 @@
 #### Goal
 The following steps are going to set up a dev environment with minikube. This is meant to allow you to test your changes to draughtsman before they are committed or merged.
 
+*The usage guide is more detailed about actually running draughtsman. This guide is only meant to set up a local environment to develop on draughtsman!*
+
 #### Preparation
 
 The following steps are meant to prepare your minikube and the environment `draughtsman` is going to need. You should have `minikube` and docker installed on your machine beforehand.  
@@ -37,7 +39,7 @@ service:
         channel: your_channel
   slack:
     token: your_slack_token
-    ```
+```
 Note that *all* of these values are mandatory! `Draughtsman` will not work if one or several of these values are missing!
 
 You now have to prepare your cluster itself now, a secret called `draughtsman-values-secret` and a configmap called `draughtsman-values-configmap` are necessary for draughtsman to run. Make sure a namespace called `draughtsman` exists.  
@@ -57,7 +59,7 @@ data:
             Address:
               Scheme: "something"
               Host: "something"
-              ```
+```
 Note that these are values match to the placeholders in your app ( see draughtsman-usage ).
 
 The secret should look like this:
