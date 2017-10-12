@@ -39,21 +39,21 @@ func TestVersionedChartName(t *testing.T) {
 	}
 }
 
-// TestTarballName tests the tarballName method.
-func TestTarballName(t *testing.T) {
+// TestChartName tests the chartName method.
+func TestChartName(t *testing.T) {
 	tests := []struct {
-		registry            string
-		organisation        string
-		project             string
-		sha                 string
-		expectedTarballName string
+		registry          string
+		organisation      string
+		project           string
+		sha               string
+		expectedChartName string
 	}{
 		{
-			registry:            "quay.io",
-			organisation:        "giantswarm",
-			project:             "api",
-			sha:                 "12345",
-			expectedTarballName: "giantswarm_api-chart_1.0.0-12345.tar.gz",
+			registry:          "quay.io",
+			organisation:      "giantswarm",
+			project:           "api",
+			sha:               "12345",
+			expectedChartName: "giantswarm_api-chart_1.0.0-12345/api-chart",
 		},
 	}
 
@@ -63,12 +63,12 @@ func TestTarballName(t *testing.T) {
 			organisation: test.organisation,
 		}
 
-		returnedTarballName := i.tarballName(test.project, test.sha)
+		returnedChartName := i.chartName(test.project, test.sha)
 
-		if returnedTarballName != test.expectedTarballName {
+		if returnedChartName != test.expectedChartName {
 			t.Fatalf(
 				"%v\nexpected: %#v\nreturned: %#v\n",
-				index, test.expectedTarballName, returnedTarballName,
+				index, test.expectedChartName, returnedChartName,
 			)
 		}
 	}
