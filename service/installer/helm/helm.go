@@ -24,8 +24,8 @@ const (
 	// charts. For example, we use this to address that chart to pull.
 	versionedChartFormat = "%v/%v/%v-chart@1.0.0-%v"
 
-	// tarballNameFormat is the format for the name of the chart tarball.
-	tarballNameFormat = "%v_%v-chart_1.0.0-%v.tar.gz"
+	// chartNameFormat is the format for the name of the chart folder.
+	chartNameFormat = "%v_%v-chart_1.0.0-%v/%v-chart"
 )
 
 // HelmInstallerType is an Installer that uses Helm.
@@ -147,13 +147,14 @@ func (i *HelmInstaller) versionedChartName(project, sha string) string {
 	)
 }
 
-// tarballName builds a tarball name, given a project name and sha.
-func (i *HelmInstaller) tarballName(project, sha string) string {
+// chartName builds a chart name, given a project name and sha.
+func (i *HelmInstaller) chartName(project, sha string) string {
 	return fmt.Sprintf(
-		tarballNameFormat,
+		chartNameFormat,
 		i.organisation,
 		project,
 		sha,
+		project,
 	)
 }
 
@@ -221,14 +222,14 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		return microerror.MaskAny(err)
 	}
 
-	tarballPath := path.Join(dir, i.tarballName(project, sha))
-	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
-		return microerror.MaskAnyf(helmError, "could not find downloaded tarball")
+	chartPath := path.Join(dir, i.chartName(project, sha))
+	if _, err := os.Stat(chartPath); os.IsNotExist(err) {
+		return microerror.MaskAnyf(helmError, "could not find downloaded chart")
 	}
 
-	defer os.Remove(tarballPath)
+	defer os.Remove(chartPath)
 
-	i.logger.Log("debug", "downloaded chart", "tarball", tarballPath)
+	i.logger.Log("debug", "downloaded chart", "chart", chartPath)
 
 	// We create a tmp dir in which all Helm values files are written to. After we
 	// are done we can just remove the whole tmp dir to clean up.
@@ -268,13 +269,13 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	// The arguments used to execute Helm for app installation can take multiple
 	// values files. At the end the command looks something like this.
 	//
-	//     helm upgrade --install --values ${file1} --values $(file2) ${project} ${tarball_path}
+	//     helm upgrade --install --values ${file1} --values $(file2) ${project} ${chart_path}
 	//
 	var installCommand []string
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
 		installCommand = append(installCommand, valuesFilesArgs...)
-		installCommand = append(installCommand, project, tarballPath)
+		installCommand = append(installCommand, project, chartPath)
 
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
