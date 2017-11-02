@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// We define a server factory to create the custom server once all command
-	// line flags are parsed and all microservice configuration is storted out.
+	// line flags are parsed and all microservice configuration is sorted out.
 	newServerFactory := func(v *viper.Viper) microserver.Server {
 		var newHttpClient *http.Client
 		{
