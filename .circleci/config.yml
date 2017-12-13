@@ -2,9 +2,6 @@ version: 2
 jobs:
   build:
     machine: true
-    environment:
-      - FOO: "foo"
-        BAR: "bar"
     steps:
       - checkout
 
