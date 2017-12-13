@@ -4,7 +4,9 @@ RUN apt-get -y update \
     && apt-get -y install \
     curl wget
 
-RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-amd64.tar.gz -qO- | tar xzf - linux-amd64/helm \
+ENV HELM_VERSION 2.6.2
+
+RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v$HELM_VERSION-linux-amd64.tar.gz -qO- | tar xzf - linux-amd64/helm \
     && chmod +x ./linux-amd64/helm \
     && mv ./linux-amd64/helm /bin/helm \
     && rm -rf ./linux-amd64
