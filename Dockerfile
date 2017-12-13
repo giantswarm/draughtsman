@@ -1,8 +1,10 @@
-FROM ubuntu:xenial
+FROM alpine:3.6
 
-RUN apt-get -y update \
-    && apt-get -y install \
-    curl wget
+RUN apk update && apk --no-cache add ca-certificates openssl curl wget && \
+  update-ca-certificates && \
+  wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && \
+  wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk && \
+  apk add glibc-2.25-r0.apk
 
 ENV HELM_VERSION 2.6.2
 
