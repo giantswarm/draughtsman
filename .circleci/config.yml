@@ -16,10 +16,6 @@ jobs:
           name: architect build
           command: ./architect build
 
-      - run:
-          name: Test
-          command: ./draughtsman --help
-
       - deploy:
           name: architect deploy (master only)
           command: |
