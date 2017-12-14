@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 	microserver "github.com/giantswarm/microkit/server"
 	kithttp "github.com/go-kit/kit/transport/http"
 

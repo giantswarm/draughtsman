@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/microkit/command"
-	"github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8s"
 
 	"github.com/giantswarm/draughtsman/flag"
@@ -38,11 +38,11 @@ var (
 func main() {
 	var err error
 
-	var newLogger logger.Logger
+	var newLogger micrologger.Logger
 	{
-		loggerConfig := logger.DefaultConfig()
+		loggerConfig := micrologger.DefaultConfig()
 		loggerConfig.IOWriter = os.Stdout
-		newLogger, err = logger.New(loggerConfig)
+		newLogger, err = micrologger.New(loggerConfig)
 		if err != nil {
 			panic(err)
 		}

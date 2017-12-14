@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/notifier/slack"

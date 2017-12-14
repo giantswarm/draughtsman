@@ -7,7 +7,7 @@ import (
 	"github.com/nlopes/slack"
 
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
 	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/notifier/spec"

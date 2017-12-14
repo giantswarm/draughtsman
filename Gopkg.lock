@@ -19,18 +19,6 @@
   revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
-  name = "github.com/coreos/etcd"
-  packages = ["auth/authpb","client","clientv3","etcdserver/api/v3rpc/rpctypes","etcdserver/etcdserverpb","mvcc/mvccpb","pkg/pathutil","pkg/srv","pkg/types","version"]
-  revision = "61fc123e7a8b14a0a258aa3f5c4159861b1ec2e7"
-  version = "v3.2.1"
-
-[[projects]]
-  name = "github.com/coreos/go-semver"
-  packages = ["semver"]
-  revision = "8ab6407b697782a06568d4b7f1db25550ec2e4c6"
-  version = "v0.2.0"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
@@ -63,14 +51,27 @@
   revision = "ec5f66bb657662031c0d651504fee6908cdf28d9"
 
 [[projects]]
+  branch = "master"
   name = "github.com/giantswarm/microkit"
-  packages = ["command","command/daemon","command/daemon/flag","command/daemon/flag/config","command/daemon/flag/server","command/daemon/flag/server/listen","command/daemon/flag/server/tls","command/version","error","flag","logger","server","storage","storage/etcd","storage/etcdv2","storage/memory","tls","transaction","transaction/context/id","transaction/context/tracked"]
-  revision = "c2f273484a749a94402dc3cfbd02913f57995484"
+  packages = ["command","command/daemon","command/daemon/flag","command/daemon/flag/config","command/daemon/flag/server","command/daemon/flag/server/listen","command/daemon/flag/server/log","command/daemon/flag/server/tls","command/version","flag","server","tls","transaction","transaction/context/id","transaction/context/tracked"]
+  revision = "e721e5f21f1558102d360139c8b8c6799cb15431"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/giantswarm/micrologger"
+  packages = [".","loggermeta"]
+  revision = "0278d149b128aef1b27d492702c0020f4ff7a717"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/giantswarm/microstorage"
+  packages = ["."]
+  revision = "99418478ec8f5c68f9b5fc5e6be7e0474948f80d"
 
 [[projects]]
   name = "github.com/giantswarm/operatorkit"
   packages = ["client/k8s"]
-  revision = "2ed2153269a30dc8331b2fca4b6a314dad02f9b6"
+  revision = "1230c089d563fb0bddc0b336dda0bb336081e76c"
 
 [[projects]]
   name = "github.com/go-kit/kit"
@@ -269,7 +270,7 @@
 
 [[projects]]
   name = "golang.org/x/net"
-  packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace","websocket"]
+  packages = ["http2","http2/hpack","idna","lex/httplex","websocket"]
   revision = "e90d6d0afc4c315a0d87a568ae68577cc15149a0"
 
 [[projects]]
@@ -281,12 +282,6 @@
   name = "golang.org/x/text"
   packages = ["cases","internal","internal/gen","internal/tag","internal/triegen","internal/ucd","language","runes","secure/bidirule","secure/precis","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable","width"]
   revision = "4ee4af566555f5fbe026368b75596286a312663a"
-
-[[projects]]
-  name = "google.golang.org/grpc"
-  packages = [".","codes","credentials","grpclog","internal","metadata","naming","peer","transport"]
-  revision = "777daa17ff9b5daef1cfdf915088a2ada3332bf0"
-  version = "v1.0.4"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -313,6 +308,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "564cfb921e3bcf26ba60b114360117d87b8da6d4c09f28f485c34401208d4bb7"
+  inputs-digest = "1a08fc0d660f3694111fba350410cfbbd16339e68b5fa2e514f9334af6639054"
   solver-name = "gps-cdcl"
   solver-version = 1

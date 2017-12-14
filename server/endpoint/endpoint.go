@@ -2,7 +2,7 @@ package endpoint
 
 import (
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/server/endpoint/version"
 	"github.com/giantswarm/draughtsman/server/middleware"

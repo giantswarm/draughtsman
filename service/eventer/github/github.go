@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/service/eventer/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"

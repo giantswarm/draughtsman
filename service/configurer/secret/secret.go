@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/microerror"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )

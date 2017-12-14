@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/giantswarm/micrologger"
 	kitendpoint "github.com/go-kit/kit/endpoint"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -20,9 +21,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tylerb/graceful"
 
-	microerror "github.com/giantswarm/microkit/error"
-	"github.com/giantswarm/microkit/logger"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/tls"
 	"github.com/giantswarm/microkit/transaction"
 	microtransaction "github.com/giantswarm/microkit/transaction"
@@ -59,6 +58,8 @@ type Config struct {
 	HandlerWrapper func(h http.Handler) http.Handler
 	// ListenAddress is the address the server is listening on.
 	ListenAddress string
+	// LogAccess decides whether to emit logs for each requested route.
+	LogAccess bool
 	// RequestFuncs is the server's configured list of request functions. These
 	// are the custom request functions configured by the client.
 	RequestFuncs []kithttp.RequestFunc
@@ -79,37 +80,18 @@ type Config struct {
 // DefaultConfig provides a default configuration to create a new server object
 // by best effort.
 func DefaultConfig() Config {
-	var err error
-
-	var loggerService micrologger.Logger
-	{
-		loggerConfig := micrologger.DefaultConfig()
-		loggerService, err = micrologger.New(loggerConfig)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	var responderService microtransaction.Responder
-	{
-		responderConfig := microtransaction.DefaultResponderConfig()
-		responderService, err = microtransaction.NewResponder(responderConfig)
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	return Config{
 		// Dependencies.
-		ErrorEncoder:         func(ctx context.Context, serverError error, w http.ResponseWriter) {},
-		Logger:               loggerService,
+		Logger:               nil,
 		Router:               mux.NewRouter(),
-		TransactionResponder: responderService,
+		TransactionResponder: nil,
 
 		// Settings.
 		Endpoints:      nil,
+		ErrorEncoder:   func(ctx context.Context, serverError error, w http.ResponseWriter) {},
 		HandlerWrapper: func(h http.Handler) http.Handler { return h },
-		ListenAddress:  "http://127.0.0.1:8000",
+		ListenAddress:  "",
+		LogAccess:      false,
 		RequestFuncs:   []kithttp.RequestFunc{},
 		ServiceName:    "microkit",
 		TLSCAFile:      "",
@@ -122,45 +104,45 @@ func DefaultConfig() Config {
 // New creates a new configured server object.
 func New(config Config) (Server, error) {
 	// Dependencies.
-	if config.ErrorEncoder == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "error encoder must not be empty")
-	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 	if config.Router == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "router must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "router must not be empty")
 	}
 	if config.TransactionResponder == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "transaction responder must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "transaction responder must not be empty")
 	}
 
 	// Settings.
 	if config.Endpoints == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "endpoints must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "endpoints must not be empty")
+	}
+	if config.ErrorEncoder == nil {
+		return nil, microerror.Maskf(invalidConfigError, "error encoder must not be empty")
 	}
 	if config.HandlerWrapper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "handler wrapper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "handler wrapper must not be empty")
 	}
 	if config.ListenAddress == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "listen address must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "listen address must not be empty")
 	}
 	if config.RequestFuncs == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "request funcs must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "request funcs must not be empty")
 	}
 	if config.ServiceName == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "service name must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "service name must not be empty")
 	}
 	if config.TLSCrtFile == "" && config.TLSKeyFile != "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "TLS public key must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "TLS public key must not be empty")
 	}
 	if config.TLSCrtFile != "" && config.TLSKeyFile == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "TLS private key must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "TLS private key must not be empty")
 	}
 
 	listenURL, err := url.Parse(config.ListenAddress)
 	if err != nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, err.Error())
+		return nil, microerror.Maskf(invalidConfigError, err.Error())
 	}
 
 	newServer := &server{
@@ -180,6 +162,7 @@ func New(config Config) (Server, error) {
 		// Settings.
 		endpoints:      config.Endpoints,
 		handlerWrapper: config.HandlerWrapper,
+		logAccess:      config.LogAccess,
 		requestFuncs:   config.RequestFuncs,
 		serviceName:    config.ServiceName,
 		tlsCertFiles: tls.CertFiles{
@@ -196,7 +179,7 @@ func New(config Config) (Server, error) {
 type server struct {
 	// Dependencies.
 	errorEncoder         kithttp.ErrorEncoder
-	logger               logger.Logger
+	logger               micrologger.Logger
 	router               *mux.Router
 	transactionResponder transaction.Responder
 
@@ -210,6 +193,7 @@ type server struct {
 	// Settings.
 	endpoints      []Endpoint
 	handlerWrapper func(h http.Handler) http.Handler
+	logAccess      bool
 	requestFuncs   []kithttp.RequestFunc
 	serviceName    string
 	tlsCertFiles   tls.CertFiles
@@ -251,7 +235,9 @@ func (s *server) Boot() {
 						endpointMethod := strings.ToLower(e.Method())
 						endpointName := strings.Replace(e.Name(), "/", "_", -1)
 
-						s.logger.Log("code", endpointCode, "endpoint", e.Name(), "method", endpointMethod, "path", r.URL.Path)
+						if s.logAccess {
+							s.logger.Log("code", endpointCode, "endpoint", e.Name(), "method", endpointMethod, "path", r.URL.Path)
+						}
 
 						endpointTotal.WithLabelValues(endpointCode, endpointMethod, endpointName).Inc()
 						endpointTime.WithLabelValues(endpointCode, endpointMethod, endpointName).Set(float64(time.Since(t) / time.Millisecond))
@@ -308,18 +294,18 @@ func (s *server) Boot() {
 		}
 
 		go func() {
+			s.logger.Log("debug", fmt.Sprintf("running server at %s", s.listenURL.String()))
+
 			if s.listenURL.Scheme == "https" {
 				tlsConfig, err := tls.LoadTLSConfig(s.tlsCertFiles)
 				if err != nil {
 					panic(err)
 				}
-				s.logger.Log("debug", "running HTTPS server with TLS config")
 				err = s.httpServer.ListenAndServeTLSConfig(tlsConfig)
 				if err != nil {
 					panic(err)
 				}
 			} else {
-				s.logger.Log("debug", "running HTTP server")
 				err := s.httpServer.ListenAndServe()
 				if err != nil {
 					panic(err)
@@ -418,16 +404,16 @@ func (s *server) newDecoderWrapper(e Endpoint, responseWriter ResponseWriter) ki
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
 		tracked, ok := transactiontracked.FromContext(ctx)
 		if !ok {
-			return nil, microerror.MaskAnyf(invalidContextError, "tracked must not be empty")
+			return nil, microerror.Maskf(invalidContextError, "tracked must not be empty")
 		}
 		if tracked {
 			transactionID, ok := transactionid.FromContext(ctx)
 			if !ok {
-				return nil, microerror.MaskAnyf(invalidContextError, "transaction ID must not be empty")
+				return nil, microerror.Maskf(invalidContextError, "transaction ID must not be empty")
 			}
 			err := s.transactionResponder.Reply(ctx, transactionID, responseWriter)
 			if err != nil {
-				return nil, microerror.MaskAny(err)
+				return nil, microerror.Mask(err)
 			}
 
 			return nil, nil
@@ -435,7 +421,7 @@ func (s *server) newDecoderWrapper(e Endpoint, responseWriter ResponseWriter) ki
 
 		request, err := e.Decoder()(ctx, r)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 		return request, nil
@@ -455,7 +441,7 @@ func (s *server) newEncoderWrapper(e Endpoint, responseWriter ResponseWriter) ki
 	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 		tracked, ok := transactiontracked.FromContext(ctx)
 		if !ok {
-			return microerror.MaskAnyf(invalidContextError, "tracked must not be empty")
+			return microerror.Maskf(invalidContextError, "tracked must not be empty")
 		}
 		if tracked {
 			return nil
@@ -463,7 +449,7 @@ func (s *server) newEncoderWrapper(e Endpoint, responseWriter ResponseWriter) ki
 
 		err := e.Encoder()(ctx, w, response)
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 
 		transactionID, ok := transactionid.FromContext(ctx)
@@ -474,7 +460,7 @@ func (s *server) newEncoderWrapper(e Endpoint, responseWriter ResponseWriter) ki
 		}
 		err = s.transactionResponder.Track(ctx, transactionID, responseWriter)
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 
 		return nil
@@ -491,7 +477,7 @@ func (s *server) newEndpointWrapper(e Endpoint) kitendpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		tracked, ok := transactiontracked.FromContext(ctx)
 		if !ok {
-			return nil, microerror.MaskAnyf(invalidContextError, "tracked must not be empty")
+			return nil, microerror.Maskf(invalidContextError, "tracked must not be empty")
 		}
 		if tracked {
 			return nil, nil
@@ -511,7 +497,7 @@ func (s *server) newEndpointWrapper(e Endpoint) kitendpoint.Endpoint {
 		}
 		response, err := endpoint(ctx, request)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 		return response, nil
@@ -567,14 +553,14 @@ func (s *server) newRequestContext(w http.ResponseWriter, r *http.Request) (cont
 	}
 
 	if !IsValidTransactionID(transactionID) {
-		return nil, microerror.MaskAnyf(invalidTransactionIDError, "does not match %s", TransactionIDRegEx.String())
+		return nil, microerror.Maskf(invalidTransactionIDError, "does not match %s", TransactionIDRegEx.String())
 	}
 
 	ctx = transactionid.NewContext(ctx, transactionID)
 
 	exists, err := s.transactionResponder.Exists(ctx, transactionID)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 	ctx = transactiontracked.NewContext(ctx, exists)
 
@@ -591,7 +577,7 @@ func (s *server) newResponseWriter(w http.ResponseWriter) (ResponseWriter, error
 	responseConfig.ResponseWriter = w
 	responseWriter, err := NewResponseWriter(responseConfig)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	return responseWriter, nil
