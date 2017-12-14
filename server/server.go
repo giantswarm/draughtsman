@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 	micrologger "github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -49,7 +49,7 @@ func New(config Config) (microserver.Server, error) {
 		middlewareConfig.Service = config.Service
 		middlewareCollection, err = middleware.New(middlewareConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -61,7 +61,7 @@ func New(config Config) (microserver.Server, error) {
 		endpointConfig.Service = config.Service
 		endpointCollection, err = endpoint.New(endpointConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 

@@ -3,7 +3,7 @@ package github
 import (
 	"time"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/service/eventer/spec"
@@ -39,26 +39,26 @@ func DefaultConfig() Config {
 // New creates a new configured GitHub Eventer.
 func New(config Config) (*GithubEventer, error) {
 	if config.HTTPClient == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "http client must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "http client must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 
 	if config.Environment == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "environment must not be empty")
 	}
 	if config.OAuthToken == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "oauth token must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "oauth token must not be empty")
 	}
 	if config.Organisation == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "organisation must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "organisation must not be empty")
 	}
 	if config.PollInterval.Seconds() == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "interval must be greater than zero")
+		return nil, microerror.Maskf(invalidConfigError, "interval must be greater than zero")
 	}
 	if len(config.ProjectList) == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "project list must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "project list must not be empty")
 	}
 
 	eventer := &GithubEventer{

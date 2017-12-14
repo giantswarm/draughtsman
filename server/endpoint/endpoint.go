@@ -1,7 +1,7 @@
 package endpoint
 
 import (
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/server/endpoint/version"
@@ -40,7 +40,7 @@ func New(config Config) (*Endpoint, error) {
 		versionConfig.Service = config.Service
 		versionEndpoint, err = version.New(versionConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 

@@ -57,6 +57,12 @@
   revision = "73d445a93680fa1a78ae23a5839bad48f32ba1ee"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/giantswarm/microerror"
+  packages = ["."]
+  revision = "ec5f66bb657662031c0d651504fee6908cdf28d9"
+
+[[projects]]
   name = "github.com/giantswarm/microkit"
   packages = ["command","command/daemon","command/daemon/flag","command/daemon/flag/config","command/daemon/flag/server","command/daemon/flag/server/listen","command/daemon/flag/server/tls","command/version","error","flag","logger","server","storage","storage/etcd","storage/etcdv2","storage/memory","tls","transaction","transaction/context/id","transaction/context/tracked"]
   revision = "c2f273484a749a94402dc3cfbd02913f57995484"
@@ -307,6 +313,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e0837f6fc6b49f920ec084a0292f474adc05f4ccbaed2b33dd6388d864d7ba96"
+  inputs-digest = "564cfb921e3bcf26ba60b114360117d87b8da6d4c09f28f485c34401208d4bb7"
   solver-name = "gps-cdcl"
   solver-version = 1

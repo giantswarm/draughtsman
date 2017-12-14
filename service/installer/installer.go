@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/draughtsman/flag"
@@ -50,10 +50,10 @@ func DefaultConfig() Config {
 func New(config Config) (spec.Installer, error) {
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "flag must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -73,7 +73,7 @@ func New(config Config) (spec.Installer, error) {
 
 		configurerService, err := configurer.New(configurerConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 		configurerServices = append(configurerServices, configurerService)
@@ -96,11 +96,11 @@ func New(config Config) (spec.Installer, error) {
 
 		newInstaller, err = helm.New(helmConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "installer type not implemented")
+		return nil, microerror.Maskf(invalidConfigError, "installer type not implemented")
 	}
 
 	return newInstaller, nil

@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 )
 
 const (
@@ -99,13 +99,13 @@ func init() {
 func updateRateLimitMetrics(response *http.Response) error {
 	rateLimitLimitValue, err := strconv.ParseFloat(response.Header.Get(rateLimitLimitHeader), 64)
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 	rateLimitLimit.Set(rateLimitLimitValue)
 
 	rateLimitRemainingValue, err := strconv.ParseFloat(response.Header.Get(rateLimitRemainingHeader), 64)
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 	rateLimitRemaining.Set(rateLimitRemainingValue)
 
