@@ -85,8 +85,6 @@ func (e *GithubEventer) filterDeploymentsByStatus(deployments []deployment) []de
 // fetchNewDeploymentEvents fetches any new GitHub Deployment Events for the
 // given project.
 func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[string]string) ([]deployment, error) {
-	e.logger.Log("debug", "fetching deployments", "project", project)
-
 	url := fmt.Sprintf(
 		deploymentUrlFormat,
 		e.organisation,
@@ -119,11 +117,11 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 	etagMap[project] = resp.Header.Get(etagHeader)
 
 	if resp.StatusCode == http.StatusNotModified {
-		e.logger.Log("debug", "no new deployment events, continuing", "project", project)
 		return []deployment{}, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		e.logger.Log("error", "Error fetching deployment events", "project", project)
 		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
 	}
 
