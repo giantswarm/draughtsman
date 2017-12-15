@@ -102,6 +102,7 @@ func (e *GithubEventer) NewDeploymentEvents() (<-chan spec.DeploymentEvent, erro
 		etagMap := make(map[string]string)
 
 		for c := ticker.C; ; <-c {
+			e.logger.Log("debug", "Fetching deployment events", "projectlist", e.projectList)
 			for _, project := range e.projectList {
 				deployments, err := e.fetchNewDeploymentEvents(project, etagMap)
 				if err != nil {
