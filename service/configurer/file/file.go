@@ -3,8 +3,8 @@ package file
 import (
 	"os"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/afero"
 
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
@@ -40,20 +40,20 @@ func DefaultConfig() Config {
 func New(config Config) (*FileConfigurer, error) {
 	// Dependencies.
 	if config.FileSystem == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "file system must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "file system must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 
 	// Settings.
 	if config.Path == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "path must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "path must not be empty")
 	}
 
 	_, err := os.Stat(config.Path)
 	if os.IsNotExist(err) {
-		return nil, microerror.MaskAnyf(invalidConfigError, "path does not exist")
+		return nil, microerror.Maskf(invalidConfigError, "path does not exist")
 	}
 
 	configurer := &FileConfigurer{
@@ -86,7 +86,7 @@ func (c *FileConfigurer) Type() spec.ConfigurerType {
 func (c *FileConfigurer) Values() (string, error) {
 	b, err := afero.ReadFile(c.fileSystem, c.path)
 	if err != nil {
-		return "", microerror.MaskAny(err)
+		return "", microerror.Mask(err)
 	}
 
 	return string(b), nil

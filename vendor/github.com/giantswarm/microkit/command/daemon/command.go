@@ -6,13 +6,13 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/microkit/command/daemon/flag"
-	microerror "github.com/giantswarm/microkit/error"
 	microflag "github.com/giantswarm/microkit/flag"
-	"github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/microkit/server"
 )
 
@@ -23,7 +23,7 @@ var (
 // Config represents the configuration used to create a new daemon command.
 type Config struct {
 	// Dependencies.
-	Logger        logger.Logger
+	Logger        micrologger.Logger
 	ServerFactory ServerFactory
 
 	// Settings.
@@ -47,13 +47,13 @@ func DefaultConfig() Config {
 func New(config Config) (Command, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 	if config.ServerFactory == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "server factory must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "server factory must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
 	}
 
 	newCommand := &command{
@@ -79,6 +79,7 @@ func New(config Config) (Command, error) {
 	newCommand.cobraCommand.PersistentFlags().StringSlice(f.Config.Files, []string{"config"}, "List of the config file names. All viper supported extensions can be used.")
 
 	newCommand.cobraCommand.PersistentFlags().String(f.Server.Listen.Address, "http://127.0.0.1:8000", "Address used to make the server listen to.")
+	newCommand.cobraCommand.PersistentFlags().Bool(f.Server.Log.Access, false, "Whether to emit logs for each requested route.")
 	newCommand.cobraCommand.PersistentFlags().String(f.Server.TLS.CaFile, "", "File path of the TLS root CA file, if any.")
 	newCommand.cobraCommand.PersistentFlags().String(f.Server.TLS.CrtFile, "", "File path of the TLS public key file, if any.")
 	newCommand.cobraCommand.PersistentFlags().String(f.Server.TLS.KeyFile, "", "File path of the TLS private key file, if any.")
@@ -88,7 +89,7 @@ func New(config Config) (Command, error) {
 
 type command struct {
 	// Dependencies.
-	logger        logger.Logger
+	logger        micrologger.Logger
 	serverFactory ServerFactory
 
 	// Internals.
@@ -119,10 +120,21 @@ func (c *command) Execute(cmd *cobra.Command, args []string) {
 	var newServer server.Server
 	{
 		serverConfig := c.serverFactory(c.viper).Config()
-		serverConfig.ListenAddress = c.viper.GetString(f.Server.Listen.Address)
-		serverConfig.TLSCAFile = c.viper.GetString(f.Server.TLS.CaFile)
-		serverConfig.TLSCrtFile = c.viper.GetString(f.Server.TLS.CrtFile)
-		serverConfig.TLSKeyFile = c.viper.GetString(f.Server.TLS.KeyFile)
+
+		serverConfig.LogAccess = c.viper.GetBool(f.Server.Log.Access)
+		if serverConfig.ListenAddress == "" {
+			serverConfig.ListenAddress = c.viper.GetString(f.Server.Listen.Address)
+		}
+		if serverConfig.TLSCAFile == "" {
+			serverConfig.TLSCAFile = c.viper.GetString(f.Server.TLS.CaFile)
+		}
+		if serverConfig.TLSCrtFile == "" {
+			serverConfig.TLSCrtFile = c.viper.GetString(f.Server.TLS.CrtFile)
+		}
+		if serverConfig.TLSKeyFile == "" {
+			serverConfig.TLSKeyFile = c.viper.GetString(f.Server.TLS.KeyFile)
+		}
+
 		newServer, err = server.New(serverConfig)
 		if err != nil {
 			panic(err)

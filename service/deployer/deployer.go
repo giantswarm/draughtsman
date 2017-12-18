@@ -5,8 +5,8 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/eventer"
@@ -59,15 +59,15 @@ func DefaultConfig() Config {
 func New(config Config) (Deployer, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "flag must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -86,7 +86,7 @@ func New(config Config) (Deployer, error) {
 
 		eventerService, err = eventer.New(eventerConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -105,7 +105,7 @@ func New(config Config) (Deployer, error) {
 
 		installerService, err = installer.New(installerConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -123,7 +123,7 @@ func New(config Config) (Deployer, error) {
 
 		notifierService, err = notifier.New(notifierConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -138,7 +138,7 @@ func New(config Config) (Deployer, error) {
 			notifier:  notifierService,
 		}
 	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "could not find deployer type")
+		return nil, microerror.Maskf(invalidConfigError, "could not find deployer type")
 	}
 
 	return newService, nil

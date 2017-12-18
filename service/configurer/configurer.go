@@ -5,8 +5,8 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/configurer/configmap"
@@ -48,10 +48,10 @@ func DefaultConfig() Config {
 func New(config Config) (spec.Configurer, error) {
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "flag must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -70,7 +70,7 @@ func New(config Config) (spec.Configurer, error) {
 
 		newConfigurer, err = configmap.New(configmapConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 	case file.ConfigurerType:
@@ -83,7 +83,7 @@ func New(config Config) (spec.Configurer, error) {
 
 		newConfigurer, err = file.New(fileConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 	case secret.ConfigurerType:
@@ -98,11 +98,11 @@ func New(config Config) (spec.Configurer, error) {
 
 		newConfigurer, err = secret.New(secretConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "configurer type not implemented")
+		return nil, microerror.Maskf(invalidConfigError, "configurer type not implemented")
 	}
 
 	return newConfigurer, nil

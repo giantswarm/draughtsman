@@ -6,8 +6,8 @@ import (
 
 	"github.com/nlopes/slack"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 
 	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/notifier/spec"
@@ -64,28 +64,28 @@ func DefaultConfig() Config {
 // New creates a new configured Slack Notifier.
 func New(config Config) (*SlackNotifier, error) {
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 	if config.SlackClient == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "slack client must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "slack client must not be empty")
 	}
 
 	if config.Channel == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "channel must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "channel must not be empty")
 	}
 	if config.Emoji == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "emoji must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "emoji must not be empty")
 	}
 	if config.Environment == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "environment must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "environment must not be empty")
 	}
 	if config.Username == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "username must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "username must not be empty")
 	}
 
 	config.Logger.Log("debug", "checking connection to Slack")
 	if _, err := config.SlackClient.AuthTest(); err != nil {
-		return nil, microerror.MaskAnyf(err, "could not authenticate with slack")
+		return nil, microerror.Maskf(err, "could not authenticate with slack")
 	}
 
 	notifier := &SlackNotifier{
@@ -152,7 +152,7 @@ func (n *SlackNotifier) postSlackMessage(event eventerspec.DeploymentEvent, erro
 
 	_, _, err := n.client.PostMessage(n.channel, "", params)
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	return nil
