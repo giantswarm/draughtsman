@@ -11,8 +11,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/microkit/command"
-	"github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/microkit/transaction"
+	"github.com/giantswarm/micrologger"
+	"github.com/giantswarm/microstorage"
+	"github.com/giantswarm/microstorage/memory"
 	"github.com/giantswarm/operatorkit/client/k8s"
 
 	"github.com/giantswarm/draughtsman/flag"
@@ -38,11 +41,11 @@ var (
 func main() {
 	var err error
 
-	var newLogger logger.Logger
+	var newLogger micrologger.Logger
 	{
-		loggerConfig := logger.DefaultConfig()
+		loggerConfig := micrologger.DefaultConfig()
 		loggerConfig.IOWriter = os.Stdout
-		newLogger, err = logger.New(loggerConfig)
+		newLogger, err = micrologger.New(loggerConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -112,6 +115,26 @@ func main() {
 			}
 		}
 
+		var storage microstorage.Storage
+		{
+			storage, err = memory.New(memory.DefaultConfig())
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		var transactionResponder transaction.Responder
+		{
+			c := transaction.DefaultResponderConfig()
+			c.Logger = newLogger
+			c.Storage = storage
+
+			transactionResponder, err = transaction.NewResponder(c)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		// Create a new custom server which bundles our endpoints.
 		var newServer microserver.Server
 		{
@@ -119,6 +142,7 @@ func main() {
 
 			serverConfig.MicroServerConfig.Logger = newLogger
 			serverConfig.MicroServerConfig.ServiceName = name
+			serverConfig.MicroServerConfig.TransactionResponder = transactionResponder
 			serverConfig.MicroServerConfig.Viper = v
 			serverConfig.Service = newService
 

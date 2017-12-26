@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/service/eventer/github"
@@ -45,10 +45,10 @@ func DefaultConfig() Config {
 func New(config Config) (spec.Eventer, error) {
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "flag must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
 	}
 
 	var err error
@@ -71,11 +71,11 @@ func New(config Config) (spec.Eventer, error) {
 
 		newEventer, err = github.New(githubConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 	default:
-		return nil, microerror.MaskAnyf(invalidConfigError, "eventer type not implemented")
+		return nil, microerror.Maskf(invalidConfigError, "eventer type not implemented")
 	}
 
 	return newEventer, nil

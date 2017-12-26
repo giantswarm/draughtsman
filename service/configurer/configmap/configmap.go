@@ -6,8 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/service/configurer/spec"
 )
@@ -49,26 +49,26 @@ func DefaultConfig() Config {
 func New(config Config) (*ConfigMapConfigurer, error) {
 	// Dependencies.
 	if config.KubernetesClient == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "kubernetes client must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "kubernetes client must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 
 	// Settings.
 	if config.Key == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "key must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "key must not be empty")
 	}
 	if config.Name == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "name must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "name must not be empty")
 	}
 	if config.Namespace == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "namespace must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "namespace must not be empty")
 	}
 
 	config.Logger.Log("debug", "checking connection to Kubernetes")
 	if _, err := config.KubernetesClient.CoreV1().Namespaces().Get("default", v1.GetOptions{}); err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	configurer := &ConfigMapConfigurer{
@@ -109,12 +109,12 @@ func (c *ConfigMapConfigurer) Values() (string, error) {
 
 	cm, err := c.kubernetesClient.CoreV1().ConfigMaps(c.namespace).Get(c.name, v1.GetOptions{})
 	if err != nil {
-		return "", microerror.MaskAny(err)
+		return "", microerror.Mask(err)
 	}
 
 	valuesData, ok := cm.Data[c.key]
 	if !ok {
-		return "", microerror.MaskAnyf(keyMissingError, "key '%v' not found in configmap", c.key)
+		return "", microerror.Maskf(keyMissingError, "key '%v' not found in configmap", c.key)
 	}
 
 	return valuesData, nil

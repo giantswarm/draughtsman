@@ -1,18 +1,26 @@
-FROM ubuntu:xenial
+FROM alpine:3.6
 
-RUN apt-get -y update \
-    && apt-get -y install \
-    curl wget
+ENV HELM_VERSION 2.6.2
+ENV APPR_PLUGIN_VERSION 0.7.0
 
-RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-amd64.tar.gz -qO- | tar xzf - linux-amd64/helm \
+# dependencies
+RUN set -x \
+    && apk update && apk --no-cache add ca-certificates openssl curl bash zlib
+
+# install helm
+RUN set -x \
+    && curl -s https://storage.googleapis.com/kubernetes-helm/helm-v$HELM_VERSION-linux-amd64.tar.gz | tar xzf - linux-amd64/helm \
     && chmod +x ./linux-amd64/helm \
     && mv ./linux-amd64/helm /bin/helm \
     && rm -rf ./linux-amd64
 
-RUN mkdir -p ~/.helm/plugins/ \
-    && wget https://github.com/app-registry/appr-helm-plugin/releases/download/v0.5.1/registry-helm-plugin.tar.gz -qO- | tar xzf - registry \
-    && mv ./registry ~/.helm/plugins/ \
-    && ~/.helm/plugins/registry/cnr.sh upgrade-plugin
+# install helm appr (registry) plugin
+RUN set -x \
+    && mkdir -p ~/.helm/plugins \
+    && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
+    && mv ./registry ~/.helm/plugins/registry \
+    && ~/.helm/plugins/registry/cnr.sh upgrade-plugin \
+    && helm registry --help >> /dev/null
 
 ADD draughtsman /
 

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/afero"
 
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
@@ -68,34 +68,34 @@ func DefaultConfig() Config {
 func New(config Config) (*HelmInstaller, error) {
 	// Dependencies.
 	if config.Configurers == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "configurers must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "configurers must not be empty")
 	}
 	if config.FileSystem == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "file system must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "file system must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 
 	// Settings.
 	if config.HelmBinaryPath == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "helm binary path must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "helm binary path must not be empty")
 	}
 	if config.Organisation == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "organisation must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "organisation must not be empty")
 	}
 	if config.Password == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "password must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "password must not be empty")
 	}
 	if config.Registry == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "registry must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "registry must not be empty")
 	}
 	if config.Username == "" {
-		return nil, microerror.MaskAnyf(invalidConfigError, "username must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "username must not be empty")
 	}
 
 	if _, err := os.Stat(config.HelmBinaryPath); os.IsNotExist(err) {
-		return nil, microerror.MaskAnyf(invalidConfigError, "helm binary does not exist")
+		return nil, microerror.Maskf(invalidConfigError, "helm binary does not exist")
 	}
 
 	installer := &HelmInstaller{
@@ -113,7 +113,7 @@ func New(config Config) (*HelmInstaller, error) {
 	}
 
 	if err := installer.login(); err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	return installer, nil
@@ -178,11 +178,11 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	)
 
 	if err != nil {
-		return microerror.MaskAnyf(err, stdErrBuf.String())
+		return microerror.Maskf(err, stdErrBuf.String())
 	}
 
 	if strings.Contains(stdOutBuf.String(), "Error") {
-		return microerror.MaskAnyf(helmError, stdOutBuf.String())
+		return microerror.Maskf(helmError, stdOutBuf.String())
 	}
 
 	return nil
@@ -214,17 +214,17 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		"pull",
 		i.versionedChartName(project, sha),
 	); err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	dir, err := os.Getwd()
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	chartPath := path.Join(dir, i.chartName(project, sha))
 	if _, err := os.Stat(chartPath); os.IsNotExist(err) {
-		return microerror.MaskAnyf(helmError, "could not find downloaded chart")
+		return microerror.Maskf(helmError, "could not find downloaded chart")
 	}
 
 	defer os.Remove(chartPath)
@@ -237,7 +237,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	{
 		tmpDir, err = afero.TempDir(i.fileSystem, "", "draughtsman-installer")
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 		defer func() {
 			err := i.fileSystem.RemoveAll(tmpDir)
@@ -255,12 +255,12 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		fileName := filepath.Join(tmpDir, fmt.Sprintf("%s-values.yaml", strings.ToLower(string(c.Type()))))
 		values, err := c.Values()
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 
 		err = afero.WriteFile(i.fileSystem, fileName, []byte(values), os.FileMode(0644))
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 
 		valuesFilesArgs = append(valuesFilesArgs, "--values", fileName)
@@ -279,7 +279,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
-			return microerror.MaskAny(err)
+			return microerror.Mask(err)
 		}
 	}
 
