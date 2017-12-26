@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: draughtsman
+  namespace: draughtsman
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmap
+      - secrets
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: draughtsman
+subjects:
+  - kind: ServiceAccount
+    name: draughtsman
+    namespace: draughtsman
+roleRef:
+  kind: Role
+  name: draughtsman
+  apiGroup: rbac.authorization.k8s.io
