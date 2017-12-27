@@ -1,5 +1,5 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: Role
+kind: ClusterRole
 metadata:
   name: draughtsman
   namespace: draughtsman
@@ -7,10 +7,18 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - configmap
+      - configmaps
       - secrets
     resourceNames:
       - draughtsman
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    resourceNames:
+      - default
     verbs:
       - get
 ---
