@@ -3,6 +3,9 @@ FROM alpine:3.6
 ENV HELM_VERSION 2.6.2
 ENV APPR_PLUGIN_VERSION 0.7.0
 
+# add application user
+RUN addgroup -S app && adduser -S -g draughtsman draughtsman
+
 # dependencies
 RUN set -x \
     && apk update && apk --no-cache add ca-certificates openssl curl bash zlib
@@ -23,5 +26,7 @@ RUN set -x \
     && helm registry --help >> /dev/null
 
 ADD draughtsman /
+
+USER draughtsman
 
 ENTRYPOINT ["/draughtsman"]
