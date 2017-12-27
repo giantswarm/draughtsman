@@ -9,6 +9,8 @@ rules:
     resources:
       - configmap
       - secrets
+    resourceNames:
+      - draughtsman
     verbs:
       - get
 ---
