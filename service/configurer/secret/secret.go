@@ -67,7 +67,7 @@ func New(config Config) (*SecretConfigurer, error) {
 	}
 
 	config.Logger.Log("debug", "checking connection to Kubernetes")
-	_, err := config.KubernetesClient.CoreV1().Namespaces().Get("default", v1.GetOptions{})
+	_, err := config.KubernetesClient.CoreV1().Namespaces().Get("draughtsman", v1.GetOptions{})
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
