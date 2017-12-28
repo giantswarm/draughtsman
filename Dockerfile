@@ -24,12 +24,14 @@ RUN set -x \
     && mv ./registry /home/draughtsman/.helm/plugins/registry \
     && chown -R draughtsman:draughtsman /home/draughtsman/.helm
 
-ADD draughtsman /
-
 USER draughtsman
+
+ADD draughtsman /home/draughtsman/
 
 RUN cd /home/draughtsman/.helm/plugins/registry \
     && ./cnr.sh upgrade-plugin \
     && helm registry --help > /dev/null
 
-ENTRYPOINT ["/draughtsman"]
+WORKDIR /home/draughtsman
+
+ENTRYPOINT ["/home/draughtsman/draughtsman"]
