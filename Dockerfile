@@ -22,12 +22,14 @@ RUN set -x \
     && mkdir -p /home/draughtsman/.helm/plugins \
     && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
     && mv ./registry /home/draughtsman/.helm/plugins/registry \
-    && /home/draughtsman/.helm/plugins/registry/cnr.sh upgrade-plugin \
-    && chmod 755 -R /home/draughtsman/.helm \
-    && helm registry --help > /dev/null
+    && chown -R draughtsman:draughtsman /home/draughtsman/.helm
 
 ADD draughtsman /
 
 USER draughtsman
+
+RUN cd /home/draughtsman/.helm/plugins/registry \
+    && ./cnr.sh upgrade-plugin \
+    && helm registry --help > /dev/null
 
 ENTRYPOINT ["/draughtsman"]
