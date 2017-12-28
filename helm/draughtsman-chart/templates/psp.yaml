@@ -6,7 +6,8 @@ spec:
   # not allow manage devices
   privileged: false
   # prevent setuid binaries from changing the effective user ID
-  allowPrivilegeEscalation: false
+  # UNCOMMENT WHEN WE MOVE TO 1.8 
+  # allowPrivilegeEscalation: false
   # drop all capabailities from the underneath container
   requiredDropCapabilities:
     - ALL
@@ -19,6 +20,9 @@ spec:
   # process IPC/ID namespace not shared
   hostIPC: false
   hostPID: false
+  # No default settings provided
+  seLinux:
+    rule: RunAsAny
   # User and group should not be root
   runAsUser:
     rule: 'MustRunAs'
