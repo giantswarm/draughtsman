@@ -4,7 +4,7 @@ ENV HELM_VERSION 2.6.2
 ENV APPR_PLUGIN_VERSION 0.7.0
 
 # add application user
-RUN addgroup -S app && adduser -S -g draughtsman draughtsman
+RUN addgroup -S draughtsman && adduser -S -g draughtsman draughtsman
 
 # dependencies
 RUN set -x \
@@ -19,14 +19,15 @@ RUN set -x \
 
 # install helm appr (registry) plugin
 RUN set -x \
-    && mkdir -p ~/.helm/plugins \
+    && mkdir -p /home/draughtsman/.helm/plugins \
     && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
-    && mv ./registry ~/.helm/plugins/registry \
-    && ~/.helm/plugins/registry/cnr.sh upgrade-plugin \
-    && helm registry --help
+    && mv ./registry /home/draughtsman/.helm/plugins/registry \
+    && /home/draughtsman/.helm/plugins/registry/cnr.sh upgrade-plugin \
+    && chmod 755 -R /home/draughtsman/.helm \
+    && helm registry --help > /dev/null
 
 ADD draughtsman /
 
 USER draughtsman
 
-ENTRYPOINT ["sh"]
+ENTRYPOINT ["/draughtsman"]
