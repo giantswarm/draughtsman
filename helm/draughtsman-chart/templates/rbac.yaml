@@ -13,14 +13,6 @@ rules:
       - draughtsman
     verbs:
       - get
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    resourceNames:
-      - draughtsman
-    verbs:
-      - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding

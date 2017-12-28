@@ -67,7 +67,7 @@ func New(config Config) (*ConfigMapConfigurer, error) {
 	}
 
 	config.Logger.Log("debug", "checking connection to Kubernetes")
-	if _, err := config.KubernetesClient.CoreV1().Namespaces().Get("draughtsman", v1.GetOptions{}); err != nil {
+	if _, err := config.KubernetesClient.CoreV1().ConfigMaps("draughtsman").Get("draughtsman", v1.GetOptions{}); err != nil {
 		return nil, microerror.Mask(err)
 	}
 
