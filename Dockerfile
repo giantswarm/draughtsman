@@ -23,10 +23,10 @@ RUN set -x \
     && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
     && mv ./registry ~/.helm/plugins/registry \
     && ~/.helm/plugins/registry/cnr.sh upgrade-plugin \
-    && helm registry --help >> /dev/null
+    && helm registry --help
 
 ADD draughtsman /
 
 USER draughtsman
 
-ENTRYPOINT ["/draughtsman"]
+ENTRYPOINT ["sh"]
