@@ -2,17 +2,44 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: draughtsman
-  namespace: draughtsman
 rules:
   - apiGroups:
       - ""
     resources:
       - configmaps
+    resourceNames:
+      - draughtsman
+      - draughtsman-values-configmap
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
       - secrets
     resourceNames:
       - draughtsman
+      - draughtsman-pull-secret
+      - draughtsman-values-secret
     verbs:
       - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: draughtsman-tiller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods/portforward
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -26,6 +53,20 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: draughtsman
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: draughtsman-tiller
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
+    name: draughtsman
+    namespace: draughtsman
+roleRef:
+  kind: ClusterRole
+  name: draughtsman-tiller
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
