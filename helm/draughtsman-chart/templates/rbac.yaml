@@ -15,6 +15,13 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - namespaces
+    verbs:
+      - get
+      - create
+  - apiGroups:
+      - ""
+    resources:
       - secrets
     resourceNames:
       - draughtsman
@@ -22,6 +29,19 @@ rules:
       - draughtsman-values-secret
     verbs:
       - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: draughtsman
+subjects:
+  - kind: ServiceAccount
+    name: draughtsman
+    namespace: draughtsman
+roleRef:
+  kind: ClusterRole
+  name: draughtsman
+  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -40,20 +60,6 @@ rules:
       - pods/portforward
     verbs:
       - create
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
-metadata:
-  name: draughtsman
-  namespace: draughtsman
-subjects:
-  - kind: ServiceAccount
-    name: draughtsman
-    namespace: draughtsman
-roleRef:
-  kind: ClusterRole
-  name: draughtsman
-  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
