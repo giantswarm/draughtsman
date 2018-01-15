@@ -71,3 +71,34 @@ data:
 ```
 
 All data under the `values` key (by default), is passed verbatim to Helm, to provide values for chart Installations.
+
+# Helm and RBAC
+
+Draughtsman uses helm as packager manager to deploy and manage the applications in the cluster. In latest kubernetes versions, RBAC (Role-Based Access Control) is enable by default. In that case helm will need a cluster role and service account to work properly.
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+```
+
+Furtherly, helm should be installed using the flag service account set to tiller.
+
+```
+helm init --service-account tiller
+```

@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: draughtsman-psp
+spec:
+  # not allow manage devices
+  privileged: false
+  # prevent setuid binaries from changing the effective user ID
+  # UNCOMMENT WHEN WE MOVE TO 1.8 
+  # allowPrivilegeEscalation: false
+  # drop all capabailities from the underneath container
+  requiredDropCapabilities:
+    - ALL
+  # only allow
+  volumes:
+    - 'configMap'
+    - 'secret'
+  # not able to user host network namespace
+  hostNetwork: false
+  # process IPC/ID namespace not shared
+  hostIPC: false
+  hostPID: false
+  # No default settings provided
+  seLinux:
+    rule: RunAsAny
+  # User and group should not be root
+  runAsUser:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535

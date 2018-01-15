@@ -3,6 +3,9 @@ FROM alpine:3.6
 ENV HELM_VERSION 2.6.2
 ENV APPR_PLUGIN_VERSION 0.7.0
 
+# add application user
+RUN addgroup -S draughtsman && adduser -S -g draughtsman draughtsman
+
 # dependencies
 RUN set -x \
     && apk update && apk --no-cache add ca-certificates openssl curl bash zlib
@@ -16,12 +19,19 @@ RUN set -x \
 
 # install helm appr (registry) plugin
 RUN set -x \
-    && mkdir -p ~/.helm/plugins \
+    && mkdir -p /home/draughtsman/.helm/plugins \
     && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
-    && mv ./registry ~/.helm/plugins/registry \
-    && ~/.helm/plugins/registry/cnr.sh upgrade-plugin \
-    && helm registry --help >> /dev/null
+    && mv ./registry /home/draughtsman/.helm/plugins/registry \
+    && chown -R draughtsman:draughtsman /home/draughtsman/.helm
 
-ADD draughtsman /
+USER draughtsman
 
-ENTRYPOINT ["/draughtsman"]
+ADD draughtsman /home/draughtsman/
+
+RUN cd /home/draughtsman/.helm/plugins/registry \
+    && ./cnr.sh upgrade-plugin \
+    && helm registry --help > /dev/null
+
+WORKDIR /home/draughtsman
+
+ENTRYPOINT ["/home/draughtsman/draughtsman"]
