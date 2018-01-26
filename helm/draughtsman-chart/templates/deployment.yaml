@@ -7,6 +7,7 @@ metadata:
     app: draughtsman
 spec:
   replicas: 1
+  revisionHistoryLimit: 3
   strategy:
     type: RollingUpdate
   template:
@@ -21,6 +22,7 @@ spec:
       - name: secret
         secret:
           secretName: draughtsman
+      serviceAccountName: draughtsman
       containers:
       - name: draughtsman
         image: quay.io/giantswarm/draughtsman:[[ .SHA ]]
@@ -52,9 +54,9 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 100Mi
+            memory: 150Mi
           limits:
             cpu: 100m
-            memory: 100Mi
+            memory: 150Mi
       imagePullSecrets:
       - name: draughtsman-pull-secret

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	kitendpoint "github.com/go-kit/kit/endpoint"
 	kithttp "github.com/go-kit/kit/transport/http"
 
@@ -47,13 +47,13 @@ func DefaultConfig() Config {
 func New(config Config) (*Endpoint, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 	if config.Middleware == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "middleware must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "middleware must not be empty")
 	}
 	if config.Service == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "service must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "service must not be empty")
 	}
 
 	newEndpoint := &Endpoint{
@@ -85,7 +85,7 @@ func (e *Endpoint) Endpoint() kitendpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		serviceResponse, err := e.Service.Version.Get(ctx, version.DefaultRequest())
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 		response := DefaultResponse()

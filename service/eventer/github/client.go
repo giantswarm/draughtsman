@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 )
 
 const (
@@ -33,12 +33,12 @@ func (e *GithubEventer) request(req *http.Request) (*http.Response, error) {
 
 	resp, err := e.client.Do(req)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	// Update rate limit metrics.
 	if err := updateRateLimitMetrics(resp); err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	return resp, err
@@ -85,8 +85,6 @@ func (e *GithubEventer) filterDeploymentsByStatus(deployments []deployment) []de
 // fetchNewDeploymentEvents fetches any new GitHub Deployment Events for the
 // given project.
 func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[string]string) ([]deployment, error) {
-	e.logger.Log("debug", "fetching deployments", "project", project)
-
 	url := fmt.Sprintf(
 		deploymentUrlFormat,
 		e.organisation,
@@ -95,7 +93,7 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	// If we have an etag header for this project, then we have already
@@ -109,7 +107,7 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 
 	resp, err := e.request(req)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 	defer resp.Body.Close()
 
@@ -119,22 +117,22 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 	etagMap[project] = resp.Header.Get(etagHeader)
 
 	if resp.StatusCode == http.StatusNotModified {
-		e.logger.Log("debug", "no new deployment events, continuing", "project", project)
 		return []deployment{}, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		e.logger.Log("error", "Error fetching deployment events", "project", project)
+		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	var deployments []deployment
 	if err := json.Unmarshal(bytes, &deployments); err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	deployments = e.filterDeploymentsByEnvironment(deployments)
@@ -142,7 +140,7 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 	for index, deployment := range deployments {
 		deploymentStatuses, err := e.fetchDeploymentStatus(project, deployment)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 
 		deployments[index].Statuses = deploymentStatuses
@@ -168,31 +166,31 @@ func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deploym
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	startTime := time.Now()
 
 	resp, err := e.request(req)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 	defer resp.Body.Close()
 
 	updateDeploymentStatusMetrics("GET", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	var deploymentStatuses []deploymentStatus
 	if err := json.Unmarshal(bytes, &deploymentStatuses); err != nil {
-		return nil, microerror.MaskAny(err)
+		return nil, microerror.Mask(err)
 	}
 
 	return deploymentStatuses, nil
@@ -215,26 +213,26 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 
 	payload, err := json.Marshal(status)
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	startTime := time.Now()
 
 	resp, err := e.request(req)
 	if err != nil {
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 	defer resp.Body.Close()
 
 	updateDeploymentStatusMetrics("POST", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusCreated {
-		return microerror.MaskAnyf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		return microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
 	}
 
 	return nil
