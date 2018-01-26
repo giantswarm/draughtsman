@@ -4,6 +4,8 @@
 
 `draughtsman` is a deployment agent for Kubernetes clusters.
 
+It is designed to be used in several Kubernetes clusters to deploy and manage applications running with different configurations. 
+
 # Kubernetes Configuration
 
 `draughtsman` runs in its own namespace, named `draughtsman`.
