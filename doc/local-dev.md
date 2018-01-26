@@ -40,7 +40,7 @@ service:
   slack:
     token: your_slack_token
 ```
-Note that *all* of these values are mandatory! `Draughtsman` will not work if one or several of these values are missing!
+Note that *all* of these values are mandatory! `Draughtsman` will not work if any of these values are missing!
 
 You now have to prepare your cluster itself now, a secret called `draughtsman-values-secret` and a configmap called `draughtsman-values-configmap` are necessary for draughtsman to run. Make sure a namespace called `draughtsman` exists.  
  The configmap can look something like this:
@@ -98,4 +98,3 @@ You should now see that draughtsman is polling for new deployment events in `you
 `curl --request POST   --url https://api.github.com/repos/your_org/your_project/deployments  --header 'authorization: token your_token'   --header 'content-type: application/json'   --data '{  "ref": "your_commit",  "environment": "minikube",     "auto_merge": false }'`  
 
 This should be all you need in order to observe your changes locally.
-
