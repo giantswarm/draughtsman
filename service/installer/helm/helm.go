@@ -281,7 +281,6 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		if err != nil {
 			return microerror.Mask(err)
 		}
-		i.logger.Log(installCommand)
 	}
 
 	return nil
