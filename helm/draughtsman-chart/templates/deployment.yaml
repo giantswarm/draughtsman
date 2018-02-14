@@ -45,6 +45,12 @@ spec:
             port: 8000
           initialDelaySeconds: 15
           timeoutSeconds: 1
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sleep
+              - "5"
         readinessProbe:
           httpGet:
             path: /
