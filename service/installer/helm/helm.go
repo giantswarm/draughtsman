@@ -269,11 +269,11 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	// The arguments used to execute Helm for app installation can take multiple
 	// values files. At the end the command looks something like this.
 	//
-	//     helm upgrade --install --values ${file1} --values $(file2) ${project} ${chart_path}
+	//     helm upgrade --install --recreate-pods --values ${file1} --values $(file2) ${project} ${chart_path}
 	//
 	var installCommand []string
 	{
-		installCommand = append(installCommand, "upgrade", "--install")
+		installCommand = append(installCommand, "upgrade", "--install", "--recreate-pods")
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, project, chartPath)
 

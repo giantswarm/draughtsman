@@ -1,6 +1,6 @@
 FROM alpine:3.6
 
-ENV HELM_VERSION 2.6.2
+ENV HELM_VERSION 2.8.1
 ENV APPR_PLUGIN_VERSION 0.7.0
 
 # add application user
