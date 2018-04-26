@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: draughtsman
   namespace: draughtsman
-  annotations:
-    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
   labels:
     app: draughtsman
 spec:
@@ -16,6 +14,8 @@ spec:
     metadata:
       labels:
         app: draughtsman
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       volumes:
       - name: configmap
