@@ -273,7 +273,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	//
 	var installCommand []string
 	{
-		installCommand = append(installCommand, "upgrade", "--install", "--recreate-pods")
+		installCommand = append(installCommand, "upgrade", "--install")
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, project, chartPath)
 
