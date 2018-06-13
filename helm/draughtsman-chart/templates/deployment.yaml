@@ -15,7 +15,7 @@ spec:
       labels:
         app: draughtsman
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        releasetime: {{ $.Release.Time }}
     spec:
       volumes:
       - name: configmap
