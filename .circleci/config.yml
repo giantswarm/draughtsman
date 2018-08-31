@@ -16,6 +16,9 @@ jobs:
           name: architect build
           command: ./architect build
 
+      - store_test_results:
+          path: /tmp/results
+
       - deploy:
           name: architect deploy (master only)
           command: |
