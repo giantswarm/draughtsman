@@ -1,22 +1,18 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/microkit/command"
+	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/micrologger"
 	"github.com/nlopes/slack"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/kubernetes"
-
-	"github.com/giantswarm/microkit/command"
-	microserver "github.com/giantswarm/microkit/server"
-	"github.com/giantswarm/microkit/transaction"
-	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/microstorage"
-	"github.com/giantswarm/microstorage/memory"
-	"github.com/giantswarm/operatorkit/client/k8s"
 
 	"github.com/giantswarm/draughtsman/flag"
 	"github.com/giantswarm/draughtsman/server"
@@ -39,16 +35,19 @@ var (
 )
 
 func main() {
+	err := mainError()
+	if err != nil {
+		panic(fmt.Sprintf("%#v", err))
+	}
+}
+
+func mainError() error {
 	var err error
 
-	var newLogger micrologger.Logger
-	{
-		loggerConfig := micrologger.DefaultConfig()
-		loggerConfig.IOWriter = os.Stdout
-		newLogger, err = micrologger.New(loggerConfig)
-		if err != nil {
-			panic(err)
-		}
+	ctx := context.Background()
+	newLogger, err := micrologger.New(micrologger.Config{})
+	if err != nil {
+		return microerror.Mask(err)
 	}
 
 	// We define a server factory to create the custom server once all command
@@ -66,25 +65,6 @@ func main() {
 			}
 		}
 
-		var newKubernetesClient kubernetes.Interface
-		{
-			k8sConfig := k8s.Config{
-				Logger: newLogger,
-
-				Address:   v.GetString(f.Service.Kubernetes.Address),
-				InCluster: v.GetBool(f.Service.Kubernetes.InCluster),
-				TLS: k8s.TLSClientConfig{
-					CAFile:  v.GetString(f.Service.Kubernetes.TLS.CaFile),
-					CrtFile: v.GetString(f.Service.Kubernetes.TLS.CrtFile),
-					KeyFile: v.GetString(f.Service.Kubernetes.TLS.KeyFile),
-				},
-			}
-			newKubernetesClient, err = k8s.NewClient(k8sConfig)
-			if err != nil {
-				panic(err)
-			}
-		}
-
 		var newSlackClient slackspec.Client
 		{
 			newSlackClient = slack.New(v.GetString(f.Service.Slack.Token))
@@ -97,7 +77,6 @@ func main() {
 
 			serviceConfig.FileSystem = afero.NewOsFs()
 			serviceConfig.HTTPClient = newHttpClient
-			serviceConfig.KubernetesClient = newKubernetesClient
 			serviceConfig.Logger = newLogger
 			serviceConfig.SlackClient = newSlackClient
 
@@ -111,46 +90,23 @@ func main() {
 
 			newService, err = service.New(serviceConfig)
 			if err != nil {
-				panic(err)
+				panic(fmt.Sprintf("%#v", microerror.Mask(err)))
 			}
-		}
 
-		var storage microstorage.Storage
-		{
-			storage, err = memory.New(memory.DefaultConfig())
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		var transactionResponder transaction.Responder
-		{
-			c := transaction.DefaultResponderConfig()
-			c.Logger = newLogger
-			c.Storage = storage
-
-			transactionResponder, err = transaction.NewResponder(c)
-			if err != nil {
-				panic(err)
-			}
+			go newService.Boot(ctx)
 		}
 
 		// Create a new custom server which bundles our endpoints.
 		var newServer microserver.Server
 		{
-			serverConfig := server.DefaultConfig()
+			c := server.Config{
+				Service: newService,
+			}
 
-			serverConfig.MicroServerConfig.Logger = newLogger
-			serverConfig.MicroServerConfig.ServiceName = name
-			serverConfig.MicroServerConfig.TransactionResponder = transactionResponder
-			serverConfig.MicroServerConfig.Viper = v
-			serverConfig.Service = newService
-
-			newServer, err = server.New(serverConfig)
+			newServer, err = server.New(c)
 			if err != nil {
 				panic(err)
 			}
-			go newService.Boot()
 		}
 
 		return newServer
@@ -159,17 +115,17 @@ func main() {
 	// Create a new microkit command which manages our custom microservice.
 	var newCommand command.Command
 	{
-		commandConfig := command.DefaultConfig()
+		c := command.Config{
+			Logger:        newLogger,
+			ServerFactory: newServerFactory,
 
-		commandConfig.Logger = newLogger
-		commandConfig.ServerFactory = newServerFactory
+			Description: description,
+			GitCommit:   gitCommit,
+			Name:        name,
+			Source:      source,
+		}
 
-		commandConfig.Description = description
-		commandConfig.GitCommit = gitCommit
-		commandConfig.Name = name
-		commandConfig.Source = source
-
-		newCommand, err = command.New(commandConfig)
+		newCommand, err = command.New(c)
 		if err != nil {
 			panic(err)
 		}
@@ -224,4 +180,6 @@ func main() {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Username, "draughtsman", "Username to post Slack notifications with.")
 
 	newCommand.CobraCommand().Execute()
+
+	return nil
 }
