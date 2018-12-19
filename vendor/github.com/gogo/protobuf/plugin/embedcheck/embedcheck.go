@@ -1,4 +1,6 @@
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
+// Protocol Buffers for Go with Gadgets
+//
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
 // http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,9 +47,10 @@ package embedcheck
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/gogo/protobuf/gogoproto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/generator"
-	"os"
 )
 
 type plugin struct {
@@ -161,7 +164,7 @@ func (p *plugin) checkOverwrite(message *generator.Descriptor, enablers map[stri
 			desc := p.ObjectNamed(field.GetTypeName())
 			msg := desc.(*generator.Descriptor)
 			for errStr, enabled := range enablers {
-				if enabled(msg.File(), msg.DescriptorProto) {
+				if enabled(msg.File().FileDescriptorProto, msg.DescriptorProto) {
 					fmt.Fprintf(os.Stderr, "WARNING: found non-%v %v with embedded %v %v\n", names, ccTypeName, errStr, fieldname)
 				}
 			}

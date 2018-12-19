@@ -1,4 +1,6 @@
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
+// Protocol Buffers for Go with Gadgets
+//
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
 // http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
@@ -182,7 +184,7 @@ func (p *union) Generate(file *generator.FileDescriptor) {
 				goTyp, _ := p.GoType(message, field)
 				obj := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
 
-				if gogoproto.IsUnion(obj.File(), obj.DescriptorProto) {
+				if gogoproto.IsUnion(obj.File().FileDescriptorProto, obj.DescriptorProto) {
 					p.P(`this.`, fieldname, ` = new(`, generator.GoTypeToName(goTyp), `)`)
 					p.P(`if set := this.`, fieldname, `.SetValue(value); set {`)
 					p.In()

@@ -1,5 +1,7 @@
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
+// Protocol Buffers for Go with Gadgets
+//
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
+// http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -31,7 +33,7 @@ import (
 )
 
 func TestAsym(t *testing.T) {
-	m := &M{[]MyType{{}, {}}, nil}
+	m := &M{Arr: []MyType{{}, {}}}
 	if err := m.VerboseEqual(m); err != nil {
 		t.Fatalf("should be equal: %v", err)
 	}

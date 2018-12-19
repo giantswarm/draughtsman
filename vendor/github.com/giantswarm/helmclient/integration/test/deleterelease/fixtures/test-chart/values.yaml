@@ -1,0 +1,19 @@
+# Default values for ingress-controller migration chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: default
+
+pod:
+  name: nginx
+  image:
+    repository: nginx
+
+service:
+  name: nginx
+
+test:
+  image:
+    registry: quay.io
+    repository: giantswarm/alpine-testing
+    tag: 0.1.0

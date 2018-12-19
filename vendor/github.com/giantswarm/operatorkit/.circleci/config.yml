@@ -1,0 +1,131 @@
+e2eTest: &e2eTest
+  machine: true
+  working_directory: /home/circleci/.go_workspace/src/github.com/giantswarm/operatorkit
+  steps:
+  - checkout
+
+  - run: |
+      wget -q $(curl -sS https://api.github.com/repos/giantswarm/e2e-harness/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+      chmod +x ./e2e-harness
+  - run: ./e2e-harness localkube
+  - run: ./e2e-harness setup --remote=false
+  - run: ./e2e-harness test --test-dir=${TEST_DIR}
+  - run:
+      command: ./e2e-harness teardown
+      when: always
+
+
+
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+    - checkout
+
+    - run: |
+        wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/architect/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+        chmod +x ./architect
+        ./architect version
+
+    - run: ./architect build
+
+    - store_test_results:
+        path: /tmp/results
+
+    - deploy:
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            ./architect deploy
+          fi
+
+
+
+  e2eTestControllerBasic:
+    environment:
+      TEST_DIR: "controller/integration/test/basic"
+    <<: *e2eTest
+
+  e2eTestControllerControlflow:
+    environment:
+      TEST_DIR: "controller/integration/test/controlflow"
+    <<: *e2eTest
+
+  e2eTestControllerError:
+    environment:
+      TEST_DIR: "controller/integration/test/error"
+    <<: *e2eTest
+
+  e2eTestControllerParallel:
+    environment:
+      TEST_DIR: "controller/integration/test/parallel"
+    <<: *e2eTest
+
+  e2eTestControllerReconciliation:
+    environment:
+      TEST_DIR: "controller/integration/test/reconciliation"
+    <<: *e2eTest
+
+  e2eTestControllerStatusUpdate:
+    environment:
+      TEST_DIR: "controller/integration/test/statusupdate"
+    <<: *e2eTest
+
+  e2eTestInformerBasic:
+    environment:
+      TEST_DIR: "informer/integration/test/basic"
+    <<: *e2eTest
+
+  e2eTestInformerCollector:
+    environment:
+      TEST_DIR: "informer/integration/test/collector"
+    <<: *e2eTest
+
+  e2eTestInformerDeletionError:
+    environment:
+      TEST_DIR: "informer/integration/test/deletionerror"
+    <<: *e2eTest
+
+
+
+workflows:
+  version: 2
+  build_e2e:
+    jobs:
+      - build
+
+      - e2eTestControllerBasic:
+          requires:
+          - build
+
+      - e2eTestControllerControlflow:
+          requires:
+          - build
+
+      - e2eTestControllerError:
+          requires:
+          - build
+
+      - e2eTestControllerParallel:
+          requires:
+          - build
+
+      - e2eTestControllerReconciliation:
+          requires:
+          - build
+
+      - e2eTestControllerStatusUpdate:
+          requires:
+          - build
+
+      - e2eTestInformerBasic:
+          requires:
+          - build
+
+      - e2eTestInformerCollector:
+          requires:
+          - build
+
+      - e2eTestInformerDeletionError:
+          requires:
+          - build

@@ -1,7 +1,7 @@
-// Extensions for Protocol Buffers to create more go like structures.
+// Protocol Buffers for Go with Gadgets
 //
-// Copyright (c) 2015, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
+// Copyright (c) 2015, The GoGo Authors. All rights reserved.
+// http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -36,7 +36,7 @@ import (
 func main() {
 	req := command.Read()
 	files := req.GetProtoFile()
-	files = vanity.FilterFiles(files, vanity.NotInPackageGoogleProtobuf)
+	files = vanity.FilterFiles(files, vanity.NotGoogleProtobufDescriptorProto)
 
 	vanity.ForEachFile(files, vanity.TurnOnMarshalerAll)
 	vanity.ForEachFile(files, vanity.TurnOnSizerAll)
@@ -44,6 +44,8 @@ func main() {
 
 	vanity.ForEachFieldInFilesExcludingExtensions(vanity.OnlyProto2(files), vanity.TurnOffNullableForNativeTypesWithoutDefaultsOnly)
 	vanity.ForEachFile(files, vanity.TurnOffGoUnrecognizedAll)
+	vanity.ForEachFile(files, vanity.TurnOffGoUnkeyedAll)
+	vanity.ForEachFile(files, vanity.TurnOffGoSizecacheAll)
 
 	vanity.ForEachFile(files, vanity.TurnOffGoEnumPrefixAll)
 	vanity.ForEachFile(files, vanity.TurnOffGoEnumStringerAll)
