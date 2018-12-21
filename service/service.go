@@ -161,8 +161,13 @@ func New(config Config) (*Service, error) {
 	return newService, nil
 }
 
+func (s *Service) Boot(ctx context.Context) error {
+	err := s.HelmClient.EnsureTillerInstalled(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("%#v\n", microerror.Maskf(err, "service.Boot")))
+	}
 
-func (s *Service) Boot(ctx context.Context) {
-	s.HelmClient.EnsureTillerInstalled(ctx)
 	s.Deployer.Boot()
+
+	return nil
 }
