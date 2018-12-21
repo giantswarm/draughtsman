@@ -4,8 +4,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/giantswarm/helmclient"
+	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8srestconfig"
@@ -19,7 +21,6 @@ import (
 	"github.com/giantswarm/draughtsman/service/deployer"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
 	slackspec "github.com/giantswarm/draughtsman/service/slack"
-	"github.com/giantswarm/draughtsman/service/version"
 )
 
 // Config represents the configuration used to create a new service.
@@ -36,36 +37,36 @@ type Config struct {
 
 	Description string
 	GitCommit   string
-	Name        string
+	ProjectName string
 	Source      string
 }
 
-// DefaultConfig provides a default configuration to create a new service by
-// best effort.
-func DefaultConfig() Config {
-	return Config{
-		// Dependencies.
-		FileSystem:  afero.NewMemMapFs(),
-		HTTPClient:  nil,
-		Logger:      nil,
-		SlackClient: nil,
-
-		// Settings.
-		Flag:  nil,
-		Viper: nil,
-
-		Description: "",
-		GitCommit:   "",
-		Name:        "",
-		Source:      "",
-	}
+type Service struct {
+	// Dependencies.
+	Deployer   deployer.Deployer
+	HelmClient helmclient.Interface
+	Version    *version.Service
 }
 
 // New creates a new configured service object.
 func New(config Config) (*Service, error) {
+	// Dependencies.
+	if config.FileSystem == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.FileSystem must not be empty", config)
+	}
+	if config.HTTPClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.HTTPClient must not be empty", config)
+	}
+	if config.Logger == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
+	}
+	if config.SlackClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "%T.SlackClient must not be empty", config)
+	}
+
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.Maskf(invalidConfigError, "flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "%T.Flag must not be empty", config)
 	}
 	if config.Viper == nil {
 		return nil, microerror.Maskf(invalidConfigError, "viper must not be empty")
@@ -137,12 +138,12 @@ func New(config Config) (*Service, error) {
 
 	var versionService *version.Service
 	{
-		versionConfig := version.DefaultConfig()
-
-		versionConfig.Description = config.Description
-		versionConfig.GitCommit = config.GitCommit
-		versionConfig.Name = config.Name
-		versionConfig.Source = config.Source
+		versionConfig := version.Config{
+			Description: config.Description,
+			GitCommit:   config.GitCommit,
+			Name:        config.ProjectName,
+			Source:      config.Source,
+		}
 
 		versionService, err = version.New(versionConfig)
 		if err != nil {
@@ -160,12 +161,6 @@ func New(config Config) (*Service, error) {
 	return newService, nil
 }
 
-type Service struct {
-	// Dependencies.
-	Deployer   deployer.Deployer
-	HelmClient helmclient.Interface
-	Version    *version.Service
-}
 
 func (s *Service) Boot(ctx context.Context) {
 	s.HelmClient.EnsureTillerInstalled(ctx)

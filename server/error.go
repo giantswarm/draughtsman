@@ -1,4 +1,4 @@
-package endpoint
+package server
 
 import (
 	"github.com/giantswarm/microerror"

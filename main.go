@@ -73,22 +73,21 @@ func mainError() error {
 		// Create a new custom service which implements business logic.
 		var newService *service.Service
 		{
-			serviceConfig := service.DefaultConfig()
+			c := service.Config{
+				Flag:        f,
+				FileSystem:  afero.NewOsFs(),
+				HTTPClient:  newHttpClient,
+				Logger:      newLogger,
+				SlackClient: newSlackClient,
+				Viper:       v,
 
-			serviceConfig.FileSystem = afero.NewOsFs()
-			serviceConfig.HTTPClient = newHttpClient
-			serviceConfig.Logger = newLogger
-			serviceConfig.SlackClient = newSlackClient
+				Description: description,
+				GitCommit:   gitCommit,
+				ProjectName: name,
+				Source:      source,
+			}
 
-			serviceConfig.Flag = f
-			serviceConfig.Viper = v
-
-			serviceConfig.Description = description
-			serviceConfig.GitCommit = gitCommit
-			serviceConfig.Name = name
-			serviceConfig.Source = source
-
-			newService, err = service.New(serviceConfig)
+			newService, err = service.New(c)
 			if err != nil {
 				panic(fmt.Sprintf("%#v", microerror.Mask(err)))
 			}
@@ -96,16 +95,19 @@ func mainError() error {
 			go newService.Boot(ctx)
 		}
 
-		// Create a new custom server which bundles our endpoints.
+		// New custom server that bundles microkit endpoints.
 		var newServer microserver.Server
 		{
 			c := server.Config{
-				Service: newService,
+				Logger:      newLogger,
+				Service:     newService,
+				Viper:       v,
+				ProjectName: name,
 			}
 
 			newServer, err = server.New(c)
 			if err != nil {
-				panic(err)
+				panic(fmt.Sprintf("%#v\n", microerror.Maskf(err, "server.New")))
 			}
 		}
 
