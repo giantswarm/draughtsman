@@ -162,7 +162,10 @@ func New(config Config) (*Service, error) {
 }
 
 func (s *Service) Boot(ctx context.Context) error {
-	// TODO Improve error handling https://github.com/giantswarm/giantswarm/issues/4965.
+	// TODO: Improve error handling in Boot method.
+	//
+	//	See https://github.com/giantswarm/giantswarm/issues/4965
+	//
 	err := s.HelmClient.EnsureTillerInstalled(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("%#v\n", microerror.Maskf(err, "service.Boot")))
