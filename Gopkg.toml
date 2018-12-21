@@ -21,10 +21,6 @@
 #  version = "2.4.0"
 
 [[constraint]]
-  name = "github.com/go-kit/kit"
-  version = "0.6.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/juju/errgo"
 
@@ -55,6 +51,10 @@
 [[constraint]]
   branch = "master"
   name = "github.com/giantswarm/helmclient"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/giantswarm/microendpoint"
 
 [[constraint]]
   branch = "master"

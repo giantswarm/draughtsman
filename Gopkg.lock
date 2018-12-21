@@ -90,6 +90,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/giantswarm/microendpoint"
+  packages = [
+    "endpoint/version",
+    "service/version"
+  ]
+  revision = "f77c569259aef9cea5e38d0d7d94bf1d7d07d136"
+
+[[projects]]
+  branch = "master"
   name = "github.com/giantswarm/microerror"
   packages = ["."]
   revision = "3bc3cb1a36700aa4bbfcf6c335bc2ab92ad66d8d"
@@ -695,6 +704,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4ac43edeada569a9cc06b6b8742e201217d918b2d1bfdbea5bb10cfc953e3188"
+  inputs-digest = "932004bd07d2164d36f73a1aa3d7e45346dcc8e2ceb769a5b520aab7b2a0bf8a"
   solver-name = "gps-cdcl"
   solver-version = 1
