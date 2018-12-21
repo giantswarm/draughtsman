@@ -75,7 +75,7 @@ func mainError() error {
 		{
 			c := service.Config{
 				Flag:        f,
-				FileSystem:  afero.NewOsFs(),
+				FileSystem:  afero.NewMemMapFs(),
 				HTTPClient:  newHttpClient,
 				Logger:      newLogger,
 				SlackClient: newSlackClient,
