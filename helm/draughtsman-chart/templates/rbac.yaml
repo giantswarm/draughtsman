@@ -7,11 +7,28 @@ rules:
       - ""
     resources:
       - configmaps
-    resourceNames:
-      - draughtsman
-      - draughtsman-values-configmap
+      - pods
     verbs:
       - get
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods/portforward
+    verbs:
+      - create
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - clusterrolebindings
+    verbs:
+      - create
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - clusterroles
+    verbs:
+      - bind
   - apiGroups:
       - ""
     resources:
@@ -29,6 +46,19 @@ rules:
       - draughtsman-values-secret
     verbs:
       - get
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - serviceaccounts
+    verbs:
+      - create
+  - apiGroups:
+      - extensions
+    resources:
+      - deployments
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
