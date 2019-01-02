@@ -7,9 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/giantswarm/microkit/transaction"
 	"github.com/giantswarm/micrologger/microloggertest"
-	"github.com/giantswarm/microstorage/microstoragetest"
 	kitendpoint "github.com/go-kit/kit/endpoint"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
@@ -28,11 +26,11 @@ func Test_Server_Endpoints(t *testing.T) {
 	e2.(*testEndpoint).endpointResponseFormat = "e2-test-response-%d"
 	e2.(*testEndpoint).path = "/e2-test-path"
 
-	config := DefaultConfig()
-	config.Logger = microloggertest.New()
-	config.ListenAddress = "http://127.0.0.1:8000"
-	config.Endpoints = []Endpoint{e1, e2}
-	config.TransactionResponder = testNewTransactionResponder(t)
+	config := Config{
+		Logger:        microloggertest.New(),
+		ListenAddress: "http://127.0.0.1:8000",
+		Endpoints:     []Endpoint{e1, e2},
+	}
 	newServer, err := New(config)
 	if err != nil {
 		t.Fatal("expected", nil, "got", err)
@@ -83,11 +81,11 @@ func Test_Server_Endpoints(t *testing.T) {
 func Test_Server_Default_HandlerWrapper(t *testing.T) {
 	e := testNewEndpoint(t)
 
-	config := DefaultConfig()
-	config.Logger = microloggertest.New()
-	config.ListenAddress = "http://127.0.0.1:8000"
-	config.Endpoints = []Endpoint{e}
-	config.TransactionResponder = testNewTransactionResponder(t)
+	config := Config{
+		Logger:        microloggertest.New(),
+		ListenAddress: "http://127.0.0.1:8000",
+		Endpoints:     []Endpoint{e},
+	}
 	newServer, err := New(config)
 	if err != nil {
 		t.Fatal("expected", nil, "got", err)
@@ -123,16 +121,16 @@ func Test_Server_Default_HandlerWrapper(t *testing.T) {
 func Test_Server_Custom_HandlerWrapper(t *testing.T) {
 	e := testNewEndpoint(t)
 
-	config := DefaultConfig()
-	config.Logger = microloggertest.New()
-	config.ListenAddress = "http://127.0.0.1:8000"
-	config.Endpoints = []Endpoint{e}
-	config.TransactionResponder = testNewTransactionResponder(t)
-	config.HandlerWrapper = func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("X-Test-Header", "test value")
-			h.ServeHTTP(w, r)
-		})
+	config := Config{
+		Logger:        microloggertest.New(),
+		ListenAddress: "http://127.0.0.1:8000",
+		Endpoints:     []Endpoint{e},
+		HandlerWrapper: func(h http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("X-Test-Header", "test value")
+				h.ServeHTTP(w, r)
+			})
+		},
 	}
 	newServer, err := New(config)
 	if err != nil {
@@ -186,18 +184,6 @@ func testNewEndpoint(t *testing.T) Endpoint {
 	}
 
 	return newEndpoint
-}
-
-func testNewTransactionResponder(t *testing.T) transaction.Responder {
-	config := transaction.DefaultResponderConfig()
-	config.Logger = microloggertest.New()
-	config.Storage = microstoragetest.New()
-
-	transactionResponder, err := transaction.NewResponder(config)
-	if err != nil {
-		t.Fatalf("expected nil, got %#v", err)
-	}
-	return transactionResponder
 }
 
 func (e *testEndpoint) Decoder() kithttp.DecodeRequestFunc {

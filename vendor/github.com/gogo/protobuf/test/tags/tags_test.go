@@ -1,5 +1,7 @@
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
+// Protocol Buffers for Go with Gadgets
+//
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
+// http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -87,7 +89,7 @@ func TestJson(t *testing.T) {
 }
 
 func TestXml(t *testing.T) {
-	s := "<Outside>Field1Value<!--Field2Value--><XXX_unrecognized></XXX_unrecognized></Outside>"
+	s := "<Outside>Field1Value<!--Field2Value--><XXX_NoUnkeyedLiteral></XXX_NoUnkeyedLiteral><XXX_unrecognized></XXX_unrecognized><XXX_sizecache>0</XXX_sizecache></Outside>"
 	field1 := "Field1Value"
 	field2 := "Field2Value"
 	msg1 := &Outside{}

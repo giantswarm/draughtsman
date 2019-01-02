@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"strconv"
 	"strings"
@@ -19,20 +20,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
-	"github.com/tylerb/graceful"
 
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/tls"
-	"github.com/giantswarm/microkit/transaction"
-	microtransaction "github.com/giantswarm/microkit/transaction"
-	transactionid "github.com/giantswarm/microkit/transaction/context/id"
-	transactiontracked "github.com/giantswarm/microkit/transaction/context/tracked"
 )
 
-// Config represents the configuration used to create a new server object.
 type Config struct {
-	// Dependencies.
-
 	// ErrorEncoder is the server's error encoder. This wraps the error encoder
 	// configured by the client. Clients should not implement error logging in
 	// here them self. This is done by the server itself. Clients must not
@@ -44,12 +37,11 @@ type Config struct {
 	// Router is a HTTP handler for the server. The returned router will have all
 	// endpoints registered that are listed in the endpoint collection.
 	Router *mux.Router
-	// TransactionResponder is the responder used to reply to requests using
-	// persisted transaction results.
-	TransactionResponder microtransaction.Responder
 
-	// Settings.
-
+	// EnableDebugServer boolean flag to enable debug server on
+	// http://127.0.0.1:6060/debug. This server is primarily used to expose
+	// net/http/pprof.Handler.
+	EnableDebugServer bool
 	// Endpoints is the server's configured list of endpoints. These are the
 	// custom endpoints configured by the client.
 	Endpoints []Endpoint
@@ -58,6 +50,10 @@ type Config struct {
 	HandlerWrapper func(h http.Handler) http.Handler
 	// ListenAddress is the address the server is listening on.
 	ListenAddress string
+	// ListenMetricsAddress is an optional address where the server will expose the
+	// `/metrics` endpoint for prometheus scraping. When left blank the `/metrics`
+	// endpoint will be available at the ListenAddress.
+	ListenMetricsAddress string
 	// LogAccess decides whether to emit logs for each requested route.
 	LogAccess bool
 	// RequestFuncs is the server's configured list of request functions. These
@@ -77,61 +73,32 @@ type Config struct {
 	Viper *viper.Viper
 }
 
-// DefaultConfig provides a default configuration to create a new server object
-// by best effort.
-func DefaultConfig() Config {
-	return Config{
-		// Dependencies.
-		Logger:               nil,
-		Router:               mux.NewRouter(),
-		TransactionResponder: nil,
-
-		// Settings.
-		Endpoints:      nil,
-		ErrorEncoder:   func(ctx context.Context, serverError error, w http.ResponseWriter) {},
-		HandlerWrapper: func(h http.Handler) http.Handler { return h },
-		ListenAddress:  "",
-		LogAccess:      false,
-		RequestFuncs:   []kithttp.RequestFunc{},
-		ServiceName:    "microkit",
-		TLSCAFile:      "",
-		TLSCrtFile:     "",
-		TLSKeyFile:     "",
-		Viper:          viper.New(),
-	}
-}
-
 // New creates a new configured server object.
 func New(config Config) (Server, error) {
-	// Dependencies.
 	if config.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
 	}
 	if config.Router == nil {
-		return nil, microerror.Maskf(invalidConfigError, "router must not be empty")
-	}
-	if config.TransactionResponder == nil {
-		return nil, microerror.Maskf(invalidConfigError, "transaction responder must not be empty")
+		config.Router = mux.NewRouter()
 	}
 
-	// Settings.
 	if config.Endpoints == nil {
 		return nil, microerror.Maskf(invalidConfigError, "endpoints must not be empty")
 	}
 	if config.ErrorEncoder == nil {
-		return nil, microerror.Maskf(invalidConfigError, "error encoder must not be empty")
+		config.ErrorEncoder = func(ctx context.Context, serverError error, w http.ResponseWriter) {}
 	}
 	if config.HandlerWrapper == nil {
-		return nil, microerror.Maskf(invalidConfigError, "handler wrapper must not be empty")
+		config.HandlerWrapper = func(h http.Handler) http.Handler { return h }
 	}
 	if config.ListenAddress == "" {
 		return nil, microerror.Maskf(invalidConfigError, "listen address must not be empty")
 	}
 	if config.RequestFuncs == nil {
-		return nil, microerror.Maskf(invalidConfigError, "request funcs must not be empty")
+		config.RequestFuncs = []kithttp.RequestFunc{}
 	}
 	if config.ServiceName == "" {
-		return nil, microerror.Maskf(invalidConfigError, "service name must not be empty")
+		config.ServiceName = "microkit"
 	}
 	if config.TLSCrtFile == "" && config.TLSKeyFile != "" {
 		return nil, microerror.Maskf(invalidConfigError, "TLS public key must not be empty")
@@ -139,32 +106,49 @@ func New(config Config) (Server, error) {
 	if config.TLSCrtFile != "" && config.TLSKeyFile == "" {
 		return nil, microerror.Maskf(invalidConfigError, "TLS private key must not be empty")
 	}
+	if config.Viper == nil {
+		config.Viper = viper.New()
+	}
 
 	listenURL, err := url.Parse(config.ListenAddress)
 	if err != nil {
 		return nil, microerror.Maskf(invalidConfigError, err.Error())
 	}
 
+	var listenMetricsURL *url.URL
+	if config.ListenMetricsAddress != "" {
+		listenMetricsURL, err = url.Parse(config.ListenMetricsAddress)
+		if err != nil {
+			return nil, microerror.Maskf(invalidConfigError, err.Error())
+		}
+
+		// Check if the user supplied a https scheme for the optional metrics endpoint
+		// listener. Let them know that tls configuration for this endpoint is not yet
+		// implemented.
+		if listenMetricsURL.Scheme == "https" {
+			return nil, microerror.Maskf(invalidConfigError, "The optional metrics listener currently does not support tls configuration. Listening on https is thus disabled.")
+		}
+	}
+
 	newServer := &server{
-		// Dependencies.
-		errorEncoder:         config.ErrorEncoder,
-		logger:               config.Logger,
-		router:               config.Router,
-		transactionResponder: config.TransactionResponder,
+		errorEncoder: config.ErrorEncoder,
+		logger:       config.Logger,
+		router:       config.Router,
 
-		// Internals.
-		bootOnce:     sync.Once{},
-		config:       config,
-		httpServer:   nil,
-		listenURL:    listenURL,
-		shutdownOnce: sync.Once{},
+		bootOnce:          sync.Once{},
+		config:            config,
+		httpServer:        nil,
+		metricsHTTPServer: nil,
+		listenURL:         listenURL,
+		listenMetricsUrl:  listenMetricsURL,
+		shutdownOnce:      sync.Once{},
 
-		// Settings.
-		endpoints:      config.Endpoints,
-		handlerWrapper: config.HandlerWrapper,
-		logAccess:      config.LogAccess,
-		requestFuncs:   config.RequestFuncs,
-		serviceName:    config.ServiceName,
+		enableDebugServer: config.EnableDebugServer,
+		endpoints:         config.Endpoints,
+		handlerWrapper:    config.HandlerWrapper,
+		logAccess:         config.LogAccess,
+		requestFuncs:      config.RequestFuncs,
+		serviceName:       config.ServiceName,
 		tlsCertFiles: tls.CertFiles{
 			RootCAs: []string{config.TLSCAFile},
 			Cert:    config.TLSCrtFile,
@@ -178,25 +162,27 @@ func New(config Config) (Server, error) {
 // server manages the transport logic and endpoint registration.
 type server struct {
 	// Dependencies.
-	errorEncoder         kithttp.ErrorEncoder
-	logger               micrologger.Logger
-	router               *mux.Router
-	transactionResponder transaction.Responder
+	errorEncoder kithttp.ErrorEncoder
+	logger       micrologger.Logger
+	router       *mux.Router
 
 	// Internals.
-	bootOnce     sync.Once
-	config       Config
-	httpServer   *graceful.Server
-	listenURL    *url.URL
-	shutdownOnce sync.Once
+	bootOnce          sync.Once
+	config            Config
+	httpServer        *http.Server
+	metricsHTTPServer *http.Server
+	listenURL         *url.URL
+	listenMetricsUrl  *url.URL
+	shutdownOnce      sync.Once
 
 	// Settings.
-	endpoints      []Endpoint
-	handlerWrapper func(h http.Handler) http.Handler
-	logAccess      bool
-	requestFuncs   []kithttp.RequestFunc
-	serviceName    string
-	tlsCertFiles   tls.CertFiles
+	enableDebugServer bool
+	endpoints         []Endpoint
+	handlerWrapper    func(h http.Handler) http.Handler
+	logAccess         bool
+	requestFuncs      []kithttp.RequestFunc
+	serviceName       string
+	tlsCertFiles      tls.CertFiles
 }
 
 func (s *server) Boot() {
@@ -236,18 +222,12 @@ func (s *server) Boot() {
 						endpointName := strings.Replace(e.Name(), "/", "_", -1)
 
 						if s.logAccess {
-							s.logger.Log("code", endpointCode, "endpoint", e.Name(), "method", endpointMethod, "path", r.URL.Path)
+							s.logger.Log("code", endpointCode, "endpoint", e.Name(), "level", "debug", "message", "tracking access log", "method", endpointMethod, "path", r.URL.Path)
 						}
 
 						endpointTotal.WithLabelValues(endpointCode, endpointMethod, endpointName).Inc()
 						endpointTime.WithLabelValues(endpointCode, endpointMethod, endpointName).Set(float64(time.Since(t) / time.Millisecond))
 					}(time.Now())
-
-					// Wrapp the custom implementations of the endpoint specific business
-					// logic.
-					wrappedDecoder := s.newDecoderWrapper(e, responseWriter)
-					wrappedEndpoint := s.newEndpointWrapper(e)
-					wrappedEncoder := s.newEncoderWrapper(e, responseWriter)
 
 					// Combine all options this server defines. Since the interface of the
 					// go-kit server changed to not accept a context anymore we have to
@@ -270,46 +250,77 @@ func (s *server) Boot() {
 
 					// Now we execute the actual go-kit endpoint handler.
 					kithttp.NewServer(
-						wrappedEndpoint,
-						wrappedDecoder,
-						wrappedEncoder,
+						s.newEndpointWrapper(e),
+						e.Decoder(),
+						e.Encoder(),
 						options...,
 					).ServeHTTP(responseWriter, r)
 				})))
 			}(e)
 		}
 
-		// Register prometheus metrics endpoint.
-		s.router.Path("/metrics").Handler(promhttp.Handler())
+		// If the user provided a specific url for the metrics endpoint:
+		if s.listenMetricsUrl != nil {
+			// Register prometheus metrics endpoint to a different server as the rest
+			// of the endpoints.
+			go func() {
+				s.logger.Log("level", "debug", "message", fmt.Sprintf("running metrics server at %s", s.listenMetricsUrl.String()))
+
+				metricsRouter := mux.NewRouter()
+				metricsRouter.Path("/metrics").Handler(promhttp.Handler())
+
+				s.metricsHTTPServer = &http.Server{
+					Addr:    s.listenMetricsUrl.Host,
+					Handler: metricsRouter,
+				}
+
+				err := s.metricsHTTPServer.ListenAndServe()
+				if IsServerClosed(err) {
+					// We get a closed error in case the server is shutting down. We expect
+					// this at times so we just fall through here.
+				} else if err != nil {
+					panic(err)
+				}
+			}()
+		} else {
+			// Register prometheus metrics endpoint to the same server as the rest of
+			// the endpoints.
+			s.router.Path("/metrics").Handler(promhttp.Handler())
+		}
+
+		if s.enableDebugServer {
+			go func() {
+				s.logger.Log("level", "debug", "message", "running debug server at http://127.0.0.1:6060/debug")
+				// When net/http/pprof is imported, its init() registers /debug
+				// handles to DefaultServeMux automatically.
+				s.logger.Log("level", "debug", "message", fmt.Sprintf("%#v", http.ListenAndServe("127.0.0.1:6060", nil)))
+			}()
+		}
 
 		// Register the router which has all of the configured custom endpoints
 		// registered.
-		s.httpServer = &graceful.Server{
-			NoSignalHandling: true,
-			Server: &http.Server{
-				Addr:    s.listenURL.Host,
-				Handler: s.router,
-			},
-			Timeout: 3 * time.Second,
+		s.httpServer = &http.Server{
+			Addr:    s.listenURL.Host,
+			Handler: s.router,
 		}
 
 		go func() {
-			s.logger.Log("debug", fmt.Sprintf("running server at %s", s.listenURL.String()))
+			s.logger.Log("level", "debug", "message", fmt.Sprintf("running server at %s", s.listenURL.String()))
 
 			if s.listenURL.Scheme == "https" {
 				tlsConfig, err := tls.LoadTLSConfig(s.tlsCertFiles)
 				if err != nil {
 					panic(err)
 				}
-				err = s.httpServer.ListenAndServeTLSConfig(tlsConfig)
-				if err != nil {
-					panic(err)
-				}
-			} else {
-				err := s.httpServer.ListenAndServe()
-				if err != nil {
-					panic(err)
-				}
+				s.httpServer.TLSConfig = tlsConfig
+			}
+
+			err := s.httpServer.ListenAndServe()
+			if IsServerClosed(err) {
+				// We get a closed error in case the server is shutting down. We expect
+				// this at times so we just fall through here.
+			} else if err != nil {
+				panic(err)
 			}
 		}()
 	})
@@ -321,19 +332,45 @@ func (s *server) Config() Config {
 
 func (s *server) Shutdown() {
 	s.shutdownOnce.Do(func() {
-		var wg sync.WaitGroup
-
-		wg.Add(1)
+		// Stop the HTTP server gracefully and wait some time for open connections
+		// to be closed. Then force it to be stopped.
 		go func() {
-			// Stop the HTTP server gracefully and wait some time for open connections
-			// to be closed. Then force it to be stopped.
-			s.httpServer.Stop(s.httpServer.Timeout)
-			<-s.httpServer.StopChan()
-			wg.Done()
+			err := s.httpServer.Shutdown(context.Background())
+			if err != nil {
+				s.logger.Log("level", "error", "message", "shutting down server failed", "stack", fmt.Sprintf("%#v", err))
+			}
 		}()
-
-		wg.Wait()
+		<-time.After(3 * time.Second)
+		err := s.httpServer.Close()
+		if err != nil {
+			s.logger.Log("level", "error", "message", "closing server failed", "stack", fmt.Sprintf("%#v", err))
+		}
 	})
+}
+
+// newEndpointWrapper creates a new wrapped endpoint function essentially
+// combining the actual endpoint implementation with the defined middlewares.
+func (s *server) newEndpointWrapper(e Endpoint) kitendpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		// Prepare the actual endpoint depending on the provided middlewares of the
+		// endpoint implementation. There might be cases in which there are none or
+		// only one middleware. The go-kit interface is not that nice so we need to
+		// make it fit here.
+		endpoint := e.Endpoint()
+		middlewares := e.Middlewares()
+		if len(middlewares) == 1 {
+			endpoint = kitendpoint.Chain(middlewares[0])(endpoint)
+		}
+		if len(middlewares) > 1 {
+			endpoint = kitendpoint.Chain(middlewares[0], middlewares[1:]...)(endpoint)
+		}
+		response, err := endpoint(ctx, request)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		return response, nil
+	}
 }
 
 func (s *server) newErrorEncoderWrapper() kithttp.ErrorEncoder {
@@ -372,8 +409,8 @@ func (s *server) newErrorEncoderWrapper() kithttp.ErrorEncoder {
 		// writing data to the response body can be done.
 		s.errorEncoder(ctx, responseError, rw)
 
-		// Log the error and its errgo trace. This is really useful for debugging.
-		s.logger.Log("error", serverError.Error(), "trace", errorTrace(serverError))
+		// Log the error and its stack. This is really useful for debugging.
+		s.logger.Log("level", "error", "message", "stop endpoint processing due to error", "stack", fmt.Sprintf("%#v", serverError))
 
 		// Emit metrics about the occured errors. That way we can feed our
 		// instrumentation stack to have nice dashboards to get a picture about the
@@ -392,126 +429,15 @@ func (s *server) newErrorEncoderWrapper() kithttp.ErrorEncoder {
 	}
 }
 
-// newDecoderWrapper creates a new wrappeed endpoint decoder. E.g. here we wrap
-// the endpoint's decoder. We check if there is a transaction response being
-// tracked. In this case we reply to the current request with the tracked
-// information of the transaction response. After that the endpoint and encoder
-// is not executed. Only response functions, if any, will be executed as usual.
-// If there is no transaction response being tracked, the request is processed
-// normally. This means that the usual execution of the endpoints decoder,
-// endpoint and encoder takes place.
-func (s *server) newDecoderWrapper(e Endpoint, responseWriter ResponseWriter) kithttp.DecodeRequestFunc {
-	return func(ctx context.Context, r *http.Request) (interface{}, error) {
-		tracked, ok := transactiontracked.FromContext(ctx)
-		if !ok {
-			return nil, microerror.Maskf(invalidContextError, "tracked must not be empty")
-		}
-		if tracked {
-			transactionID, ok := transactionid.FromContext(ctx)
-			if !ok {
-				return nil, microerror.Maskf(invalidContextError, "transaction ID must not be empty")
-			}
-			err := s.transactionResponder.Reply(ctx, transactionID, responseWriter)
-			if err != nil {
-				return nil, microerror.Mask(err)
-			}
-
-			return nil, nil
-		}
-
-		request, err := e.Decoder()(ctx, r)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-
-		return request, nil
-	}
-}
-
-// newEncoderWrapper creates a new wrapped endpoint encoder. E.g. here we wrap
-// the endpoint's decoder. In case the response of the current request is known
-// to be tracked, we skip the execution of the actual endpoint. We rely on the
-// wrapped decoder above, which already prepared the reply of the current
-// request. If there is no transaction response being tracked, we execute the
-// actual encoder as usual. Its response is being tracked in case a transaction
-// ID is provided in the given request context. This tracked transaction
-// response is used to reply to upcoming requests that provide the same
-// transaction ID again.
-func (s *server) newEncoderWrapper(e Endpoint, responseWriter ResponseWriter) kithttp.EncodeResponseFunc {
-	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-		tracked, ok := transactiontracked.FromContext(ctx)
-		if !ok {
-			return microerror.Maskf(invalidContextError, "tracked must not be empty")
-		}
-		if tracked {
-			return nil
-		}
-
-		err := e.Encoder()(ctx, w, response)
-		if err != nil {
-			return microerror.Mask(err)
-		}
-
-		transactionID, ok := transactionid.FromContext(ctx)
-		if !ok {
-			// In case the response is not already tracked, but there is no
-			// transaction ID, we cannot track it at all. So we return here.
-			return nil
-		}
-		err = s.transactionResponder.Track(ctx, transactionID, responseWriter)
-		if err != nil {
-			return microerror.Mask(err)
-		}
-
-		return nil
-	}
-}
-
-// newEndpointWrapper creates a new wrapped endpoint function. E.g. here we wrap
-// the actual endpoint, the business logic. In case the response of the current
-// request is known to be tracked, we skip the execution of the actual endpoint.
-// We rely on the wrapped decoder above, which already prepared the reply of the
-// current request. If there is no transaction response being tracked, we
-// execute the actual endpoint as usual.
-func (s *server) newEndpointWrapper(e Endpoint) kitendpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		tracked, ok := transactiontracked.FromContext(ctx)
-		if !ok {
-			return nil, microerror.Maskf(invalidContextError, "tracked must not be empty")
-		}
-		if tracked {
-			return nil, nil
-		}
-
-		// Prepare the actual endpoint depending on the provided middlewares of the
-		// endpoint implementation. There might be cases in which there are none or
-		// only one middleware. The go-kit interface is not that nice so we need to
-		// make it fit here.
-		endpoint := e.Endpoint()
-		middlewares := e.Middlewares()
-		if len(middlewares) == 1 {
-			endpoint = kitendpoint.Chain(middlewares[0])(endpoint)
-		}
-		if len(middlewares) > 1 {
-			endpoint = kitendpoint.Chain(middlewares[0], middlewares[1:]...)(endpoint)
-		}
-		response, err := endpoint(ctx, request)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-
-		return response, nil
-	}
-}
-
 // newNotFoundHandler returns an HTTP handler that represents our custom not
 // found handler. Here we take care about logging, metrics and a proper
 // response.
 func (s *server) newNotFoundHandler() http.Handler {
 	return http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		errMessage := fmt.Sprintf("endpoint not found for %s %s", r.Method, r.URL.Path)
+
 		// Log the error and its message. This is really useful for debugging.
-		errMessage := fmt.Sprintf("not found: %s %s", r.Method, r.URL.Path)
-		s.logger.Log("error", errMessage, "trace", "")
+		s.logger.Log("level", "error", "message", errMessage)
 
 		// This defered callback will be executed at the very end of the request.
 		defer func(t time.Time) {
@@ -545,24 +471,6 @@ func (s *server) newNotFoundHandler() http.Handler {
 // to always have a valid state available within the request context.
 func (s *server) newRequestContext(w http.ResponseWriter, r *http.Request) (context.Context, error) {
 	ctx := context.Background()
-	ctx = transactiontracked.NewContext(ctx, false)
-
-	transactionID := r.Header.Get(TransactionIDHeader)
-	if transactionID == "" {
-		return ctx, nil
-	}
-
-	if !IsValidTransactionID(transactionID) {
-		return nil, microerror.Maskf(invalidTransactionIDError, "does not match %s", TransactionIDRegEx.String())
-	}
-
-	ctx = transactionid.NewContext(ctx, transactionID)
-
-	exists, err := s.transactionResponder.Exists(ctx, transactionID)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
-	ctx = transactiontracked.NewContext(ctx, exists)
 
 	return ctx, nil
 }

@@ -7,16 +7,27 @@
 package ctxhttp
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 )
+
+func TestGo17Context(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "ok")
+	}))
+	defer ts.Close()
+	ctx := context.Background()
+	resp, err := Get(ctx, http.DefaultClient, ts.URL)
+	if resp == nil || err != nil {
+		t.Fatalf("error received from client: %v %v", err, resp)
+	}
+	resp.Body.Close()
+}
 
 const (
 	requestDuration = 100 * time.Millisecond
@@ -64,8 +75,8 @@ func TestCancelBeforeHeaders(t *testing.T) {
 		res.Body.Close()
 		t.Fatal("Get returned unexpected nil error")
 	}
-	if !strings.Contains(err.Error(), "canceled") {
-		t.Errorf("err = %v; want something with \"canceled\"", err)
+	if err != context.Canceled {
+		t.Errorf("err = %v; want %v", err, context.Canceled)
 	}
 }
 

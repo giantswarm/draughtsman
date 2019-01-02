@@ -2,25 +2,74 @@
 
 # operatorkit
 
-The operatorkit package implements an opinionated framework for developing
-Kubernetes operators. It can be used as a library in golang. It is built on
-top of our [microkit](https://github.com/giantswarm/microkit) framework which
-provides base functionality like logging and error handling.
+Package `operatorkit` implements an opinionated framework for developing
+[Kubernetes operators][operators]. It emerged as we extracted common
+functionality from a number of the operators we developed at [Giant
+Swarm][giantswarm]. The goal of this library is to provide a common structure
+for operator projects and to encapsulate best practices we learned while running
+operators in production.
+
+## Features
+
+- CRD primitives to reliably create, watch and delete custom resources, as well
+  as any Kubernetes runtime object.
+- Managing [finalizers][finalizers] on reconciled objects, making sure the code
+  is executed at least once for each create/delete/update event.
+- A deterministic informer implementation that guarantees the expected behaviour
+  of configured resync periods and rate waits.
+- Convenient client library helpers for simpler client creation.
+- Resource wrapping to gain ability of composing resources like middlewares.
+- Control flow primitives that allow cancelation and repetition of resource
+  implementations.
+- Independent packages. It is possible to use only certain parts of the library
+  without being bound to all primitives it provides.
+- Ability to change behaviour that is often specific to an organization like
+  logging and error handling.
+- Minimal set of dependencies.
+
+## Docs
+
+- [Control Flow Primitives](docs/control_flow_primitives.md)
+- [Keeping Reconciliation Loops Short](docs/keeping_reconciliation_loops_short.md)
+- [Managing CR Status Sub Resources](docs/managing_cr_status_sub_resources.md)
+- [Metrics Provider](docs/metrics_provider.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Using Finalizers](docs/using_finalizers.md)
 
 ## Current Scope
 
-The initial scope is intentionally small and will be expanded as the community
-gains more experience developing operators.
+The project is split into independent packages providing complementary
+functionality, making it easier to create production grade [Kubernetes
+operators][operators].
 
-* Kubernetes clientset using [client-go](https://github.com/kubernetes/client-go) for accessing the K8s APIs.
+- `client`: provides a unified way of creating Kubernetes clients required by
+  other packages.
+- `informer`: provides well defined watching functionality for virtually any
+  Kubernetes resource. The informer is deterministic, meaning it does not
+  dispatch events twice after the resync period, which saves some cycles. It
+  also features rate limiting of the event dispatching. It also provides
+  functionality for decoding custom objects, reducing error prone boilerplate
+  code.
+- `controller`: provides a framework aiming to help writing reliable, robust
+  controllers performing reconciliation loops. The heart of the controller is a
+  Resource interface. The reconciliation primitive allows splitting the
+  reconciliation into smaller parts. Controller manages [finalizers][finalizers]
+  on reconciled objects, making sure all resources are executed at least once
+  during the deletion.
 
-## Future Scope
+## Projects using operatorkit
 
-The future scope may include but is not limited to.
-
-* Managing TPRs (Third Party Resources).
-* Watches for TPRs.
-* Reconciliation loops for managing TPOs (Third Party Objects).
+- https://github.com/giantswarm/aws-operator
+- https://github.com/giantswarm/azure-operator
+- https://github.com/giantswarm/cert-operator
+- https://github.com/giantswarm/cluster-operator
+- https://github.com/giantswarm/chart-operator
+- https://github.com/giantswarm/flannel-operator
+- https://github.com/giantswarm/ingress-operator
+- https://github.com/giantswarm/kvm-operator
+- https://github.com/giantswarm/node-operator
+- https://github.com/giantswarm/prometheus-config-controller
+- more to come
 
 ## Contact
 
@@ -30,13 +79,14 @@ The future scope may include but is not limited to.
 
 ## Contributing & Reporting Bugs
 
-See [CONTRIBUTING](CONTRIBUTING.md) for details on submitting patches, the contribution workflow as well as reporting bugs.
+See [CONTRIBUTING](CONTRIBUTING.md) for details on submitting patches, the
+contribution workflow as well as reporting bugs.
 
 ## License
 
-operatorkit is under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
+`operatorkit` is under the Apache 2.0 license. See the [LICENSE](LICENSE) file
+for details.
 
-### credit
-- https://golang.org
-- https://github.com/kubernetes/kubernetes
-- https://github.com/go-kit/kit
+[finalizers]: https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/#finalizers
+[giantswarm]: https://giantswarm.io
+[operators]: https://coreos.com/operators

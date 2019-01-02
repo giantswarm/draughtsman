@@ -1,5 +1,7 @@
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
+// Protocol Buffers for Go with Gadgets
+//
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
+// http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -31,9 +33,167 @@ import (
 	"fmt"
 	"github.com/gogo/protobuf/proto"
 	math_rand "math/rand"
+	"runtime"
 	"testing"
 	"time"
+	"unsafe"
 )
+
+func BenchmarkVarintIssue436withCount(b *testing.B) {
+	var arraySizes = []struct {
+		name  string
+		value int64
+	}{
+		{"2^0_ints", 1 << 0},
+		{"2^1_ints", 1 << 1},
+		{"2^2_ints", 1 << 2},
+		{"2^3_ints", 1 << 3},
+		{"2^4_ints", 1 << 4},
+		{"2^8_ints", 1 << 8},
+		{"2^16_ints", 1 << 16},
+		{"2^20_ints", 1 << 20},
+		{"2^24_ints", 1 << 24},
+	}
+
+	var varintSizes = []struct {
+		name  string
+		value int64
+	}{
+		{"max_int 2^7-4", 1<<7 - 4},
+		{"max_int 2^15-4", 1<<15 - 4},
+		{"max_int 2^31-4", 1<<31 - 4},
+		{"max_int 2^63-4", 1<<63 - 4},
+	}
+
+	for _, arraySize := range arraySizes {
+		for _, varintSize := range varintSizes {
+			seed := time.Now().UnixNano()
+			rng := math_rand.New(math_rand.NewSource(seed))
+			buf := make([]int64, arraySize.value)
+			for j := range buf {
+				buf[j] = rng.Int63n(varintSize.value)
+			}
+
+			b.Run(arraySize.name+", "+varintSize.name, func(b *testing.B) {
+				msg := &NinRepNative{
+					Field8: buf,
+				}
+
+				data, err := proto.Marshal(msg)
+				if err != nil {
+					b.Fatal(err)
+				}
+
+				normalmsg := &NinRepNative{}
+
+				for i := 0; i < b.N; i++ {
+					err = proto.Unmarshal(data, normalmsg)
+					if err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestVarintIssue436(t *testing.T) {
+	n := 1 << 22 // Makes for 32 MiB
+
+	m := &runtime.MemStats{}
+
+	msgNormal := &NinRepNative{
+		Field8: make([]int64, n),
+	}
+	dataNormal, err := proto.Marshal(msgNormal)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	normalmsg := &NinRepNative{}
+	runtime.ReadMemStats(m)
+	beforeNormal := m.TotalAlloc
+	err = proto.Unmarshal(dataNormal, normalmsg)
+	runtime.ReadMemStats(m)
+	afterNormal := m.TotalAlloc
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msgPacked := &NinRepPackedNative{
+		Field8: make([]int64, n),
+	}
+	dataPacked, err := proto.Marshal(msgPacked)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	packedmsg := &NinRepPackedNative{}
+	runtime.ReadMemStats(m)
+	beforePacked := m.TotalAlloc
+	err = proto.Unmarshal(dataPacked, packedmsg)
+	runtime.ReadMemStats(m)
+	afterPacked := m.TotalAlloc
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	totalNormal := afterNormal - beforeNormal
+	totalPacked := afterPacked - beforePacked
+	usedRatio := float64(totalPacked) / float64(totalNormal)
+	if usedRatio > 0.5 {
+		t.Fatalf("unmarshaling packed msg allocated too much memory:\nnormal:\t\t%d bytes\npacked:\t\t%d bytes\nused ratio:\t%.2f%%", totalNormal, totalPacked, usedRatio*100)
+	}
+}
+
+func TestIssue436(t *testing.T) {
+	n := 1 << 22 // Makes for 32 MiB
+
+	m := &runtime.MemStats{}
+
+	msgNormal := &NinRepNative{
+		Field1: make([]float64, n),
+	}
+	dataNormal, err := proto.Marshal(msgNormal)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	normalmsg := &NinRepNative{}
+	runtime.ReadMemStats(m)
+	beforeNormal := m.TotalAlloc
+	err = proto.Unmarshal(dataNormal, normalmsg)
+	runtime.ReadMemStats(m)
+	afterNormal := m.TotalAlloc
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msgPacked := &NinRepPackedNative{
+		Field1: make([]float64, n),
+	}
+	dataPacked, err := proto.Marshal(msgPacked)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	packedmsg := &NinRepPackedNative{}
+	runtime.ReadMemStats(m)
+	beforePacked := m.TotalAlloc
+	err = proto.Unmarshal(dataPacked, packedmsg)
+	runtime.ReadMemStats(m)
+	afterPacked := m.TotalAlloc
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	totalNormal := afterNormal - beforeNormal
+	totalPacked := afterPacked - beforePacked
+	usedRatio := float64(totalPacked) / float64(totalNormal)
+	if usedRatio > 0.5 {
+		t.Fatalf("unmarshaling packed msg allocated too much memory:\nnormal:\t\t%d bytes\npacked:\t\t%d bytes\nused ratio:\t%.2f%%", totalNormal, totalPacked, usedRatio*100)
+	}
+}
 
 /*
 https://github.com/gogo/protobuf/issues/detail?id=21
@@ -45,12 +205,12 @@ func TestSafeIssue21(t *testing.T) {
 	msg1 := NewPopulatedNinRepNative(popr, true)
 	data1, err := proto.Marshal(msg1)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	packedmsg := &NinRepPackedNative{}
 	err = proto.Unmarshal(data1, packedmsg)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	if len(packedmsg.XXX_unrecognized) != 0 {
 		t.Fatalf("packed msg unmarshaled unrecognized fields, even though there aren't any")
@@ -61,16 +221,20 @@ func TestSafeIssue21(t *testing.T) {
 }
 
 func TestUnsafeIssue21(t *testing.T) {
+	var bigendian uint32 = 0x01020304
+	if *(*byte)(unsafe.Pointer(&bigendian)) == 1 {
+		t.Skip("unsafe does not work on big endian architectures")
+	}
 	popr := math_rand.New(math_rand.NewSource(time.Now().UnixNano()))
 	msg1 := NewPopulatedNinRepNativeUnsafe(popr, true)
 	data1, err := proto.Marshal(msg1)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	packedmsg := &NinRepPackedNativeUnsafe{}
 	err = proto.Unmarshal(data1, packedmsg)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	if len(packedmsg.XXX_unrecognized) != 0 {
 		t.Fatalf("packed msg unmarshaled unrecognized fields, even though there aren't any")

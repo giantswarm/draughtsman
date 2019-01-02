@@ -42,3 +42,72 @@ func TestContext(t *testing.T) {
 	}
 	router.ServeHTTP(nil, r)
 }
+
+func TestContextWithValue(t *testing.T) {
+	router := New()
+	router.Get("/test/:foo/", func(w http.ResponseWriter, r *http.Request) {
+		want := "bar"
+		got := Param(r.Context(), "foo")
+		if want != got {
+			t.Fatalf("Unexpected context value: want %q, got %q", want, got)
+		}
+		want = "ipsum"
+		got = Param(r.Context(), "lorem")
+		if want != got {
+			t.Fatalf("Unexpected context value: want %q, got %q", want, got)
+		}
+		want = "sit"
+		got = Param(r.Context(), "dolor")
+		if want != got {
+			t.Fatalf("Unexpected context value: want %q, got %q", want, got)
+		}
+	})
+
+	r, err := http.NewRequest("GET", "http://localhost:9090/test/bar/", nil)
+	if err != nil {
+		t.Fatalf("Error building test request: %s", err)
+	}
+	params := map[string]string{
+		"lorem": "ipsum",
+		"dolor": "sit",
+	}
+
+	ctx := r.Context()
+	for p, v := range params {
+		ctx = WithParam(ctx, p, v)
+	}
+	r = r.WithContext(ctx)
+	router.ServeHTTP(nil, r)
+}
+
+func TestInstrumentation(t *testing.T) {
+	var got string
+	cases := []struct {
+		router *Router
+		want   string
+	}{
+		{
+			router: New(),
+			want:   "",
+		}, {
+			router: New().WithInstrumentation(func(handlerName string, handler http.HandlerFunc) http.HandlerFunc {
+				got = handlerName
+				return handler
+			}),
+			want: "/foo",
+		},
+	}
+
+	for _, c := range cases {
+		c.router.Get("/foo", func(w http.ResponseWriter, r *http.Request) {})
+
+		r, err := http.NewRequest("GET", "http://localhost:9090/foo", nil)
+		if err != nil {
+			t.Fatalf("Error building test request: %s", err)
+		}
+		c.router.ServeHTTP(nil, r)
+		if c.want != got {
+			t.Fatalf("Unexpected value: want %q, got %q", c.want, got)
+		}
+	}
+}

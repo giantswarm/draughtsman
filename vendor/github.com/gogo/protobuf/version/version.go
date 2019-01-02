@@ -1,7 +1,7 @@
-// Extensions for Protocol Buffers to create more go like structures.
+// Protocol Buffers for Go with Gadgets
 //
-// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
+// Copyright (c) 2013, The GoGo Authors. All rights reserved.
+// http://github.com/gogo/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -40,7 +40,7 @@ func Get() string {
 	version := strings.TrimSpace(string(versionBytes))
 	versions := strings.Split(version, " ")
 	if len(versions) != 2 {
-		panic("version string returned from protoc is seperated with a space: " + version)
+		panic("version string returned from protoc is separated with a space: " + version)
 	}
 	return versions[1]
 }
@@ -48,7 +48,7 @@ func Get() string {
 func parseVersion(version string) (int, error) {
 	versions := strings.Split(version, ".")
 	if len(versions) != 3 {
-		return 0, fmt.Errorf("version does not have 3 numbers seperated by dots: %s", version)
+		return 0, fmt.Errorf("version does not have 3 numbers separated by dots: %s", version)
 	}
 	n := 0
 	for _, v := range versions {

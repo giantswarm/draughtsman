@@ -16,9 +16,8 @@ func Test_Logger_LogWithCtx(t *testing.T) {
 
 	var log Logger
 	{
-		c := DefaultConfig()
-		{
-			c.IOWriter = out
+		c := Config{
+			IOWriter: out,
 		}
 		log, err = New(c)
 		if err != nil {
@@ -93,9 +92,8 @@ func Test_Logger_With(t *testing.T) {
 
 	var log Logger
 	{
-		c := DefaultConfig()
-		{
-			c.IOWriter = out
+		c := Config{
+			IOWriter: out,
 		}
 		log, err = New(c)
 		if err != nil {
@@ -123,7 +121,7 @@ func Test_Logger_With(t *testing.T) {
 
 		// NOTE this tests a line number which may change if lines are modified in
 		// this file.
-		wcaller := "github.com/giantswarm/micrologger/logger_test.go:119"
+		wcaller := "github.com/giantswarm/micrologger/logger_test.go:117"
 		caller, ok := got["caller"]
 		if !ok {
 			t.Errorf("expected caller key")
@@ -151,7 +149,7 @@ func Test_Logger_With(t *testing.T) {
 
 		// NOTE this tests a line number which may change if lines are modified in
 		// this file.
-		wcaller := "github.com/giantswarm/micrologger/logger_test.go:147"
+		wcaller := "github.com/giantswarm/micrologger/logger_test.go:145"
 		caller, ok := got["caller"]
 		if !ok {
 			t.Errorf("expected caller key")
