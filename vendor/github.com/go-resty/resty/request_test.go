@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2018 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2019 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -191,6 +191,28 @@ func TestPostJSONStructSuccess(t *testing.T) {
 		SetHeader(hdrContentTypeKey, jsonContentType).
 		SetBody(user).
 		SetResult(&AuthSuccess{}).
+		Post(ts.URL + "/login")
+
+	assertError(t, err)
+	assertEqual(t, http.StatusOK, resp.StatusCode())
+
+	t.Logf("Result Success: %q", resp.Result().(*AuthSuccess))
+
+	logResponse(t, resp)
+}
+
+func TestPostJSONRPCStructSuccess(t *testing.T) {
+	ts := createPostServer(t)
+	defer ts.Close()
+
+	user := &User{Username: "testuser", Password: "testpass"}
+
+	c := dc().SetJSONEscapeHTML(false)
+	resp, err := c.R().
+		SetHeader(hdrContentTypeKey, "application/json-rpc").
+		SetBody(user).
+		SetResult(&AuthSuccess{}).
+		SetQueryParam("ct", "rpc").
 		Post(ts.URL + "/login")
 
 	assertError(t, err)
