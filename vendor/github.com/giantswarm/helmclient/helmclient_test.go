@@ -604,7 +604,7 @@ func Test_isTillerOutdated(t *testing.T) {
 			errorMatcher: IsTillerOutdated,
 		},
 		{
-			name: "case 4: tiller image has no version tag",
+			name: "case 4: tiller image has no version tag so we upgrade",
 			tillerPod: &corev1.Pod{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -614,10 +614,23 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsExecutionFailed,
+			errorMatcher: IsTillerOutdated,
 		},
 		{
-			name: "case 5: tiller image tag format is invalid",
+			name: "case 5: tiller image uses latest tag so we upgrade",
+			tillerPod: &corev1.Pod{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Image: "quay.io/giantswarm/tiller:latest",
+						},
+					},
+				},
+			},
+			errorMatcher: IsTillerOutdated,
+		},
+		{
+			name: "case 6: tiller image tag format is invalid",
 			tillerPod: &corev1.Pod{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -630,7 +643,7 @@ func Test_isTillerOutdated(t *testing.T) {
 			errorMatcher: IsExecutionFailed,
 		},
 		{
-			name: "case 6: tiller image tag format is invalid",
+			name: "case 7: tiller image tag format is invalid",
 			tillerPod: &corev1.Pod{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
