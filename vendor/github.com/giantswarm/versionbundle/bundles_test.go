@@ -1441,8 +1441,8 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 6 ensures validation of a list of version bundles not having the
-		// same name throws an error.
+		// Test 6 ensures validation of a list of version bundles having the
+		// different name and version not throws an error.
 		{
 			Bundles: []Bundle{
 				{
@@ -1488,7 +1488,7 @@ func Test_Bundles_Validate(t *testing.T) {
 					Version: "0.2.0",
 				},
 			},
-			ErrorMatcher: IsInvalidBundlesError,
+			ErrorMatcher: nil,
 		},
 
 		// Test 7 ensures validation of a list of version bundles having duplicated

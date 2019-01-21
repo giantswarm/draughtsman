@@ -37,6 +37,16 @@ func Test_buildReleases(t *testing.T) {
 					Active: true,
 					Authorities: []Authority{
 						{
+							Endpoint: urlMustParse("http://app-controller:8000/"),
+							Name:     "app-controller",
+							Version:  "0.1.0",
+						},
+						{
+							Endpoint: urlMustParse("http://app-controller:8000/"),
+							Name:     "appcatalog-controller",
+							Version:  "0.1.0",
+						},
+						{
 							Endpoint: urlMustParse("http://cert-operator:8000/"),
 							Name:     "cert-operator",
 							Version:  "0.1.0",
@@ -138,11 +148,55 @@ func Test_buildReleases(t *testing.T) {
 					Name:    "kvm-operator",
 					Version: "2.2.1",
 				},
+				{
+					Changelogs: []Changelog{
+						{
+							Component:   "app-controller",
+							Description: "Added initial version.",
+							Kind:        KindAdded,
+						},
+					},
+					Name:    "app-controller",
+					Version: "0.1.0",
+				},
+				{
+					Changelogs: []Changelog{
+						{
+							Component:   "appcatalog-controller",
+							Description: "Added initial version.",
+							Kind:        KindAdded,
+						},
+					},
+					Name:    "appcatalog-controller",
+					Version: "0.1.0",
+				},
 			},
 			expectedReleases: []Release{
 				{
 					active: true,
 					bundles: []Bundle{
+						{
+							Changelogs: []Changelog{
+								{
+									Component:   "app-controller",
+									Description: "Added initial version.",
+									Kind:        KindAdded,
+								},
+							},
+							Name:    "app-controller",
+							Version: "0.1.0",
+						},
+						{
+							Changelogs: []Changelog{
+								{
+									Component:   "appcatalog-controller",
+									Description: "Added initial version.",
+									Kind:        KindAdded,
+								},
+							},
+							Name:    "appcatalog-controller",
+							Version: "0.1.0",
+						},
 						{
 							Changelogs: []Changelog{
 								{
@@ -180,6 +234,16 @@ func Test_buildReleases(t *testing.T) {
 					},
 					changelogs: []Changelog{
 						{
+							Component:   "app-controller",
+							Description: "Added initial version.",
+							Kind:        KindAdded,
+						},
+						{
+							Component:   "appcatalog-controller",
+							Description: "Added initial version.",
+							Kind:        KindAdded,
+						},
+						{
 							Component:   "cert-operator",
 							Description: "First release version.",
 							Kind:        KindAdded,
@@ -196,6 +260,14 @@ func Test_buildReleases(t *testing.T) {
 						},
 					},
 					components: []Component{
+						{
+							Name:    "app-controller",
+							Version: "0.1.0",
+						},
+						{
+							Name:    "appcatalog-controller",
+							Version: "0.1.0",
+						},
 						{
 							Name:    "cert-operator",
 							Version: "0.1.0",
