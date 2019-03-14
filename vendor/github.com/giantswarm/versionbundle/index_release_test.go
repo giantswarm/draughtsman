@@ -1738,28 +1738,6 @@ func Test_validateReleaseDates(t *testing.T) {
 			},
 			errorMatcher: IsInvalidRelease,
 		},
-		{
-			name: "case 4: failure with duplicate release date in two releases",
-			releases: []IndexRelease{
-				{
-					Date:    time.Date(2018, time.May, 21, 13, 12, 00, 00, time.UTC),
-					Version: "4.0.0",
-				},
-				{
-					Date:    time.Date(2018, time.May, 20, 13, 12, 00, 00, time.UTC),
-					Version: "3.0.0",
-				},
-				{
-					Date:    time.Date(2018, time.May, 20, 13, 12, 00, 00, time.UTC),
-					Version: "2.0.0",
-				},
-				{
-					Date:    time.Date(2018, time.May, 19, 13, 12, 00, 00, time.UTC),
-					Version: "1.0.0",
-				},
-			},
-			errorMatcher: IsInvalidRelease,
-		},
 	}
 
 	for _, tc := range testCases {
