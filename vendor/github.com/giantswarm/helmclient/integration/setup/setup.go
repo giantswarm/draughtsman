@@ -32,8 +32,8 @@ func setup(ctx context.Context, m *testing.M, config Config) (int, error) {
 	var k8sSetup *k8s.Setup
 	{
 		c := k8s.SetupConfig{
-			K8sClient: config.K8sClient,
-			Logger:    config.Logger,
+			Clients: config.CPK8sClients,
+			Logger:  config.Logger,
 		}
 
 		k8sSetup, err = k8s.NewSetup(c)

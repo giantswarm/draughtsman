@@ -3,12 +3,11 @@
 package setup
 
 import (
+	"github.com/giantswarm/e2e-harness/pkg/harness"
+	"github.com/giantswarm/e2esetup/k8s"
 	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -16,11 +15,9 @@ const (
 )
 
 type Config struct {
-	HelmClient *helmclient.Client
-	K8sClient  kubernetes.Interface
-	Logger     micrologger.Logger
-
-	RestConfig *rest.Config
+	CPK8sClients *k8s.Clients
+	HelmClient   *helmclient.Client
+	Logger       micrologger.Logger
 }
 
 func NewConfig() (Config, error) {
@@ -36,17 +33,17 @@ func NewConfig() (Config, error) {
 		}
 	}
 
-	var restConfig *rest.Config
+	var cpK8sClients *k8s.Clients
 	{
-		restConfig, err = clientcmd.BuildConfigFromFlags("", e2eHarnessDefaultKubeconfig)
-		if err != nil {
-			return Config{}, microerror.Mask(err)
-		}
-	}
+		kubeConfigPath := harness.DefaultKubeConfig
 
-	var k8sClient *kubernetes.Clientset
-	{
-		k8sClient, err = kubernetes.NewForConfig(restConfig)
+		c := k8s.ClientsConfig{
+			Logger: logger,
+
+			KubeConfigPath: kubeConfigPath,
+		}
+
+		cpK8sClients, err = k8s.NewClients(c)
 		if err != nil {
 			return Config{}, microerror.Mask(err)
 		}
@@ -55,10 +52,10 @@ func NewConfig() (Config, error) {
 	var helmClient *helmclient.Client
 	{
 		c := helmclient.Config{
-			K8sClient: k8sClient,
+			K8sClient: cpK8sClients.K8sClient(),
 			Logger:    logger,
 
-			RestConfig:      restConfig,
+			RestConfig:      cpK8sClients.RestConfig(),
 			TillerNamespace: tillerNamespace,
 		}
 
@@ -69,11 +66,9 @@ func NewConfig() (Config, error) {
 	}
 
 	c := Config{
-		HelmClient: helmClient,
-		K8sClient:  k8sClient,
-		Logger:     logger,
-
-		RestConfig: restConfig,
+		CPK8sClients: cpK8sClients,
+		HelmClient:   helmClient,
+		Logger:       logger,
 	}
 
 	return c, nil

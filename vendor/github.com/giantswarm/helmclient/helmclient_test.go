@@ -189,8 +189,9 @@ func Test_GetReleaseHistory(t *testing.T) {
 				}),
 			},
 			expectedHistory: &ReleaseHistory{
-				AppVersion: "1.0.0",
-				Name:       "chart-operator",
+				AppVersion:  "1.0.0",
+				Description: "Release mock",
+				Name:        "chart-operator",
 				// LastDeployed is hardcoded in the fake Helm Client.
 				LastDeployed: time.Unix(242085845, 0).UTC(),
 				Version:      "0.1.0",
@@ -213,8 +214,9 @@ func Test_GetReleaseHistory(t *testing.T) {
 				}),
 			},
 			expectedHistory: &ReleaseHistory{
-				AppVersion: "2.0.0",
-				Name:       "chart-operator",
+				AppVersion:  "2.0.0",
+				Description: "Release mock",
+				Name:        "chart-operator",
 				// LastDeployed is hardcoded in the fake Helm Client.
 				LastDeployed: time.Unix(242085845, 0).UTC(),
 				Version:      "1.0.0-rc1",
