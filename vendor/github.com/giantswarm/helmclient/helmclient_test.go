@@ -557,7 +557,7 @@ func Test_UpdateReleaseFromTarball(t *testing.T) {
 	}
 }
 
-func Test_isTillerOutdated(t *testing.T) {
+func Test_isTillerInvalidVersion(t *testing.T) {
 	testCases := []struct {
 		name         string
 		tillerPod    *corev1.Pod
@@ -586,7 +586,7 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsExecutionFailed,
+			errorMatcher: IsTillerInvalidVersion,
 		},
 		{
 			name: "case 2: tiller pod is outdated",
@@ -599,7 +599,7 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsTillerOutdated,
+			errorMatcher: IsTillerInvalidVersion,
 		},
 		{
 			name: "case 3: tiller image is an outdated release candidate",
@@ -612,7 +612,7 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsTillerOutdated,
+			errorMatcher: IsTillerInvalidVersion,
 		},
 		{
 			name: "case 4: tiller image has no version tag so we upgrade",
@@ -625,7 +625,7 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsTillerOutdated,
+			errorMatcher: IsTillerInvalidVersion,
 		},
 		{
 			name: "case 5: tiller image uses latest tag so we upgrade",
@@ -638,7 +638,7 @@ func Test_isTillerOutdated(t *testing.T) {
 					},
 				},
 			},
-			errorMatcher: IsTillerOutdated,
+			errorMatcher: IsTillerInvalidVersion,
 		},
 		{
 			name: "case 6: tiller image tag format is invalid",
