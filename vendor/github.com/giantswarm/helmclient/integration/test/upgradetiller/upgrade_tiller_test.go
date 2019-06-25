@@ -18,8 +18,8 @@ func TestUpgradeTiller(t *testing.T) {
 
 	var err error
 
-	currentTillerImage := "quay.io/giantswarm/tiller:v2.12.0"
-	outdatedTillerImage := "quay.io/giantswarm/tiller:v2.8.2"
+	currentTillerImage := "quay.io/giantswarm/tiller:v2.14.1"
+	outdatedTillerImage := "quay.io/giantswarm/tiller:v2.12.0"
 
 	labelSelector := "app=helm,name=tiller"
 	tillerNamespace := "giantswarm"
@@ -80,7 +80,7 @@ func getTillerDeployment(ctx context.Context, namespace string, labelSelector st
 			lo := metav1.ListOptions{
 				LabelSelector: labelSelector,
 			}
-			l, err := config.CPK8sClients.K8sClient().Apps().Deployments(namespace).List(lo)
+			l, err := config.CPK8sClients.K8sClient().AppsV1().Deployments(namespace).List(lo)
 			if err != nil {
 				return microerror.Mask(err)
 			}
@@ -134,7 +134,7 @@ func updateTillerImage(ctx context.Context, namespace, labelSelector, tillerImag
 	}
 
 	d.Spec.Template.Spec.Containers[0].Image = tillerImage
-	_, err = config.CPK8sClients.K8sClient().Apps().Deployments(namespace).Update(d)
+	_, err = config.CPK8sClients.K8sClient().AppsV1().Deployments(namespace).Update(d)
 	if err != nil {
 		return microerror.Mask(err)
 	}

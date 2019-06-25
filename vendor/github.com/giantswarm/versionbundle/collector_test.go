@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/giantswarm/micrologger/microloggertest"
-	"github.com/go-resty/resty"
+	"gopkg.in/resty.v1"
 )
 
 func Test_Collector_Collect(t *testing.T) {

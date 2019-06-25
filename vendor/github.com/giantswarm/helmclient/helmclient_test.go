@@ -488,7 +488,7 @@ func Test_Client_ListReleaseContents(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(result, tc.expectedContents) {
-				t.Fatalf("Releases == %q, want %q", result, tc.expectedContents)
+				t.Fatalf("Releases == %#v, want %#v", result, tc.expectedContents)
 			}
 		})
 	}
