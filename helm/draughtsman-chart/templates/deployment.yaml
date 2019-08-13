@@ -27,7 +27,7 @@ spec:
       serviceAccountName: draughtsman
       containers:
       - name: draughtsman
-        image: quay.io/giantswarm/draughtsman:[[ .SHA ]]
+        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         args:
         - "daemon"
         - "--config.dirs=/var/run/draughtsman/configmap/"
