@@ -2,11 +2,6 @@ image:
   registry: "quay.io"
   repository: "giantswarm/draughtsman"
   tag: "[[ .SHA ]]"
-pod:
-  user:
-    id: 0
-  group:
-    id: 1000
 ports:
   draughtsman:
     name: draughtsman
