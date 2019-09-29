@@ -32,7 +32,19 @@ Types are slightly harder to work with, so there are three different functions:
 
 - `typeOf` returns the underlying type of a value: `typeOf $foo`
 - `typeIs` is like `kindIs`, but for types: `typeIs "*io.Buffer" $myVal`
-- `typeIsLike` works as `kindIs`, except that it also dereferences pointers.
+- `typeIsLike` works as `typeIs`, except that it also dereferences pointers.
 
 **Note:** None of these can test whether or not something implements a given
 interface, since doing so would require compiling the interface in ahead of time.
+
+## deepEqual
+
+`deepEqual` returns true if two values are ["deeply equal"](https://golang.org/pkg/reflect/#DeepEqual)
+
+Works for non-primitive types as well (compared to the built-in `eq`).
+
+```
+deepEqual (list 1 2 3) (list 1 2 3)
+```
+
+The above will return `true`

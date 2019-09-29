@@ -44,7 +44,7 @@ To customize the chart values, use any of
  - '--set-string' to provide key=val forcing val to be stored as a string,
  - '--set-file' to provide key=path to read a single large value from a file at path.
 
-To edit or append to the existing customized values, add the 
+To edit or append to the existing customized values, add the
  '--reuse-values' flag, otherwise any existing customized values are ignored.
 
 If no chart value arguments are provided on the command line, any existing customized values are carried
@@ -84,32 +84,35 @@ which results in "pwd: 3jk$o2z=f\30with'quote".
 `
 
 type upgradeCmd struct {
-	release      string
-	chart        string
-	out          io.Writer
-	client       helm.Interface
-	dryRun       bool
-	recreate     bool
-	force        bool
-	disableHooks bool
-	valueFiles   valueFiles
-	values       []string
-	stringValues []string
-	fileValues   []string
-	verify       bool
-	keyring      string
-	install      bool
-	namespace    string
-	version      string
-	timeout      int64
-	resetValues  bool
-	reuseValues  bool
-	wait         bool
-	repoURL      string
-	username     string
-	password     string
-	devel        bool
-	description  string
+	release       string
+	chart         string
+	out           io.Writer
+	client        helm.Interface
+	dryRun        bool
+	recreate      bool
+	force         bool
+	disableHooks  bool
+	valueFiles    valueFiles
+	values        []string
+	stringValues  []string
+	fileValues    []string
+	verify        bool
+	keyring       string
+	install       bool
+	namespace     string
+	version       string
+	timeout       int64
+	resetValues   bool
+	reuseValues   bool
+	wait          bool
+	atomic        bool
+	repoURL       string
+	username      string
+	password      string
+	devel         bool
+	subNotes      bool
+	description   string
+	cleanupOnFail bool
 
 	certFile string
 	keyFile  string
@@ -141,6 +144,7 @@ func newUpgradeCmd(client helm.Interface, out io.Writer) *cobra.Command {
 			upgrade.release = args[0]
 			upgrade.chart = args[1]
 			upgrade.client = ensureHelmClient(upgrade.client)
+			upgrade.wait = upgrade.wait || upgrade.atomic
 
 			return upgrade.run()
 		},
@@ -166,6 +170,7 @@ func newUpgradeCmd(client helm.Interface, out io.Writer) *cobra.Command {
 	f.BoolVar(&upgrade.resetValues, "reset-values", false, "when upgrading, reset the values to the ones built into the chart")
 	f.BoolVar(&upgrade.reuseValues, "reuse-values", false, "when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored.")
 	f.BoolVar(&upgrade.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful. It will wait for as long as --timeout")
+	f.BoolVar(&upgrade.atomic, "atomic", false, "if set, upgrade process rolls back changes made in case of failed upgrade, also sets --wait flag")
 	f.StringVar(&upgrade.repoURL, "repo", "", "chart repository url where to locate the requested chart")
 	f.StringVar(&upgrade.username, "username", "", "chart repository username where to locate the requested chart")
 	f.StringVar(&upgrade.password, "password", "", "chart repository password where to locate the requested chart")
@@ -173,7 +178,9 @@ func newUpgradeCmd(client helm.Interface, out io.Writer) *cobra.Command {
 	f.StringVar(&upgrade.keyFile, "key-file", "", "identify HTTPS client using this SSL key file")
 	f.StringVar(&upgrade.caFile, "ca-file", "", "verify certificates of HTTPS-enabled servers using this CA bundle")
 	f.BoolVar(&upgrade.devel, "devel", false, "use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored.")
+	f.BoolVar(&upgrade.subNotes, "render-subchart-notes", false, "render subchart notes along with parent")
 	f.StringVar(&upgrade.description, "description", "", "specify the description to use for the upgrade, rather than the default")
+	f.BoolVar(&upgrade.cleanupOnFail, "cleanup-on-fail", false, "allow deletion of new resources created in this upgrade when upgrade failed")
 
 	f.MarkDeprecated("disable-hooks", "use --no-hooks instead")
 
@@ -189,6 +196,8 @@ func (u *upgradeCmd) run() error {
 		return err
 	}
 
+	releaseHistory, err := u.client.ReleaseHistory(u.release, helm.WithMaxHistory(1))
+
 	if u.install {
 		// If a release does not exist, install it. If another error occurs during
 		// the check, ignore the error and continue with the upgrade.
@@ -196,7 +205,6 @@ func (u *upgradeCmd) run() error {
 		// The returned error is a grpc.rpcError that wraps the message from the original error.
 		// So we're stuck doing string matching against the wrapped error, which is nested somewhere
 		// inside of the grpc.rpcError message.
-		releaseHistory, err := u.client.ReleaseHistory(u.release, helm.WithMaxHistory(1))
 
 		if err == nil {
 			if u.namespace == "" {
@@ -230,6 +238,7 @@ func (u *upgradeCmd) run() error {
 				timeout:      u.timeout,
 				wait:         u.wait,
 				description:  u.description,
+				atomic:       u.atomic,
 			}
 			return ic.run()
 		}
@@ -241,7 +250,8 @@ func (u *upgradeCmd) run() error {
 	}
 
 	// Check chart requirements to make sure all dependencies are present in /charts
-	if ch, err := chartutil.Load(chartPath); err == nil {
+	ch, err := chartutil.Load(chartPath)
+	if err == nil {
 		if req, err := chartutil.LoadRequirements(ch); err == nil {
 			if err := renderutil.CheckDependencies(ch, req); err != nil {
 				return err
@@ -253,9 +263,9 @@ func (u *upgradeCmd) run() error {
 		return prettyError(err)
 	}
 
-	resp, err := u.client.UpdateRelease(
+	resp, err := u.client.UpdateReleaseFromChart(
 		u.release,
-		chartPath,
+		ch,
 		helm.UpdateValueOverrides(rawVals),
 		helm.UpgradeDryRun(u.dryRun),
 		helm.UpgradeRecreate(u.recreate),
@@ -264,9 +274,32 @@ func (u *upgradeCmd) run() error {
 		helm.UpgradeTimeout(u.timeout),
 		helm.ResetValues(u.resetValues),
 		helm.ReuseValues(u.reuseValues),
+		helm.UpgradeSubNotes(u.subNotes),
 		helm.UpgradeWait(u.wait),
-		helm.UpgradeDescription(u.description))
+		helm.UpgradeDescription(u.description),
+		helm.UpgradeCleanupOnFail(u.cleanupOnFail))
 	if err != nil {
+		fmt.Fprintf(u.out, "UPGRADE FAILED\nError: %v\n", prettyError(err))
+		if u.atomic {
+			fmt.Fprint(u.out, "ROLLING BACK")
+			rollback := &rollbackCmd{
+				out:           u.out,
+				client:        u.client,
+				name:          u.release,
+				dryRun:        u.dryRun,
+				recreate:      u.recreate,
+				force:         u.force,
+				timeout:       u.timeout,
+				wait:          u.wait,
+				description:   "",
+				revision:      releaseHistory.Releases[0].Version,
+				disableHooks:  u.disableHooks,
+				cleanupOnFail: u.cleanupOnFail,
+			}
+			if err := rollback.run(); err != nil {
+				return err
+			}
+		}
 		return fmt.Errorf("UPGRADE FAILED: %v", prettyError(err))
 	}
 
@@ -274,7 +307,7 @@ func (u *upgradeCmd) run() error {
 		printRelease(u.out, resp.Release)
 	}
 
-	fmt.Fprintf(u.out, "Release %q has been upgraded. Happy Helming!\n", u.release)
+	fmt.Fprintf(u.out, "Release %q has been upgraded.\n", u.release)
 
 	// Print the status like status command does
 	status, err := u.client.ReleaseStatus(u.release)

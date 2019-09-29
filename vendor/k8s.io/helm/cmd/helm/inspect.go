@@ -27,27 +27,26 @@ import (
 	"k8s.io/helm/pkg/chartutil"
 )
 
-const inspectDesc = `
+const (
+	inspectDesc = `
 This command inspects a chart and displays information. It takes a chart reference
 ('stable/drupal'), a full path to a directory or packaged chart, or a URL.
 
 Inspect prints the contents of the Chart.yaml file and the values.yaml file.
 `
-
-const inspectValuesDesc = `
+	inspectValuesDesc = `
 This command inspects a chart (directory, file, or URL) and displays the contents
 of the values.yaml file
 `
-
-const inspectChartDesc = `
+	inspectChartDesc = `
 This command inspects a chart (directory, file, or URL) and displays the contents
 of the Charts.yaml file
 `
-
-const readmeChartDesc = `
+	readmeChartDesc = `
 This command inspects a chart (directory, file, or URL) and displays the contents
 of the README file
 `
+)
 
 type inspectCmd struct {
 	chartpath string
@@ -59,6 +58,7 @@ type inspectCmd struct {
 	repoURL   string
 	username  string
 	password  string
+	devel     bool
 
 	certFile string
 	keyFile  string
@@ -88,12 +88,9 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 			if err := checkArgsLength(len(args), "chart name"); err != nil {
 				return err
 			}
-			cp, err := locateChartPath(insp.repoURL, insp.username, insp.password, args[0], insp.version, insp.verify, insp.keyring,
-				insp.certFile, insp.keyFile, insp.caFile)
-			if err != nil {
+			if err := insp.prepare(args[0]); err != nil {
 				return err
 			}
-			insp.chartpath = cp
 			return insp.run()
 		},
 	}
@@ -107,12 +104,9 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 			if err := checkArgsLength(len(args), "chart name"); err != nil {
 				return err
 			}
-			cp, err := locateChartPath(insp.repoURL, insp.username, insp.password, args[0], insp.version, insp.verify, insp.keyring,
-				insp.certFile, insp.keyFile, insp.caFile)
-			if err != nil {
+			if err := insp.prepare(args[0]); err != nil {
 				return err
 			}
-			insp.chartpath = cp
 			return insp.run()
 		},
 	}
@@ -126,12 +120,9 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 			if err := checkArgsLength(len(args), "chart name"); err != nil {
 				return err
 			}
-			cp, err := locateChartPath(insp.repoURL, insp.username, insp.password, args[0], insp.version, insp.verify, insp.keyring,
-				insp.certFile, insp.keyFile, insp.caFile)
-			if err != nil {
+			if err := insp.prepare(args[0]); err != nil {
 				return err
 			}
-			insp.chartpath = cp
 			return insp.run()
 		},
 	}
@@ -145,12 +136,9 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 			if err := checkArgsLength(len(args), "chart name"); err != nil {
 				return err
 			}
-			cp, err := locateChartPath(insp.repoURL, insp.username, insp.password, args[0], insp.version, insp.verify, insp.keyring,
-				insp.certFile, insp.keyFile, insp.caFile)
-			if err != nil {
+			if err := insp.prepare(args[0]); err != nil {
 				return err
 			}
-			insp.chartpath = cp
 			return insp.run()
 		},
 	}
@@ -193,6 +181,12 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 	valuesSubCmd.Flags().StringVar(&insp.password, password, "", passworddesc)
 	chartSubCmd.Flags().StringVar(&insp.password, password, "", passworddesc)
 
+	develFlag := "devel"
+	develDesc := "use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored."
+	for _, subCmd := range cmds {
+		subCmd.Flags().BoolVar(&insp.devel, develFlag, false, develDesc)
+	}
+
 	certFile := "cert-file"
 	certFiledesc := "verify certificates of HTTPS-enabled servers using this CA bundle"
 	for _, subCmd := range cmds {
@@ -216,6 +210,22 @@ func newInspectCmd(out io.Writer) *cobra.Command {
 	}
 
 	return inspectCommand
+}
+
+func (i *inspectCmd) prepare(chart string) error {
+	debug("Original chart version: %q", i.version)
+	if i.version == "" && i.devel {
+		debug("setting version to >0.0.0-0")
+		i.version = ">0.0.0-0"
+	}
+
+	cp, err := locateChartPath(i.repoURL, i.username, i.password, chart, i.version, i.verify, i.keyring,
+		i.certFile, i.keyFile, i.caFile)
+	if err != nil {
+		return err
+	}
+	i.chartpath = cp
+	return nil
 }
 
 func (i *inspectCmd) run() error {
