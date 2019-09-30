@@ -35,6 +35,7 @@ rules:
       - clusterroles
     verbs:
       - bind
+      - create
   - apiGroups:
       - ""
     resources:

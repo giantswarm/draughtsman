@@ -8,8 +8,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/e2esetup/k8s"
 	"github.com/giantswarm/helmclient/integration/env"
+	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 )
 
@@ -29,14 +29,14 @@ func setup(ctx context.Context, m *testing.M, config Config) (int, error) {
 	var err error
 	teardown := !env.CircleCI() && !env.KeepResources()
 
-	var k8sSetup *k8s.Setup
+	var k8sSetup *k8sclient.Setup
 	{
-		c := k8s.SetupConfig{
+		c := k8sclient.SetupConfig{
 			Clients: config.CPK8sClients,
 			Logger:  config.Logger,
 		}
 
-		k8sSetup, err = k8s.NewSetup(c)
+		k8sSetup, err = k8sclient.NewSetup(c)
 		if err != nil {
 			return 1, microerror.Mask(err)
 		}

@@ -2,6 +2,7 @@ package helmclient
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -569,7 +570,7 @@ func Test_isTillerInvalidVersion(t *testing.T) {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Image: defaultTillerImage,
+							Image: fmt.Sprintf("%s/%s", defaultTillerImageRegistry, defaultTillerImageName),
 						},
 					},
 				},
@@ -670,7 +671,7 @@ func Test_isTillerInvalidVersion(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateTillerVersion(tc.tillerPod, defaultTillerImage)
+			err := validateTillerVersion(tc.tillerPod, fmt.Sprintf("%s/%s", defaultTillerImageRegistry, defaultTillerImageName))
 
 			switch {
 			case err == nil && tc.errorMatcher == nil:

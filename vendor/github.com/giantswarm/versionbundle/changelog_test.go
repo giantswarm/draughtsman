@@ -134,6 +134,19 @@ func Test_Changelog_Validate(t *testing.T) {
 			},
 			ErrorMatcher: nil,
 		},
+		// Test 12 contains two simple URLs.
+		{
+			Changelog: Changelog{
+				Component:   "kubernetes",
+				Description: "description",
+				Kind:        "added",
+				URLs: []string{
+					"unittest.com",
+					"unittest.de",
+				},
+			},
+			ErrorMatcher: nil,
+		},
 	}
 
 	for i, tc := range testCases {

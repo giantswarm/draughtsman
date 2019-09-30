@@ -553,8 +553,6 @@ func Test_Collector_Collect(t *testing.T) {
 				FilterFunc: tc.FilterFunc,
 				Logger:     microloggertest.New(),
 				RestClient: resty.New(),
-
-				Endpoints: endpoints,
 			}
 
 			collector, err = NewCollector(c)
@@ -568,7 +566,7 @@ func Test_Collector_Collect(t *testing.T) {
 			t.Fatalf("test %d expected %#v got %#v", i, nil, b1)
 		}
 
-		err = collector.Collect(context.TODO())
+		err = collector.Collect(context.TODO(), endpoints)
 		if err != nil {
 			t.Fatalf("test %d expected %#v got %#v", i, nil, err)
 		}

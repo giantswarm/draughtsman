@@ -54,6 +54,10 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/giantswarm/k8sclient"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/giantswarm/microendpoint"
 
 [[constraint]]
@@ -86,7 +90,7 @@
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "v1.15.4"
+  version = "=v1.15.4"
 
 [[override]]
   name = "github.com/russross/blackfriday"

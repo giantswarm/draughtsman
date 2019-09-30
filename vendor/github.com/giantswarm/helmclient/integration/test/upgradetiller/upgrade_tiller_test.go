@@ -16,45 +16,10 @@ import (
 func TestUpgradeTiller(t *testing.T) {
 	ctx := context.Background()
 
-	var err error
-
 	currentTillerImage := "quay.io/giantswarm/tiller:v2.14.3"
-	outdatedTillerImage := "quay.io/giantswarm/tiller:v2.12.0"
 
 	labelSelector := "app=helm,name=tiller"
 	tillerNamespace := "giantswarm"
-
-	// Install tiller using current image.
-	{
-		err = config.HelmClient.EnsureTillerInstalled(ctx)
-		if err != nil {
-			t.Fatalf("could not install tiller %#v", err)
-		}
-
-		tillerImage, err := getTillerImage(ctx, tillerNamespace, labelSelector)
-		if err != nil {
-			t.Fatalf("could not get tiller image %#v", err)
-		}
-		if tillerImage != currentTillerImage {
-			t.Fatalf("tiller image == %#q, want %#q", tillerImage, currentTillerImage)
-		}
-	}
-
-	// Downgrade tiller image to test the upgrade process.
-	{
-		err = updateTillerImage(ctx, tillerNamespace, labelSelector, outdatedTillerImage)
-		if err != nil {
-			t.Fatalf("could not downgrade tiller image %#v", err)
-		}
-
-		tillerImage, err := getTillerImage(ctx, tillerNamespace, labelSelector)
-		if err != nil {
-			t.Fatalf("could not get tiller image %#v", err)
-		}
-		if tillerImage != outdatedTillerImage {
-			t.Fatalf("tiller image == %#q, want %#q", tillerImage, outdatedTillerImage)
-		}
-	}
 
 	// Upgrade tiller to the current image.
 	{

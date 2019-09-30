@@ -1318,7 +1318,25 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: IsInvalidBundlesError,
 		},
 
-		// Test 3 is the same as 2 but with multiple version bundles.
+		// Test 3 ensures a bundle with pre-release version is valid.
+		{
+			Bundles: []Bundle{
+				{
+					Changelogs: []Changelog{},
+					Components: []Component{
+						{
+							Name:    "calico",
+							Version: "1.1.0",
+						},
+					},
+					Name:    "kubernetes-operator",
+					Version: "0.1.0-pre-release",
+				},
+			},
+			ErrorMatcher: IsInvalidBundlesError,
+		},
+
+		// Test 4 is the same as 2 but with multiple version bundles.
 		{
 			Bundles: []Bundle{
 				{
@@ -1366,7 +1384,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: IsInvalidBundlesError,
 		},
 
-		// Test 4 ensures validation of a list of version bundles where a
+		// Test 5 ensures validation of a list of version bundles where a
 		// version bundle has no components does not throw an error.
 		{
 			Bundles: []Bundle{
@@ -1391,7 +1409,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 5 is the same as 4 but with multiple version bundles.
+		// Test 6 is the same as 4 but with multiple version bundles.
 		{
 			Bundles: []Bundle{
 				{
@@ -1441,7 +1459,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 6 ensures validation of a list of version bundles having the
+		// Test 7 ensures validation of a list of version bundles having the
 		// different name and version not throws an error.
 		{
 			Bundles: []Bundle{
@@ -1491,7 +1509,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 7 ensures validation of a list of version bundles having duplicated
+		// Test 8 ensures validation of a list of version bundles having duplicated
 		// version bundles throws an error.
 		{
 			Bundles: []Bundle{
@@ -1541,7 +1559,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: IsInvalidBundlesError,
 		},
 
-		// Test 8 ensures validation of a list of version bundles having the same
+		// Test 9 ensures validation of a list of version bundles having the same
 		// version throws an error.
 		{
 			Bundles: []Bundle{
@@ -1591,7 +1609,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: IsInvalidBundlesError,
 		},
 
-		// Test 9 verifies that version increment is validated per provider.
+		// Test 10 verifies that version increment is validated per provider.
 		{
 			Bundles: []Bundle{
 				{
@@ -1652,7 +1670,7 @@ func Test_Bundles_Validate(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 10 like test 9 but verifies invalidBundlesError when there are
+		// Test 11 like test 10 but verifies invalidBundlesError when there are
 		// two Bundles for AWS provider and second of those has newer timestamp
 		// and lower version number.
 		{

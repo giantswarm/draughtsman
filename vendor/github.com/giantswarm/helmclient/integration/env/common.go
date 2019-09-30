@@ -10,20 +10,19 @@ import (
 const (
 	EnvVarCircleCI      = "CIRCLECI"
 	EnvVarCircleSHA     = "CIRCLE_SHA1"
+	EnvVarE2EKubeconfig = "E2E_KUBECONFIG"
 	EnvVarKeepResources = "KEEP_RESOURCES"
-	EnvVarTestDir       = "TEST_DIR"
 )
 
 var (
 	circleCI      string
 	circleSHA     string
 	keepResources string
-	testDir       string
+	kubeconfig    string
 )
 
 func init() {
 	circleCI = os.Getenv(EnvVarCircleCI)
-
 	circleSHA = os.Getenv(EnvVarCircleSHA)
 	if circleSHA == "" {
 		panic(fmt.Sprintf("env var %#q must not be empty", EnvVarCircleSHA))
@@ -31,9 +30,9 @@ func init() {
 
 	keepResources = os.Getenv(EnvVarKeepResources)
 
-	testDir = os.Getenv(EnvVarTestDir)
-	if testDir == "" {
-		panic(fmt.Sprintf("env var %#q must not be empty", EnvVarTestDir))
+	kubeconfig = os.Getenv(EnvVarE2EKubeconfig)
+	if kubeconfig == "" {
+		panic(fmt.Sprintf("env var %#q must not be empty", EnvVarE2EKubeconfig))
 	}
 }
 
@@ -49,6 +48,6 @@ func KeepResources() bool {
 	return keepResources == "true"
 }
 
-func TestDir() string {
-	return testDir
+func KubeConfigPath() string {
+	return kubeconfig
 }

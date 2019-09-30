@@ -6,6 +6,7 @@ import (
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/e2e-harness/pkg/harness"
+	"github.com/giantswarm/k8sclient/k8scrdclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	corev1 "k8s.io/api/core/v1"
@@ -15,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/giantswarm/operatorkit/client/k8scrdclient"
 	"github.com/giantswarm/operatorkit/controller"
 	"github.com/giantswarm/operatorkit/controller/integration/testresourceset"
 	"github.com/giantswarm/operatorkit/informer"
@@ -23,7 +23,9 @@ import (
 )
 
 type Config struct {
-	Resources []resource.Interface
+	HandlesFunc func(obj interface{}) bool
+	Logger      micrologger.Logger
+	Resources   []resource.Interface
 
 	Name      string
 	Namespace string
@@ -54,11 +56,10 @@ func New(config Config) (*Wrapper, error) {
 		return nil, microerror.Mask(err)
 	}
 
-	var newLogger micrologger.Logger
-	{
+	if config.Logger == nil {
 		c := micrologger.Config{}
 
-		newLogger, err = micrologger.New(c)
+		config.Logger, err = micrologger.New(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -68,7 +69,7 @@ func New(config Config) (*Wrapper, error) {
 	{
 		c := k8scrdclient.Config{
 			K8sExtClient: k8sExtClient,
-			Logger:       newLogger,
+			Logger:       config.Logger,
 		}
 
 		crdClient, err = k8scrdclient.New(c)
@@ -80,7 +81,7 @@ func New(config Config) (*Wrapper, error) {
 	var newInformer *informer.Informer
 	{
 		c := informer.Config{
-			Logger:  newLogger,
+			Logger:  config.Logger,
 			Watcher: g8sClient.CoreV1alpha1().DrainerConfigs(config.Namespace),
 
 			RateWait:     time.Second * 2,
@@ -95,9 +96,10 @@ func New(config Config) (*Wrapper, error) {
 	var resourceSet *controller.ResourceSet
 	{
 		c := testresourceset.Config{
-			K8sClient: k8sClient,
-			Logger:    newLogger,
-			Resources: config.Resources,
+			HandlesFunc: config.HandlesFunc,
+			K8sClient:   k8sClient,
+			Logger:      config.Logger,
+			Resources:   config.Resources,
 
 			ProjectName: config.Name,
 		}
@@ -114,7 +116,7 @@ func New(config Config) (*Wrapper, error) {
 			CRD:       v1alpha1.NewDrainerConfigCRD(),
 			CRDClient: crdClient,
 			Informer:  newInformer,
-			Logger:    newLogger,
+			Logger:    config.Logger,
 			ResourceSets: []*controller.ResourceSet{
 				resourceSet,
 			},

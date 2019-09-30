@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -354,5 +355,52 @@ func TestBuildSecurityDescriptor(t *testing.T) {
 	}
 	if got := sd.String(); got != want {
 		t.Fatalf("SD = %q; want %q", got, want)
+	}
+}
+
+func TestGetDiskFreeSpaceEx(t *testing.T) {
+	cwd, err := windows.UTF16PtrFromString(".")
+	if err != nil {
+		t.Fatalf(`failed to call UTF16PtrFromString("."): %v`, err)
+	}
+	var freeBytesAvailableToCaller, totalNumberOfBytes, totalNumberOfFreeBytes uint64
+	if err := windows.GetDiskFreeSpaceEx(cwd, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes); err != nil {
+		t.Fatalf("failed to call GetDiskFreeSpaceEx: %v", err)
+	}
+
+	if freeBytesAvailableToCaller == 0 {
+		t.Errorf("freeBytesAvailableToCaller: got 0; want > 0")
+	}
+	if totalNumberOfBytes == 0 {
+		t.Errorf("totalNumberOfBytes: got 0; want > 0")
+	}
+	if totalNumberOfFreeBytes == 0 {
+		t.Errorf("totalNumberOfFreeBytes: got 0; want > 0")
+	}
+}
+
+func TestGetPreferredUILanguages(t *testing.T) {
+	tab := map[string]func(flags uint32) ([]string, error){
+		"GetProcessPreferredUILanguages": windows.GetProcessPreferredUILanguages,
+		"GetThreadPreferredUILanguages":  windows.GetThreadPreferredUILanguages,
+		"GetUserPreferredUILanguages":    windows.GetUserPreferredUILanguages,
+		"GetSystemPreferredUILanguages":  windows.GetSystemPreferredUILanguages,
+	}
+	for fName, f := range tab {
+		lang, err := f(windows.MUI_LANGUAGE_ID)
+		if err != nil {
+			t.Errorf(`failed to call %v(MUI_LANGUAGE_ID): %v`, fName, err)
+		}
+		for _, l := range lang {
+			_, err := strconv.ParseUint(l, 16, 16)
+			if err != nil {
+				t.Errorf(`%v(MUI_LANGUAGE_ID) returned unexpected LANGID: %v`, fName, l)
+			}
+		}
+
+		lang, err = f(windows.MUI_LANGUAGE_NAME)
+		if err != nil {
+			t.Errorf(`failed to call %v(MUI_LANGUAGE_NAME): %v`, fName, err)
+		}
 	}
 }
