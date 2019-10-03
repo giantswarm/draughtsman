@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/pkg/project"
 	"github.com/giantswarm/draughtsman/server"
 	"github.com/giantswarm/draughtsman/service"
 	"github.com/giantswarm/draughtsman/service/configurer/configmap"
@@ -27,11 +28,7 @@ import (
 )
 
 var (
-	description string     = "draughtsman is an in-cluster agent that handles Helm based deployments."
-	f           *flag.Flag = flag.New()
-	gitCommit   string     = "n/a"
-	name        string     = "draughtsman"
-	source      string     = "https://github.com/giantswarm/draughtsman"
+	f *flag.Flag = flag.New()
 )
 
 func main() {
@@ -81,10 +78,11 @@ func mainError() error {
 				SlackClient: newSlackClient,
 				Viper:       v,
 
-				Description: description,
-				GitCommit:   gitCommit,
-				ProjectName: name,
-				Source:      source,
+				Description: project.Description(),
+				GitCommit:   project.GitSHA(),
+				ProjectName: project.Name(),
+				Source:      project.Source(),
+				Version:     project.Version(),
 			}
 
 			newService, err = service.New(c)
@@ -102,7 +100,7 @@ func mainError() error {
 				Logger:      newLogger,
 				Service:     newService,
 				Viper:       v,
-				ProjectName: name,
+				ProjectName: project.Name(),
 			}
 
 			newServer, err = server.New(c)
@@ -121,10 +119,11 @@ func mainError() error {
 			Logger:        newLogger,
 			ServerFactory: newServerFactory,
 
-			Description: description,
-			GitCommit:   gitCommit,
-			Name:        name,
-			Source:      source,
+			Description: project.Description(),
+			GitCommit:   project.GitSHA(),
+			Name:        project.Name(),
+			Source:      project.Source(),
+			Version:     project.Version(),
 		}
 
 		newCommand, err = command.New(c)

@@ -13,9 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/operatorkit/controller"
 	"github.com/giantswarm/operatorkit/controller/integration/testresource"
-	"github.com/giantswarm/operatorkit/controller/integration/wrapper/nodeconfig"
+	"github.com/giantswarm/operatorkit/controller/integration/wrapper/drainerconfig"
+	"github.com/giantswarm/operatorkit/resource"
 )
 
 const (
@@ -65,21 +65,21 @@ func Test_Controller_Integration_Error(t *testing.T) {
 		}
 	}
 
-	resources := []controller.Resource{
+	resources := []resource.Interface{
 		rA,
 		rB,
 	}
 
-	var wrapper *nodeconfig.Wrapper
+	var wrapper *drainerconfig.Wrapper
 	{
-		c := nodeconfig.Config{
+		c := drainerconfig.Config{
 			Resources: resources,
 
 			Name:      "operator-name",
 			Namespace: testNamespace,
 		}
 
-		wrapper, err = nodeconfig.New(c)
+		wrapper, err = drainerconfig.New(c)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
 		}
@@ -94,7 +94,7 @@ func Test_Controller_Integration_Error(t *testing.T) {
 	// We create two test objects. One is used by one resource to error out.
 	{
 		o := func() error {
-			a := &v1alpha1.NodeConfig{
+			a := &v1alpha1.DrainerConfig{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      testObjectA,
 					Namespace: testNamespace,
@@ -106,7 +106,7 @@ func Test_Controller_Integration_Error(t *testing.T) {
 				return microerror.Mask(err)
 			}
 
-			b := &v1alpha1.NodeConfig{
+			b := &v1alpha1.DrainerConfig{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      testObjectB,
 					Namespace: testNamespace,

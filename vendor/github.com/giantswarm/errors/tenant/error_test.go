@@ -96,6 +96,11 @@ func Test_IsAPINotAvailable(t *testing.T) {
 			errorMessage:  "Get https://api.wgrt8.k8s.godsmack.westeurope.azure.gigantic.io/api/v1/nodes?timeout=30s: dial tcp 40.113.146.2:443: i/o timeout",
 			expectedMatch: true,
 		},
+		{
+			description:   "case 18: unable to connect to broken tenant api",
+			errorMessage:  "Get https://api.cl048.k8s.gauss.eu-central-1.aws.gigantic.io/api/v1/namespaces/kube-system/configmaps?labelSelector=giantswarm.io%2Fservice-type%3Dmanaged%2C+giantswarm.io%2Fmanaged-by%3Dcluster-operator: EOF",
+			expectedMatch: true,
+		},
 	}
 
 	for _, tc := range testCases {

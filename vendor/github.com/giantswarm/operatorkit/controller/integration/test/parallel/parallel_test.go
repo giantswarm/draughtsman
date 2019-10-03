@@ -16,9 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/operatorkit/controller"
 	"github.com/giantswarm/operatorkit/controller/integration/testresource"
-	"github.com/giantswarm/operatorkit/controller/integration/wrapper/nodeconfig"
+	"github.com/giantswarm/operatorkit/controller/integration/wrapper/drainerconfig"
+	"github.com/giantswarm/operatorkit/resource"
 )
 
 const (
@@ -114,7 +114,7 @@ func Test_Finalizer_Integration_Parallel(t *testing.T) {
 		}
 	}
 
-	var harnessA, harnessB, harnessC *nodeconfig.Wrapper
+	var harnessA, harnessB, harnessC *drainerconfig.Wrapper
 	{
 		harnessA, err = newHarness(objNamespace, controllerNameA, resourceA)
 		if err != nil {
@@ -167,14 +167,14 @@ func Test_Finalizer_Integration_Parallel(t *testing.T) {
 	// not be ensured.
 	{
 		o := func() error {
-			nodeConfig := &v1alpha1.NodeConfig{
+			drainerConfig := &v1alpha1.DrainerConfig{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      objName,
 					Namespace: objNamespace,
 				},
 			}
 
-			_, err := harnessA.CreateObject(objNamespace, nodeConfig)
+			_, err := harnessA.CreateObject(objNamespace, drainerConfig)
 			if err != nil {
 				return microerror.Mask(err)
 			}
@@ -343,7 +343,7 @@ func Test_Finalizer_Integration_Parallel(t *testing.T) {
 	{
 		o := func() error {
 			_, err := harnessA.GetObject(objName, objNamespace)
-			if nodeconfig.IsNotFound(err) {
+			if drainerconfig.IsNotFound(err) {
 				return nil
 			} else if err != nil {
 				return microerror.Mask(err)
@@ -381,19 +381,17 @@ func Test_Finalizer_Integration_Parallel(t *testing.T) {
 	}
 }
 
-func newHarness(namespace string, controllerName string, resource *testresource.Resource) (*nodeconfig.Wrapper, error) {
-	resources := []controller.Resource{
-		controller.Resource(resource),
-	}
-
-	c := nodeconfig.Config{
-		Resources: resources,
+func newHarness(namespace string, controllerName string, r *testresource.Resource) (*drainerconfig.Wrapper, error) {
+	c := drainerconfig.Config{
+		Resources: []resource.Interface{
+			r,
+		},
 
 		Name:      controllerName,
 		Namespace: namespace,
 	}
 
-	harness, err := nodeconfig.New(c)
+	harness, err := drainerconfig.New(c)
 	if err != nil {
 		return nil, err
 	}

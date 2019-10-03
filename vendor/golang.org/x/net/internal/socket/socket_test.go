@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd linux netbsd openbsd solaris windows
+// +build aix darwin dragonfly freebsd linux netbsd openbsd solaris windows
 
 package socket_test
 
@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"testing"
 
-	"golang.org/x/net/internal/nettest"
 	"golang.org/x/net/internal/socket"
+	"golang.org/x/net/nettest"
 )
 
 func TestSocket(t *testing.T) {
