@@ -45,12 +45,12 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:0e0b19a93aea9399d5e0a78ddedd719f74de4f4a1da9a08d934e40e32c35454e"
+  digest = "1:35addf87b8ba00f8785686d0f1d2607f15e3d244912438af52460cce2f9b35f2"
   name = "github.com/Masterminds/sprig"
   packages = ["."]
   pruneopts = ""
-  revision = "2691a9cba2adee8d9a60100a1bc49e770f97b7db"
-  version = "v2.21.0"
+  revision = "e4c0945838d570720d876a6ad9b4568ed32317b4"
+  version = "v2.22.0"
 
 [[projects]]
   digest = "1:c0952fb3cf9506cff577b4edf4458889570dcbd2902a7b90a1fd96bfbb97ccd8"
@@ -222,20 +222,20 @@
   revision = "2f0151a3dfe0a682dbb3ce710068941c4b24e2b8"
 
 [[projects]]
-  branch = "kubernetes-1.15.4"
-  digest = "1:fcba4d85b62f9653b45dad86fea92904d9e8c29a1eb19d2ff1d27eae27c666fb"
+  branch = "master"
+  digest = "1:1cb513a74acab9eacde5aebc7138ba2a0391023031f4c4e26ad1a45c37371e14"
   name = "github.com/giantswarm/helmclient"
   packages = ["."]
   pruneopts = ""
-  revision = "f2713d29a3258d473548656761ace0aeb334bf8f"
+  revision = "a5e3404ad0fc68dafb8ecb6e83c19b8e5ba69d5f"
 
 [[projects]]
-  branch = "kubernetes-1.15.4"
-  digest = "1:9c3076a0c12d5dda5ea5c537070abaec510177c641cf5287a2480e69c9c05489"
+  branch = "master"
+  digest = "1:0cc71a7ab75a4f338f22f9df99a62d506c2207f230283fdda9588a2c6cf3fd4b"
   name = "github.com/giantswarm/k8sportforward"
   packages = ["."]
   pruneopts = ""
-  revision = "b1d1b0932500762ff2f6fa659f7425563f79f7f0"
+  revision = "abc9b85701cda8371b1e26b42e8623b54766766b"
 
 [[projects]]
   branch = "master"
@@ -291,8 +291,8 @@
   revision = "0926d9b7c5419173936b4556411a103bdf8d5966"
 
 [[projects]]
-  branch = "kubernetes-1.15.4"
-  digest = "1:0c78719590f09285a0d6deee5ac9c99fd7a6d8ab603dfdb510125453890234c9"
+  branch = "master"
+  digest = "1:61a438eedc3c8ec167d232e14710afc57aff6c68a4269a9bff19d857f3278b7c"
   name = "github.com/giantswarm/operatorkit"
   packages = [
     "client/k8srestconfig",
@@ -301,7 +301,7 @@
     "flag/service/kubernetes/watch",
   ]
   pruneopts = ""
-  revision = "994bfd4b64084d21fdf43018cbe75a0e293cb3e3"
+  revision = "c193ea196181c42e5c54f30ba2f2d6055b3742b2"
 
 [[projects]]
   branch = "master"
@@ -401,11 +401,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e1822d37be8e11e101357a27170527b1056c99182407f270e080f76409adbd9a"
+  digest = "1:31785352df956b10a0e82cc3e31bfd30785b58a433120bc8878cb66df35f9d05"
   name = "github.com/golang/groupcache"
   packages = ["lru"]
   pruneopts = ""
-  revision = "869f871628b6baa9cfbc11732cdf6546b17c1298"
+  revision = "404acd9df4cc9859d64fb9eed42e5c026187287a"
 
 [[projects]]
   digest = "1:b852d2b62be24e445fcdbad9ce3015b44c207815d631230dfce3f14e7803f5bf"
@@ -636,6 +636,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:ddc46aaac89d6465fd0b5fd13ab1931d0ff5c2863937e9fccdbc14c991b50c06"
+  name = "github.com/mitchellh/copystructure"
+  packages = ["."]
+  pruneopts = ""
+  revision = "9a1b6f44e8da0e0e374624fb0a825a231b00c537"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:713b341855f1480e4baca1e7c5434e1d266441340685ecbde32d59bdc065fb3f"
   name = "github.com/mitchellh/go-wordwrap"
   packages = ["."]
@@ -650,6 +658,14 @@
   pruneopts = ""
   revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
   version = "v1.1.2"
+
+[[projects]]
+  digest = "1:d732b4a6d4981b65382155a192c0a773334035ad680566813f85dd5b99a12e26"
+  name = "github.com/mitchellh/reflectwalk"
+  packages = ["."]
+  pruneopts = ""
+  revision = "3e2c75dfad4fbf904b58782a80fd595c760ad185"
+  version = "v1.0.1"
 
 [[projects]]
   digest = "1:0c0ff2a89c1bb0d01887e1dac043ad7efbf3ec77482ef058ac423d13497e16fd"
@@ -831,7 +847,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:715598815cb13b257c4e32153bdb11f899c82d0cd8c15831cca28e139ddf1b33"
+  digest = "1:b4305df2444548cf8f171cd377e19bc7021eaa195aaa78367b3a371d2d6b9ae1"
   name = "golang.org/x/crypto"
   packages = [
     "cast5",
@@ -849,11 +865,11 @@
     "ssh/terminal",
   ]
   pruneopts = ""
-  revision = "a832865fa7ada6126f4c6124ac49f71be71bff2a"
+  revision = "34f69633bfdcf9db92f698f8487115767eebef81"
 
 [[projects]]
   branch = "master"
-  digest = "1:60eb80cc714e54c1179fca3454bd450ca5c1f9e1a0773266b9e0e6f3e7853a07"
+  digest = "1:6cef7e9992e59376400561282987e1387404e2f54dd09344570d75d374f2756d"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -868,7 +884,7 @@
     "websocket",
   ]
   pruneopts = ""
-  revision = "c00fd9afed17cfdca9b3e1e3b8de7ef2b3f0347b"
+  revision = "2ec189313ef0a07735684caebd1ba8b8ebca456f"
 
 [[projects]]
   branch = "master"
@@ -891,14 +907,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:02a5110b0c8cc83edf31f25794d8486cb57358f2b84250baa4235973f48124fb"
+  digest = "1:6ddcc1a2f7bfe9524d5e31df22cd929f29560a8e7e880c8f276b587efc007aff"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = ""
-  revision = "c990c680b611ac1aeb7d8f2af94a825f98d69720"
+  revision = "b397fe3ad8ed895c98fa54584f61835a88e65ff5"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
@@ -958,11 +974,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a0367a079dd13a8fbacaa14b46397fc3afab451f99518272053249259325106e"
+  digest = "1:f341a82aa2eb2d74980e4df1195750977528628b8a352744cf91efacd96a2d02"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = ""
-  revision = "20e1ac93f88cf06d2b1defb90b9e9e126c7dfff6"
+  revision = "c459b9ce5143dd819763d9329ff92a8e35e61bd9"
 
 [[projects]]
   digest = "1:30d215704e78c21ffff90aa8e86ca1a438fec2837bad082116510fe5a862af5e"
@@ -1045,12 +1061,12 @@
   version = "v2.3.1"
 
 [[projects]]
-  digest = "1:cedccf16b71e86db87a24f8d4c70b0a855872eb967cb906a66b95de56aefbd0d"
+  digest = "1:ab9547706f32a7535bb4f25d6b58ad00436630593cd3e3ed4602f1613ed84783"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = ""
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "f221b8435cfb71e54062f6c6e99e9ade30b124d5"
+  version = "v2.2.4"
 
 [[projects]]
   digest = "1:10eebafc84e46eb29e19559c00670eb175f8be8db767cfaa720761bfd3b356af"

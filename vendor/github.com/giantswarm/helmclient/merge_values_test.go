@@ -59,6 +59,9 @@ test: test`
 const nullValuedNestedKeyYaml = `
 nested: null`
 
+const nullValuedYaml = `
+null`
+
 func Test_MergeValues(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -164,6 +167,16 @@ func Test_MergeValues(t *testing.T) {
 				"nested": nil,
 				"test":   "test",
 			},
+		},
+		{
+			name: "case 9: null-value in src/dest",
+			destMap: map[string][]byte{
+				"simple": []byte(nullValuedYaml),
+			},
+			srcMap: map[string][]byte{
+				"override": []byte(nullValuedYaml),
+			},
+			expectedValues: map[string]interface{}{},
 		},
 	}
 
