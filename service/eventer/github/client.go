@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/giantswarm/microerror"
@@ -25,6 +26,29 @@ const (
 	// etagHeader is the header used for etag.
 	// See: https://en.wikipedia.org/wiki/HTTP_ETag.
 	etagHeader = "Etag"
+
+	// rateLimitLimitHeader is the header set by GitHub to show the total
+	// rate limit value.
+	// See: https://developer.github.com/v3/#rate-limiting
+	rateLimitLimitHeader = "X-RateLimit-Limit"
+
+	// rateLimitRemainingHeader is the header set by GitHub to show the
+	// remaining rate limit value.
+	// See: https://developer.github.com/v3/#rate-limiting
+	rateLimitRemainingHeader = "X-RateLimit-Remaining"
+
+	// rateLimitResetHeader is the header set by GitHub to show the time at
+	// wich the current rate limit window resets in UTC epoch seconds.
+	// See: https://developer.github.com/v3/#rate-limiting
+	rateLimitResetHeader = "X-RateLimit-Reset"
+
+	// rateLimitExtraWait is the additional duration that should be waited
+	// before rate limit bucket is expected to get refilled in GitHub API.
+	rateLimitExtraWait = 5 * time.Second
+
+	// rateLimitAlmostHitThreshold is the limit that makes our rate limiter to
+	// wait for extra time until spending last tokens from GitHub token bucket.
+	rateLimitAlmostHitThreshold = 5
 )
 
 // request makes a request, handling any metrics and logging.
@@ -103,6 +127,8 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 		req.Header.Set("If-None-Match", val)
 	}
 
+	e.rateLimiter.Wait()
+
 	startTime := time.Now()
 
 	resp, err := e.request(req)
@@ -110,6 +136,11 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 		return nil, microerror.Mask(err)
 	}
 	defer resp.Body.Close()
+
+	err = e.updateRateLimiter(resp)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 
 	updateDeploymentMetrics(e.organisation, project, resp.StatusCode, startTime)
 
@@ -169,6 +200,8 @@ func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deploym
 		return nil, microerror.Mask(err)
 	}
 
+	e.rateLimiter.Wait()
+
 	startTime := time.Now()
 
 	resp, err := e.request(req)
@@ -176,6 +209,11 @@ func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deploym
 		return nil, microerror.Mask(err)
 	}
 	defer resp.Body.Close()
+
+	err = e.updateRateLimiter(resp)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 
 	updateDeploymentStatusMetrics("GET", e.organisation, project, resp.StatusCode, startTime)
 
@@ -221,6 +259,8 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 		return microerror.Mask(err)
 	}
 
+	e.rateLimiter.Wait()
+
 	startTime := time.Now()
 
 	resp, err := e.request(req)
@@ -229,6 +269,11 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 	}
 	defer resp.Body.Close()
 
+	err = e.updateRateLimiter(resp)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
 	updateDeploymentStatusMetrics("POST", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusCreated {
@@ -236,4 +281,71 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 	}
 
 	return nil
+}
+
+// updateRateLimiter updates latest rate limiting token bucket values from
+// response received.
+func (e *GithubEventer) updateRateLimiter(response *http.Response) error {
+	rateLimitRemaining, err := parseRateLimitRemaining(response)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	rateLimitResetTime, err := parseRateLimitResetTime(response)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	timeToRefill := rateLimitResetTime.Sub(time.Now())
+
+	// If we are close to hit the rate limit, wait some extra time.
+	if rateLimitRemaining < rateLimitAlmostHitThreshold {
+		if rateLimitRemaining == 0 {
+			// We must have at least one token in bucket. Otherwise it would
+			// deadlock.
+			rateLimitRemaining = 1
+		}
+
+		// If all tokens have been spent from GitHub API, doubling the wait
+		// period + adding some extra is expected to make that 1 token be
+		// available when the GitHub bucket gets refilled. When there's more
+		// than 1 still left, this just makes spending of them slower.
+		timeToRefill = 2*timeToRefill + rateLimitExtraWait
+	}
+
+	e.rateLimiter.Update(timeToRefill, int64(rateLimitRemaining))
+
+	return nil
+}
+
+// parseRateLimitValue parses GitHub API rate limit value from response
+// headers.
+func parseRateLimitValue(response *http.Response) (float64, error) {
+	rateLimitLimitValue, err := strconv.ParseFloat(response.Header.Get(rateLimitLimitHeader), 64)
+	if err != nil {
+		return 0.0, microerror.Mask(err)
+	}
+	return rateLimitLimitValue, nil
+}
+
+// parseRateLimitRemaining parses remaining GitHub API request tokens before
+// rate limiting prevents further requests.
+func parseRateLimitRemaining(response *http.Response) (float64, error) {
+	rateLimitRemainingValue, err := strconv.ParseFloat(response.Header.Get(rateLimitRemainingHeader), 64)
+	if err != nil {
+		return 0.0, microerror.Mask(err)
+	}
+
+	return rateLimitRemainingValue, nil
+}
+
+// parseRateLimitResetTime parses time when GitHub API's rate limit bucket gets
+// refilled.
+func parseRateLimitResetTime(response *http.Response) (time.Time, error) {
+	rateLimitResetValue, err := strconv.ParseInt(response.Header.Get(rateLimitResetHeader), 10, 64)
+	if err != nil {
+		return time.Time{}, microerror.Mask(err)
+	}
+
+	return time.Unix(rateLimitResetValue, 0), nil
 }

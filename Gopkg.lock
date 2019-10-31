@@ -572,6 +572,14 @@
   revision = "08cceb5d0b5331634b9826762a8fd53b29b86ad8"
 
 [[projects]]
+  digest = "1:d26c006cbf54ca5c040463d5678013169e2bd91fb62c2f960ae283a1723d4278"
+  name = "github.com/juju/ratelimit"
+  packages = ["."]
+  pruneopts = ""
+  revision = "59fac5042749a5afb9af70e813da1dd5474f0167"
+  version = "1.0.1"
+
+[[projects]]
   digest = "1:0f51cee70b0d254dbc93c22666ea2abf211af81c1701a96d04e2284b408621db"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
@@ -1650,6 +1658,7 @@
     "github.com/giantswarm/operatorkit/client/k8srestconfig",
     "github.com/giantswarm/operatorkit/flag/service/kubernetes",
     "github.com/juju/errgo",
+    "github.com/juju/ratelimit",
     "github.com/nlopes/slack",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/spf13/afero",

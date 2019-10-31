@@ -18,16 +18,6 @@ const (
 	// prometheusSubsystem is the subsystem to use for Prometheus metrics.
 	// See: https://godoc.org/github.com/prometheus/client_golang/prometheus#Opts
 	prometheusSubsystem = "github_eventer"
-
-	// rateLimitLimitHeader is the header set by GitHub to show the total
-	// rate limit value.
-	// See: https://developer.github.com/v3/#rate-limiting
-	rateLimitLimitHeader = "X-RateLimit-Limit"
-
-	// rateLimitRemainingHeader is the header set by GitHub to show the
-	// remaining rate limit value.
-	// See: https://developer.github.com/v3/#rate-limiting
-	rateLimitRemainingHeader = "X-RateLimit-Remaining"
 )
 
 var (
@@ -97,13 +87,13 @@ func init() {
 // updateRateLimitMetrics is a utility function that takes a Response
 // containing rate limit headers, and updates the rate limit metrics.
 func updateRateLimitMetrics(response *http.Response) error {
-	rateLimitLimitValue, err := strconv.ParseFloat(response.Header.Get(rateLimitLimitHeader), 64)
+	rateLimitLimitValue, err := parseRateLimitValue(response)
 	if err != nil {
 		return microerror.Mask(err)
 	}
 	rateLimitLimit.Set(rateLimitLimitValue)
 
-	rateLimitRemainingValue, err := strconv.ParseFloat(response.Header.Get(rateLimitRemainingHeader), 64)
+	rateLimitRemainingValue, err := parseRateLimitRemaining(response)
 	if err != nil {
 		return microerror.Mask(err)
 	}
