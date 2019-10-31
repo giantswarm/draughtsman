@@ -6,6 +6,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
+	ratelimit "github.com/giantswarm/draughtsman/service/eventer/github/internal/ratelimit"
 	"github.com/giantswarm/draughtsman/service/eventer/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
 )
@@ -63,8 +64,9 @@ func New(config Config) (*GithubEventer, error) {
 
 	eventer := &GithubEventer{
 		// Dependencies.
-		client: config.HTTPClient,
-		logger: config.Logger,
+		client:      config.HTTPClient,
+		logger:      config.Logger,
+		rateLimiter: ratelimit.New(),
 
 		// Settings.
 		environment:  config.Environment,
@@ -81,8 +83,9 @@ func New(config Config) (*GithubEventer, error) {
 // that uses GitHub Deployment Events as a backend.
 type GithubEventer struct {
 	// Dependencies.
-	client httpspec.Client
-	logger micrologger.Logger
+	client      httpspec.Client
+	logger      micrologger.Logger
+	rateLimiter *ratelimit.RateLimiter
 
 	// Settings.
 	environment  string
