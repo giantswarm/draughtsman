@@ -137,12 +137,12 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 	}
 	defer resp.Body.Close()
 
+	updateDeploymentMetrics(e.organisation, project, resp.StatusCode, startTime)
+
 	err = e.updateRateLimiter(resp)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-
-	updateDeploymentMetrics(e.organisation, project, resp.StatusCode, startTime)
 
 	// Save the new etag header, so we don't get these deployment events again.
 	etagMap[project] = resp.Header.Get(etagHeader)
@@ -210,12 +210,12 @@ func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deploym
 	}
 	defer resp.Body.Close()
 
+	updateDeploymentStatusMetrics("GET", e.organisation, project, resp.StatusCode, startTime)
+
 	err = e.updateRateLimiter(resp)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-
-	updateDeploymentStatusMetrics("GET", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
@@ -269,12 +269,12 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 	}
 	defer resp.Body.Close()
 
+	updateDeploymentStatusMetrics("POST", e.organisation, project, resp.StatusCode, startTime)
+
 	err = e.updateRateLimiter(resp)
 	if err != nil {
 		return microerror.Mask(err)
 	}
-
-	updateDeploymentStatusMetrics("POST", e.organisation, project, resp.StatusCode, startTime)
 
 	if resp.StatusCode != http.StatusCreated {
 		return microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
