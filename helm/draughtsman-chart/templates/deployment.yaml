@@ -52,7 +52,7 @@ spec:
             exec:
               command:
               - sleep
-              - "5"
+              - "30"
         readinessProbe:
           httpGet:
             path: /
