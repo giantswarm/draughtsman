@@ -153,7 +153,8 @@ func (e *GithubEventer) fetchNewDeploymentEvents(project string, etagMap map[str
 
 	if resp.StatusCode != http.StatusOK {
 		e.logger.Log("error", "Error fetching deployment events", "project", project)
-		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v, body: %q", resp.StatusCode, string(body)))
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
@@ -218,7 +219,8 @@ func (e *GithubEventer) fetchDeploymentStatus(project string, deployment deploym
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v, body: %q", resp.StatusCode, string(body)))
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
@@ -277,7 +279,8 @@ func (e *GithubEventer) postDeploymentStatus(project string, id int, state deplo
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v", resp.StatusCode))
+		body, _ := ioutil.ReadAll(resp.Body)
+		return microerror.Maskf(unexpectedStatusCode, fmt.Sprintf("received non-200 status code: %v, body: %q", resp.StatusCode, string(body)))
 	}
 
 	return nil
