@@ -71,7 +71,6 @@ kube::golang::server_targets() {
     cmd/kube-proxy
     cmd/kube-apiserver
     cmd/kube-controller-manager
-    cmd/cloud-controller-manager
     cmd/kubelet
     cmd/kubeadm
     cmd/hyperkube
@@ -90,7 +89,6 @@ readonly KUBE_SERVER_BINARIES=("${KUBE_SERVER_TARGETS[@]##*/}")
 kube::golang::server_image_targets() {
   # NOTE: this contains cmd targets for kube::build::get_docker_wrapped_binaries
   local targets=(
-    cmd/cloud-controller-manager
     cmd/kube-apiserver
     cmd/kube-controller-manager
     cmd/kube-scheduler
@@ -109,6 +107,7 @@ kube::golang::conformance_image_targets() {
   local targets=(
     vendor/github.com/onsi/ginkgo/ginkgo
     test/e2e/e2e.test
+    cluster/images/conformance/go-runner
     cmd/kubectl
   )
   echo "${targets[@]}"
@@ -264,6 +263,7 @@ kube::golang::test_targets() {
     cmd/linkcheck
     vendor/github.com/onsi/ginkgo/ginkgo
     test/e2e/e2e.test
+    cluster/images/conformance/go-runner
   )
   echo "${targets[@]}"
 }
@@ -318,7 +318,6 @@ readonly KUBE_ALL_TARGETS=(
 readonly KUBE_ALL_BINARIES=("${KUBE_ALL_TARGETS[@]##*/}")
 
 readonly KUBE_STATIC_LIBRARIES=(
-  cloud-controller-manager
   kube-apiserver
   kube-controller-manager
   kube-scheduler

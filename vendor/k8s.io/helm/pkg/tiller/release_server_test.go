@@ -338,6 +338,20 @@ func TestValidName(t *testing.T) {
 	}
 }
 
+func TestGetAllVersionSet(t *testing.T) {
+	rs := rsFixture()
+	vs, err := GetAllVersionSet(rs.clientset.Discovery())
+	if err != nil {
+		t.Error(err)
+	}
+	if !vs.Has("v1") {
+		t.Errorf("Expected supported versions to at least include v1.")
+	}
+	if vs.Has("nosuchversion/v1") {
+		t.Error("Non-existent version is reported found.")
+	}
+}
+
 func TestGetVersionSet(t *testing.T) {
 	rs := rsFixture()
 	vs, err := GetVersionSet(rs.clientset.Discovery())
@@ -570,7 +584,9 @@ func (rs mockRunReleaseTestServer) SendHeader(m metadata.MD) error { return nil 
 func (rs mockRunReleaseTestServer) SetTrailer(m metadata.MD)       {}
 func (rs mockRunReleaseTestServer) SendMsg(v interface{}) error    { return nil }
 func (rs mockRunReleaseTestServer) RecvMsg(v interface{}) error    { return nil }
-func (rs mockRunReleaseTestServer) Context() context.Context       { return helm.NewContext() }
+func (rs mockRunReleaseTestServer) Context() context.Context {
+	return helm.NewContext()
+}
 
 type mockHooksManifest struct {
 	Metadata struct {
@@ -662,6 +678,9 @@ func (kc *mockHooksKubeClient) Validate(ns string, reader io.Reader) error {
 }
 func (kc *mockHooksKubeClient) WaitAndGetCompletedPodPhase(namespace string, reader io.Reader, timeout time.Duration) (v1.PodPhase, error) {
 	return v1.PodUnknown, nil
+}
+func (kc *mockHooksKubeClient) GetPodLogs(name, namespace string) (io.ReadCloser, error) {
+	return nil, nil
 }
 
 func (kc *mockHooksKubeClient) WaitUntilCRDEstablished(reader io.Reader, timeout time.Duration) error {

@@ -1,3 +1,5 @@
+// +build !providerless
+
 /*
 Copyright 2017 The Kubernetes Authors.
 
@@ -22,19 +24,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-03-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-07-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"k8s.io/klog"
 
 	"k8s.io/client-go/util/flowcontrol"
+	"k8s.io/klog"
 )
 
 const (
-	// The version number is taken from "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-07-01/network".
-	azureNetworkAPIVersion              = "2018-07-01"
+	// The version number is taken from "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network".
+	azureNetworkAPIVersion              = "2019-06-01"
 	virtualMachineScaleSetsDeallocating = "Deallocating"
 )
 
@@ -1417,7 +1419,7 @@ func (az *azStorageAccountClient) GetProperties(ctx context.Context, resourceGro
 	}()
 
 	mc := newMetricContext("storage_account", "get_properties", resourceGroupName, az.client.SubscriptionID, "")
-	result, err = az.client.GetProperties(ctx, resourceGroupName, accountName)
+	result, err = az.client.GetProperties(ctx, resourceGroupName, accountName, "")
 	mc.Observe(err)
 	return
 }

@@ -38,15 +38,6 @@ func TestResolve(t *testing.T) {
 			err: true,
 		},
 		{
-			name: "cache index failure",
-			req: &chartutil.Requirements{
-				Dependencies: []*chartutil.Dependency{
-					{Name: "oedipus-rex", Repository: "http://example.com", Version: "1.0.0"},
-				},
-			},
-			err: true,
-		},
-		{
 			name: "chart not found failure",
 			req: &chartutil.Requirements{
 				Dependencies: []*chartutil.Dependency{
@@ -95,6 +86,33 @@ func TestResolve(t *testing.T) {
 			req: &chartutil.Requirements{
 				Dependencies: []*chartutil.Dependency{
 					{Name: "notexist", Repository: "file://../testdata/notexist", Version: "0.1.0"},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "repo from valid path under charts path",
+			req: &chartutil.Requirements{
+				Dependencies: []*chartutil.Dependency{
+					{Name: "localdependency", Repository: "", Version: "0.1.0"},
+				},
+			},
+			expect: &chartutil.RequirementsLock{
+				Dependencies: []*chartutil.Dependency{
+					{Name: "localdependency", Repository: "", Version: "0.1.0"},
+				},
+			},
+		},
+		{
+			name: "repo from valid path under charts path",
+			req: &chartutil.Requirements{
+				Dependencies: []*chartutil.Dependency{
+					{Name: "nonexistentdependency", Repository: "", Version: "0.1.0"},
+				},
+			},
+			expect: &chartutil.RequirementsLock{
+				Dependencies: []*chartutil.Dependency{
+					{Name: "nonexistentlocaldependency", Repository: "", Version: "0.1.0"},
 				},
 			},
 			err: true,

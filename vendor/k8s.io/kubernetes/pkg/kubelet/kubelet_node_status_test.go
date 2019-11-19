@@ -23,6 +23,7 @@ import (
 	goruntime "runtime"
 	"sort"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -159,15 +160,6 @@ func (lcm *localCM) GetCapacity() v1.ResourceList {
 	return lcm.capacity
 }
 
-// sortableNodeAddress is a type for sorting []v1.NodeAddress
-type sortableNodeAddress []v1.NodeAddress
-
-func (s sortableNodeAddress) Len() int { return len(s) }
-func (s sortableNodeAddress) Less(i, j int) bool {
-	return (string(s[i].Type) + s[i].Address) < (string(s[j].Type) + s[j].Address)
-}
-func (s sortableNodeAddress) Swap(i, j int) { s[j], s[i] = s[i], s[j] }
-
 func TestUpdateNewNodeStatus(t *testing.T) {
 	cases := []struct {
 		desc                string
@@ -270,7 +262,7 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 						SystemUUID:              "abc",
 						BootID:                  "1b3",
 						KernelVersion:           cadvisortest.FakeKernelVersion,
-						OSImage:                 cadvisortest.FakeContainerOsVersion,
+						OSImage:                 cadvisortest.FakeContainerOSVersion,
 						OperatingSystem:         goruntime.GOOS,
 						Architecture:            goruntime.GOARCH,
 						ContainerRuntimeVersion: "test://1.5.0",
@@ -448,7 +440,7 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				SystemUUID:              "abc",
 				BootID:                  "1b3",
 				KernelVersion:           cadvisortest.FakeKernelVersion,
-				OSImage:                 cadvisortest.FakeContainerOsVersion,
+				OSImage:                 cadvisortest.FakeContainerOSVersion,
 				OperatingSystem:         goruntime.GOOS,
 				Architecture:            goruntime.GOARCH,
 				ContainerRuntimeVersion: "test://1.5.0",
@@ -546,6 +538,7 @@ func TestUpdateExistingNodeStatusTimeout(t *testing.T) {
 	kubelet := testKubelet.kubelet
 	kubelet.kubeClient = nil // ensure only the heartbeat client is used
 	kubelet.heartbeatClient, err = clientset.NewForConfig(config)
+	require.NoError(t, err)
 	kubelet.onRepeatedHeartbeatFailure = func() {
 		atomic.AddInt64(&failureCallbacks, 1)
 	}
@@ -646,7 +639,7 @@ func TestUpdateNodeStatusWithRuntimeStateError(t *testing.T) {
 				SystemUUID:              "abc",
 				BootID:                  "1b3",
 				KernelVersion:           cadvisortest.FakeKernelVersion,
-				OSImage:                 cadvisortest.FakeContainerOsVersion,
+				OSImage:                 cadvisortest.FakeContainerOSVersion,
 				OperatingSystem:         goruntime.GOOS,
 				Architecture:            goruntime.GOARCH,
 				ContainerRuntimeVersion: "test://1.5.0",
@@ -876,7 +869,7 @@ func TestUpdateNodeStatusWithLease(t *testing.T) {
 				SystemUUID:              "abc",
 				BootID:                  "1b3",
 				KernelVersion:           cadvisortest.FakeKernelVersion,
-				OSImage:                 cadvisortest.FakeContainerOsVersion,
+				OSImage:                 cadvisortest.FakeContainerOSVersion,
 				OperatingSystem:         goruntime.GOOS,
 				Architecture:            goruntime.GOARCH,
 				ContainerRuntimeVersion: "test://1.5.0",
@@ -987,7 +980,7 @@ func TestUpdateNodeStatusWithLease(t *testing.T) {
 
 	updatedNode, err = applyNodeStatusPatch(updatedNode, patchAction.GetPatch())
 	require.NoError(t, err)
-	memCapacity, _ := updatedNode.Status.Capacity[v1.ResourceMemory]
+	memCapacity := updatedNode.Status.Capacity[v1.ResourceMemory]
 	updatedMemoryCapacity, _ := (&memCapacity).AsInt64()
 	assert.Equal(t, newMemoryCapacity, updatedMemoryCapacity, "Memory capacity")
 
@@ -1004,11 +997,12 @@ func TestUpdateNodeStatusWithLease(t *testing.T) {
 	// Report node status if it is still within the duration of nodeStatusReportFrequency.
 	clock.Step(10 * time.Second)
 	assert.Equal(t, "", kubelet.runtimeState.podCIDR(), "Pod CIDR should be empty")
-	podCIDR := "10.0.0.0/24"
-	updatedNode.Spec.PodCIDR = podCIDR
+	podCIDRs := []string{"10.0.0.0/24", "2000::/10"}
+	updatedNode.Spec.PodCIDR = podCIDRs[0]
+	updatedNode.Spec.PodCIDRs = podCIDRs
 	kubeClient.ReactionChain = fake.NewSimpleClientset(&v1.NodeList{Items: []v1.Node{*updatedNode}}).ReactionChain
 	assert.NoError(t, kubelet.updateNodeStatus())
-	assert.Equal(t, podCIDR, kubelet.runtimeState.podCIDR(), "Pod CIDR should be updated now")
+	assert.Equal(t, strings.Join(podCIDRs, ","), kubelet.runtimeState.podCIDR(), "Pod CIDR should be updated now")
 	// 2 more action (There were 7 actions before).
 	actions = kubeClient.Actions()
 	assert.Len(t, actions, 9)
@@ -1019,7 +1013,8 @@ func TestUpdateNodeStatusWithLease(t *testing.T) {
 	// Update node status when keeping the pod CIDR.
 	// Do not report node status if it is within the duration of nodeStatusReportFrequency.
 	clock.Step(10 * time.Second)
-	assert.Equal(t, podCIDR, kubelet.runtimeState.podCIDR(), "Pod CIDR should already be updated")
+	assert.Equal(t, strings.Join(podCIDRs, ","), kubelet.runtimeState.podCIDR(), "Pod CIDR should already be updated")
+
 	assert.NoError(t, kubelet.updateNodeStatus())
 	// Only 1 more action (There were 9 actions before).
 	actions = kubeClient.Actions()
@@ -2006,8 +2001,6 @@ func TestRegisterWithApiServerWithTaint(t *testing.T) {
 			utilfeature.DefaultFeatureGate.Enabled(features.TaintNodesByCondition),
 			taintutil.TaintExists(got.Spec.Taints, unschedulableTaint),
 			"test unschedulable taint for TaintNodesByCondition")
-
-		return
 	})
 }
 
@@ -2163,6 +2156,159 @@ func TestNodeStatusHasChanged(t *testing.T) {
 			assert.Equal(t, tc.expectChange, changed, "Expect node status change to be %t, but got %t.", tc.expectChange, changed)
 			assert.True(t, apiequality.Semantic.DeepEqual(originalStatusCopy, tc.originalStatus), "%s", diff.ObjectDiff(originalStatusCopy, tc.originalStatus))
 			assert.True(t, apiequality.Semantic.DeepEqual(statusCopy, tc.status), "%s", diff.ObjectDiff(statusCopy, tc.status))
+		})
+	}
+}
+
+func TestUpdateNodeAddresses(t *testing.T) {
+	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
+	defer testKubelet.Cleanup()
+	kubelet := testKubelet.kubelet
+	kubeClient := testKubelet.fakeKubeClient
+
+	existingNode := v1.Node{ObjectMeta: metav1.ObjectMeta{Name: testKubeletHostname}}
+	kubeClient.ReactionChain = fake.NewSimpleClientset(&v1.NodeList{Items: []v1.Node{existingNode}}).ReactionChain
+
+	tests := []struct {
+		Name   string
+		Before []v1.NodeAddress
+		After  []v1.NodeAddress
+	}{
+		{
+			Name:   "nil to populated",
+			Before: nil,
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name:   "empty to populated",
+			Before: []v1.NodeAddress{},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name: "populated to nil",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: nil,
+		},
+		{
+			Name: "populated to empty",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{},
+		},
+		{
+			Name: "multiple addresses of same type, no change",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.3"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.3"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name: "1 InternalIP to 2 InternalIP",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name: "2 InternalIP to 1 InternalIP",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name: "2 InternalIP to 2 different InternalIP",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.3"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.4"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+		{
+			Name: "2 InternalIP to reversed order",
+			Before: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+			After: []v1.NodeAddress{
+				{Type: v1.NodeInternalIP, Address: "127.0.0.2"},
+				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
+				{Type: v1.NodeHostName, Address: testKubeletHostname},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			oldNode := &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{Name: testKubeletHostname},
+				Spec:       v1.NodeSpec{},
+				Status: v1.NodeStatus{
+					Addresses: test.Before,
+				},
+			}
+			expectedNode := &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{Name: testKubeletHostname},
+				Spec:       v1.NodeSpec{},
+				Status: v1.NodeStatus{
+					Addresses: test.After,
+				},
+			}
+
+			_, err := kubeClient.CoreV1().Nodes().Update(oldNode)
+			assert.NoError(t, err)
+			kubelet.setNodeStatusFuncs = []func(*v1.Node) error{
+				func(node *v1.Node) error {
+					node.Status.Addresses = expectedNode.Status.Addresses
+					return nil
+				},
+			}
+			assert.NoError(t, kubelet.updateNodeStatus())
+
+			actions := kubeClient.Actions()
+			lastAction := actions[len(actions)-1]
+			assert.IsType(t, core.PatchActionImpl{}, lastAction)
+			patchAction := lastAction.(core.PatchActionImpl)
+
+			updatedNode, err := applyNodeStatusPatch(oldNode, patchAction.GetPatch())
+			require.NoError(t, err)
+
+			assert.True(t, apiequality.Semantic.DeepEqual(updatedNode, expectedNode), "%s", diff.ObjectDiff(expectedNode, updatedNode))
 		})
 	}
 }

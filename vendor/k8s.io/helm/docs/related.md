@@ -14,7 +14,7 @@ or [pull request](https://github.com/helm/helm/pulls).
 - [GitLab, Consumer Driven Contracts, Helm and Kubernetes](https://medium.com/@enxebre/gitlab-consumer-driven-contracts-helm-and-kubernetes-b7235a60a1cb#.xwp1y4tgi)
 - [Honestbee's Helm Chart Conventions](https://gist.github.com/so0k/f927a4b60003cedd101a0911757c605a)
 - [Releasing backward-incompatible changes: Kubernetes, Jenkins, Prometheus Operator, Helm and Traefik](https://medium.com/@enxebre/releasing-backward-incompatible-changes-kubernetes-jenkins-plugin-prometheus-operator-helm-self-6263ca61a1b1#.e0c7elxhq)
-- [The Missing CI/CD Kubernetes Component: Helm package manager](https://hackernoon.com/the-missing-ci-cd-kubernetes-component-helm-package-manager-1fe002aac680#.691sk2zhu)
+- [The Missing CI/CD Kubernetes Component: Helm package manager](https://medium.com/@gajus/the-missing-ci-cd-kubernetes-component-helm-package-manager-1fe002aac680)
 - [Using Helm to Deploy to Kubernetes](https://daemonza.github.io/2017/02/20/using-helm-to-deploy-to-kubernetes/)
 - [Writing a Helm Chart](https://www.influxdata.com/packaged-kubernetes-deployments-writing-helm-chart/)
 - [A basic walk through Kubernetes Helm](https://github.com/muffin87/helm-tutorial)
@@ -38,7 +38,7 @@ or [pull request](https://github.com/helm/helm/pulls).
 - [helm-cos](https://github.com/imroc/helm-cos) - Plugin to manage repositories on Tencent Cloud Object Storage
 - [helm-edit](https://github.com/mstrzele/helm-edit) - Plugin for editing release's values
 - [helm-env](https://github.com/adamreese/helm-env) - Plugin to show current environment
-- [helm-gcs](https://github.com/nouney/helm-gcs) - Plugin to manage repositories on Google Cloud Storage
+- [helm-gcs](https://github.com/hayorov/helm-gcs) - Plugin to manage repositories on Google Cloud Storage
 - [helm-github](https://github.com/sagansystems/helm-github) - Plugin to install Helm Charts from Github repositories
 - [helm-hashtag](https://github.com/balboah/helm-hashtag) - Plugin for tracking docker tag hash digests as values
 - [helm-inject](https://github.com/maorfr/helm-inject) - Plugin for injecting additional configurations during release upgrade
@@ -47,10 +47,12 @@ or [pull request](https://github.com/helm/helm/pulls).
 - [helm-local](https://github.com/adamreese/helm-local) - Plugin to run Tiller as a local daemon
 - [helm-logs](https://github.com/maorfr/helm-logs) - Plugin to view changed releases over time
 - [helm-monitor](https://github.com/ContainerSolutions/helm-monitor) - Plugin to monitor a release and rollback based on Prometheus/ElasticSearch query
+- [helm-nexus](https://github.com/yisiqi/helm-nexus) - Plugin to use Sonatype Nexus OSS as your own charts repository.
 - [helm-nuke](https://github.com/adamreese/helm-nuke) - Plugin to destroy all releases
 - [helm-plugin-utils](https://github.com/maorfr/helm-plugin-utils) - Utility functions to be used within Helm plugins
 - [helm-restore](https://github.com/maorfr/helm-restore) - Plugin to restore a deployed release to its original state
 - [helm-secrets](https://github.com/futuresimple/helm-secrets) - Plugin to manage and store secrets safely
+- [helm-ssm](https://github.com/codacy/helm-ssm) - Plugin to inject values coming from AWS SSM parameters on the `values.yaml` file
 - [helm-stop](https://github.com/IBM/helm-stop) - Plugin for stopping a release pods
 - [helm-template](https://github.com/technosophos/helm-template) - Debug/render templates client-side
 - [helm-tiller](https://github.com/adamreese/helm-tiller) - Additional commands to work with Tiller
@@ -91,6 +93,7 @@ Tools layered on top of Helm or Tiller.
 
 Platforms, distributions, and services that include Helm support.
 
+- [Codefresh](https://codefresh.io/) - A CI/CD solution designed specifically for Docker/Kubernetes/Helm. Includes a private Helm repository and graphical dashboards for Helm charts, Helm releases and Helm environments.
 - [Fabric8](https://fabric8.io) - Integrated development platform for Kubernetes
 - [Jenkins X](https://jenkins-x.io/) - open source automated CI/CD for Kubernetes which uses Helm for [promoting](https://jenkins-x.io/about/features/#promotion) applications through [environments via GitOps](https://jenkins-x.io/about/features/#environments)
 - [Kubernetic](https://kubernetic.com/) - Kubernetes Desktop Client

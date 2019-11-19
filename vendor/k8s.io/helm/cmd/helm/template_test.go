@@ -20,7 +20,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -158,7 +157,7 @@ func TestTemplateCmd(t *testing.T) {
 		},
 		{
 			name:        "check_invalid_name_template",
-			desc:        "verify the relase name generate by template is invalid",
+			desc:        "verify the release name generate by template is invalid",
 			args:        []string{subchart1ChartPath, "--name-template", "foobar-{{ b64enc \"abc\" }}-baz"},
 			expectError: "is invalid",
 		},
@@ -176,16 +175,18 @@ func TestTemplateCmd(t *testing.T) {
 			expectKey:   "subchart1/templates/service.yaml",
 			expectValue: "kube-version/major: \"1\"\n    kube-version/minor: \"6\"\n    kube-version/gitversion: \"v1.6.0\"",
 		},
+		{
+			name:        "check_kube_api_versions",
+			desc:        "verify --api-versions overrides kubernetes api versions",
+			args:        []string{subchart1ChartPath, "--api-versions", "helm.k8s.io/test"},
+			expectKey:   "subchart1/templates/service.yaml",
+			expectValue: "kube-api-version/test: v1",
+		},
 	}
 
-	var buf bytes.Buffer
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			// capture stdout
-			old := os.Stdout
-			r, w, _ := os.Pipe()
-			os.Stdout = w
 			// execute template command
 			out := bytes.NewBuffer(nil)
 			cmd := newTemplateCmd(out)
@@ -206,14 +207,8 @@ func TestTemplateCmd(t *testing.T) {
 			} else if err != nil {
 				t.Errorf("expected no error, got %v", err)
 			}
-			// restore stdout
-			w.Close()
-			os.Stdout = old
-			var b bytes.Buffer
-			io.Copy(&b, r)
-			r.Close()
 			// scan yaml into map[<path>]yaml
-			scanner := bufio.NewScanner(&b)
+			scanner := bufio.NewScanner(out)
 			next := false
 			lastKey := ""
 			m := map[string]string{}
@@ -239,7 +234,6 @@ func TestTemplateCmd(t *testing.T) {
 			} else {
 				t.Errorf("could not find key %s", tt.expectKey)
 			}
-			buf.Reset()
 		})
 	}
 }

@@ -17,16 +17,22 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
-
-	"github.com/spf13/cobra"
+	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
+
+	"github.com/gofrs/flock"
+	"github.com/spf13/cobra"
+
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
-	"syscall"
 )
 
 type repoAddCmd struct {
@@ -49,7 +55,7 @@ func newRepoAddCmd(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "add [flags] [NAME] [URL]",
-		Short: "add a chart repository",
+		Short: "Add a chart repository",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := checkArgsLength(len(args), "name for the chart repository", "the url of the chart repository"); err != nil {
 				return err
@@ -64,12 +70,12 @@ func newRepoAddCmd(out io.Writer) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&add.username, "username", "", "chart repository username")
-	f.StringVar(&add.password, "password", "", "chart repository password")
-	f.BoolVar(&add.noupdate, "no-update", false, "raise error if repo is already registered")
-	f.StringVar(&add.certFile, "cert-file", "", "identify HTTPS client using this SSL certificate file")
-	f.StringVar(&add.keyFile, "key-file", "", "identify HTTPS client using this SSL key file")
-	f.StringVar(&add.caFile, "ca-file", "", "verify certificates of HTTPS-enabled servers using this CA bundle")
+	f.StringVar(&add.username, "username", "", "Chart repository username")
+	f.StringVar(&add.password, "password", "", "Chart repository password")
+	f.BoolVar(&add.noupdate, "no-update", false, "Raise error if repo is already registered")
+	f.StringVar(&add.certFile, "cert-file", "", "Identify HTTPS client using this SSL certificate file")
+	f.StringVar(&add.keyFile, "key-file", "", "Identify HTTPS client using this SSL key file")
+	f.StringVar(&add.caFile, "ca-file", "", "Verify certificates of HTTPS-enabled servers using this CA bundle")
 
 	return cmd
 }
@@ -131,7 +137,28 @@ func addRepository(name, url, username, password string, home helmpath.Home, cer
 		return fmt.Errorf("Looks like %q is not a valid chart repository or cannot be reached: %s", url, err.Error())
 	}
 
+	repoFile := home.RepositoryFile()
+
+	// Acquire a file lock for process synchronization
+	fileLock := flock.New(strings.Replace(repoFile, filepath.Ext(repoFile), ".lock", 1))
+	lockCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	locked, err := fileLock.TryLockContext(lockCtx, time.Second)
+	if err == nil && locked {
+		defer fileLock.Unlock()
+	}
+	if err != nil {
+		return err
+	}
+
+	// Re-read the repositories file before updating it as its content may have been changed
+	// by a concurrent execution after the first read and before being locked
+	f, err = repo.LoadRepositoriesFile(repoFile)
+	if err != nil {
+		return err
+	}
+
 	f.Update(&c)
 
-	return f.WriteFile(home.RepositoryFile(), 0644)
+	return f.WriteFile(repoFile, 0644)
 }

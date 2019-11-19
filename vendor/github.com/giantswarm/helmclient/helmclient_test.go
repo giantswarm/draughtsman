@@ -225,7 +225,7 @@ func Test_GetReleaseHistory(t *testing.T) {
 			errorMatcher: nil,
 		},
 		{
-			description: "case 2: too many results",
+			description: "case 2: not found",
 			releaseName: "missing",
 			releases: []*helmrelease.Release{
 				helmclient.ReleaseMock(&helmclient.MockReleaseOptions{
@@ -248,7 +248,7 @@ func Test_GetReleaseHistory(t *testing.T) {
 				}),
 			},
 			expectedHistory: nil,
-			errorMatcher:    IsTooManyResults,
+			errorMatcher:    nil,
 		},
 	}
 

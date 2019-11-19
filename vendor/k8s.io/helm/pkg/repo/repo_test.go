@@ -16,10 +16,12 @@ limitations under the License.
 
 package repo
 
-import "testing"
-import "io/ioutil"
-import "os"
-import "strings"
+import (
+	"io/ioutil"
+	"os"
+	"strings"
+	"testing"
+)
 
 const testRepositoriesFile = "testdata/repositories.yaml"
 
@@ -120,6 +122,43 @@ func TestNewPreV1RepositoriesFile(t *testing.T) {
 	}
 }
 
+func TestRepoFile_Get(t *testing.T) {
+	repo := NewRepoFile()
+	repo.Add(
+		&Entry{
+			Name:  "first",
+			URL:   "https://example.com/first",
+			Cache: "first-index.yaml",
+		},
+		&Entry{
+			Name:  "second",
+			URL:   "https://example.com/second",
+			Cache: "second-index.yaml",
+		},
+		&Entry{
+			Name:  "third",
+			URL:   "https://example.com/third",
+			Cache: "third-index.yaml",
+		},
+		&Entry{
+			Name:  "fourth",
+			URL:   "https://example.com/fourth",
+			Cache: "fourth-index.yaml",
+		},
+	)
+
+	name := "second"
+
+	entry, ok := repo.Get(name)
+	if !ok {
+		t.Fatalf("Expected repo entry %q to be found", name)
+	}
+
+	if entry.URL != "https://example.com/second" {
+		t.Fatalf("Expected repo URL to be %q but got %q", "https://example.com/second", entry.URL)
+	}
+}
+
 func TestRemoveRepository(t *testing.T) {
 	sampleRepository := NewRepoFile()
 	sampleRepository.Add(
@@ -202,7 +241,7 @@ func TestWriteFile(t *testing.T) {
 		t.Errorf("failed to create test-file (%v)", err)
 	}
 	defer os.Remove(repoFile.Name())
-	if err := sampleRepository.WriteFile(repoFile.Name(), 744); err != nil {
+	if err := sampleRepository.WriteFile(repoFile.Name(), 0744); err != nil {
 		t.Errorf("failed to write file (%v)", err)
 	}
 
