@@ -49,3 +49,41 @@ func Test_Stack(t *testing.T) {
 		})
 	}
 }
+
+func Test_Desc(t *testing.T) {
+	testCases := []struct {
+		name         string
+		inputErr     error
+		expectedDesc string
+	}{
+		{
+			name:         "case 0: microerror without Desc",
+			inputErr:     Maskf(&Error{Kind: "testKind"}, "annotation"),
+			expectedDesc: "",
+		},
+		{
+			name:         "case 1: microerror with Desc",
+			inputErr:     &Error{Kind: "testKind", Desc: "test description"},
+			expectedDesc: "test description",
+		},
+		{
+			name:         "case 2: external error",
+			inputErr:     errors.New("external error"),
+			expectedDesc: "",
+		},
+		{
+			name:         "case 3: nil",
+			inputErr:     nil,
+			expectedDesc: "",
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			desc := Desc(tc.inputErr)
+			if desc != tc.expectedDesc {
+				t.Fatalf("desc = %q, expected %q", desc, tc.expectedDesc)
+			}
+		})
+	}
+}

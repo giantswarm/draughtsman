@@ -7,6 +7,8 @@ import (
 	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
+	"github.com/giantswarm/helmclient/integration/env"
 )
 
 const (
@@ -37,7 +39,7 @@ func NewConfig() (Config, error) {
 		c := k8sclient.ClientsConfig{
 			Logger: logger,
 
-			KubeConfigPath: e2eHarnessDefaultKubeconfig,
+			KubeConfigPath: env.KubeConfigPath(),
 		}
 
 		cpK8sClients, err = k8sclient.NewClients(c)
@@ -52,7 +54,7 @@ func NewConfig() (Config, error) {
 			K8sClient: cpK8sClients.K8sClient(),
 			Logger:    logger,
 
-			RestConfig:      cpK8sClients.RestConfig(),
+			RestConfig:      cpK8sClients.RESTConfig(),
 			TillerNamespace: tillerNamespace,
 		}
 

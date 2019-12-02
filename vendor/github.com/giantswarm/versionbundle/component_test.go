@@ -202,6 +202,14 @@ func Test_Component_Validate(t *testing.T) {
 			},
 			ErrorMatcher: nil,
 		},
+		// Test 21 ensures a component with pre-release version is valid.
+		{
+			Component: Component{
+				Name:    "kubernetes",
+				Version: "11.3.785-pre-release",
+			},
+			ErrorMatcher: nil,
+		},
 	}
 
 	for i, tc := range testCases {

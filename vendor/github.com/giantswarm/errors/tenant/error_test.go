@@ -101,6 +101,16 @@ func Test_IsAPINotAvailable(t *testing.T) {
 			errorMessage:  "Get https://api.cl048.k8s.gauss.eu-central-1.aws.gigantic.io/api/v1/namespaces/kube-system/configmaps?labelSelector=giantswarm.io%2Fservice-type%3Dmanaged%2C+giantswarm.io%2Fmanaged-by%3Dcluster-operator: EOF",
 			expectedMatch: true,
 		},
+		{
+			description:   "case 19: unable to connect to broken tenant api with expired certs",
+			errorMessage:  "Get https://api.cl048.k8s.gauss.eu-central-1.aws.gigantic.io/api/v1/nodes: x509: certificate has expired or is not yet valid",
+			expectedMatch: true,
+		},
+		{
+			description:   "case 20: dns not ready alternative error (telepresence)",
+			errorMessage:  "Get https://api.72fru.k8s.godsmack.westeurope.azure.gigantic.io/api/v1/nodes: dial tcp: lookup api.72fru.k8s.godsmack.westeurope.azure.gigantic.io: no such host",
+			expectedMatch: true,
+		},
 	}
 
 	for _, tc := range testCases {

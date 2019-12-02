@@ -1,8 +1,0 @@
-version: 1
-
-test:
-  env:
-    - "CIRCLECI=${CIRCLECI}"
-    - "CIRCLE_SHA1=${CIRCLE_SHA1}"
-    - "KEEP_RESOURCES=${KEEP_RESOURCES}"
-    - "TEST_DIR=${TEST_DIR}"
