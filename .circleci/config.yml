@@ -1,5 +1,5 @@
 orbs:
-  architect: giantswarm/architect@0.4.3
+  architect: giantswarm/architect@dev:add-old-push-docker
 
 version: 2.1
 jobs:
@@ -53,7 +53,7 @@ workflows:
             tags:
               only: /^.*/
 
-      - architect/push-to-docker:
+      - architect/push-to-docker-legacy:
           name: push-draughtsman-to-quay
           image: "quay.io/giantswarm/draughtsman"
           username_envar: "QUAY_USERNAME"
@@ -70,7 +70,7 @@ workflows:
             branches:
               ignore: master
 
-      - architect/push-to-docker:
+      - architect/push-to-docker-legacy:
           name: push-draughtsman-to-aliyun-pr
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/draughtsman"
           username_envar: "ALIYUN_USERNAME"
@@ -84,7 +84,7 @@ workflows:
               ignore: master
 
       # Push to Aliyun should execute without manual approval on master.
-      - architect/push-to-docker:
+      - architect/push-to-docker-legacy:
           name: push-draughtsman-to-aliyun-master
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/draughtsman"
           username_envar: "ALIYUN_USERNAME"
