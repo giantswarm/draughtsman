@@ -55,7 +55,7 @@ workflows:
 
       - architect/push-to-docker:
           name: push-draughtsman-to-quay
-          image: "quay.io/giantswarm/aws-operator"
+          image: "quay.io/giantswarm/draughtsman"
           username_envar: "QUAY_USERNAME"
           password_envar: "QUAY_PASSWORD"
           requires:
