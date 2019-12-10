@@ -79,7 +79,7 @@ rules:
       - use
     resourceNames:
       - draughtsman-psp
-      - tilller-giantswarm-psp
+      - tiller-giantswarm-psp
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
