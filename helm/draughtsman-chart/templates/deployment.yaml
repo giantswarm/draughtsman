@@ -30,7 +30,7 @@ spec:
       serviceAccountName: draughtsman
       containers:
       - name: draughtsman
-        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.Installation.V1.Registry.Domain }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         args:
         - "daemon"
         - "--config.dirs=/var/run/draughtsman/configmap/"
