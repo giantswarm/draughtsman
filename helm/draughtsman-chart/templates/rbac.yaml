@@ -77,9 +77,6 @@ rules:
     verbs:
       - create
       - use
-    resourceNames:
-      - draughtsman-psp
-      - tiller-giantswarm-psp
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
