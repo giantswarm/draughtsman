@@ -71,10 +71,11 @@ rules:
       - create
       - update
   - apiGroups:
-      - extensions
+      - policy
     resources:
       - podsecuritypolicies
     verbs:
+      - create
       - use
     resourceNames:
       - draughtsman-psp
