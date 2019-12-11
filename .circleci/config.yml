@@ -42,6 +42,7 @@ jobs:
   deploy:
     machine: true
     steps:
+    - checkout
     - deploy:
         command: |
             wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/architect/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
@@ -101,7 +102,7 @@ workflows:
       - deploy:
           name: deploy
           requires:
-            - push-draughtsman-to-aliyun-master
+            - push-draughtsman-to-aliyun-pr
             - push-draughtsman-to-quay 
           filters:
             branches:
