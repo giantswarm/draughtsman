@@ -1,5 +1,5 @@
 orbs:
-  architect: giantswarm/architect@dev:add-old-push-docker
+  architect: giantswarm/architect@0.4.5
 
 version: 2.1
 jobs:
