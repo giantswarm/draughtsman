@@ -38,12 +38,12 @@ jobs:
         paths:
         - ./draughtsman
 
+  deploy:
+    machine: true
+    steps:
     - deploy:
         command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
             ./architect deploy
-          fi
-
 
 workflows:
   build:
@@ -92,6 +92,14 @@ workflows:
           requires:
             - build
           # Needed to trigger job only on merge to master.
+          filters:
+            branches:
+              only: master
+      - deploy:
+          name: deploy
+          requires:
+            - push-draughtsman-to-aliyun-master
+            - push-draughtsman-to-quay 
           filters:
             branches:
               only: master
