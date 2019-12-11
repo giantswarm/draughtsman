@@ -52,11 +52,7 @@ jobs:
 workflows:
   build:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /^.*/
-
+      - build
       - architect/push-to-docker-legacy:
           name: push-draughtsman-to-quay
           image: "quay.io/giantswarm/draughtsman"
@@ -102,8 +98,8 @@ workflows:
       - deploy:
           name: deploy
           requires:
-            - push-draughtsman-to-aliyun-pr
+            - push-draughtsman-to-aliyun-master
             - push-draughtsman-to-quay 
-          #filters:
-          #  branches:
-          #    only: master
+          filters:
+            branches:
+              only: master
