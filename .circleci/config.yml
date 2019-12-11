@@ -42,6 +42,7 @@ jobs:
   deploy:
     machine: true
     steps:
+    - checkout
     - deploy:
         command: |
             wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/architect/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
@@ -51,11 +52,7 @@ jobs:
 workflows:
   build:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /^.*/
-
+      - build
       - architect/push-to-docker-legacy:
           name: push-draughtsman-to-quay
           image: "quay.io/giantswarm/draughtsman"
