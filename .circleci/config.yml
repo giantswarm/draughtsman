@@ -104,6 +104,6 @@ workflows:
           requires:
             - push-draughtsman-to-aliyun-pr
             - push-draughtsman-to-quay 
-          filters:
-            branches:
-              only: master
+          #filters:
+          #  branches:
+          #    only: master
