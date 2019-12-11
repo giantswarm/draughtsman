@@ -54,8 +54,9 @@ func NewConfig() (Config, error) {
 			K8sClient: cpK8sClients.K8sClient(),
 			Logger:    logger,
 
-			RestConfig:      cpK8sClients.RESTConfig(),
-			TillerNamespace: tillerNamespace,
+			RestConfig:           cpK8sClients.RESTConfig(),
+			TillerNamespace:      tillerNamespace,
+			TillerUpgradeEnabled: true,
 		}
 
 		helmClient, err = helmclient.New(c)

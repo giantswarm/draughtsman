@@ -223,11 +223,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a23debfaae6a558e8e2935916003323f83232a452b1e826090a543efa947c7a9"
+  digest = "1:d0954789a72e48c4f0486e7bf2cf96d8ae5ea69bd6f01b7128ee5274de4ca98c"
   name = "github.com/giantswarm/helmclient"
   packages = ["."]
   pruneopts = ""
-  revision = "d3c47349776d30db46c3e200ee94d16aeb22aa0b"
+  revision = "d1325340c4534d015b8e5abdae581883b030ec41"
 
 [[projects]]
   branch = "master"
@@ -930,14 +930,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:92cefc95b220ee37ae33e439f3e0046cbf8fa00034831bda8a810b4dcd6f15b4"
+  digest = "1:e41b436f0e1f102888fb00cbfc148526db803468f17cc72b28a8c11337dd86d8"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = ""
-  revision = "eeba5f6aabab6d6594a9191d6bfeaca5fa6a8248"
+  revision = "ac6580df4449443a05718fd7858c1f91ad5f8d20"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
