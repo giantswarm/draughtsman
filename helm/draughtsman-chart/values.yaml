@@ -1,5 +1,4 @@
 image:
-  registry: "quay.io"
   repository: "giantswarm/draughtsman"
   tag: "[[ .SHA ]]"
 ports:
