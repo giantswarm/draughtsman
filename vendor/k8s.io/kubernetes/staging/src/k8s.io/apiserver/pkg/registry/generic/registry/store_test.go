@@ -49,8 +49,8 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
 	cacherstorage "k8s.io/apiserver/pkg/storage/cacher"
-	etcdstorage "k8s.io/apiserver/pkg/storage/etcd"
-	etcdtesting "k8s.io/apiserver/pkg/storage/etcd/testing"
+	"k8s.io/apiserver/pkg/storage/etcd3"
+	etcd3testing "k8s.io/apiserver/pkg/storage/etcd3/testing"
 	"k8s.io/apiserver/pkg/storage/names"
 	"k8s.io/apiserver/pkg/storage/storagebackend/factory"
 	storagetesting "k8s.io/apiserver/pkg/storage/testing"
@@ -249,7 +249,7 @@ func TestStoreListResourceVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	versioner := etcdstorage.APIObjectVersioner{}
+	versioner := etcd3.APIObjectVersioner{}
 	rev, err := versioner.ObjectResourceVersion(obj)
 	if err != nil {
 		t.Fatal(err)
@@ -1537,7 +1537,7 @@ func TestStoreWatch(t *testing.T) {
 
 func newTestGenericStoreRegistry(t *testing.T, scheme *runtime.Scheme, hasCacheEnabled bool) (factory.DestroyFunc, *Store) {
 	podPrefix := "/pods"
-	server, sc := etcdtesting.NewUnsecuredEtcd3TestClientServer(t)
+	server, sc := etcd3testing.NewUnsecuredEtcd3TestClientServer(t)
 	strategy := &testRESTStrategy{scheme, names.SimpleNameGenerator, true, false, true}
 
 	sc.Codec = apitesting.TestStorageCodec(codecs, examplev1.SchemeGroupVersion)
@@ -1553,7 +1553,7 @@ func newTestGenericStoreRegistry(t *testing.T, scheme *runtime.Scheme, hasCacheE
 		config := cacherstorage.Config{
 			CacheCapacity:  10,
 			Storage:        s,
-			Versioner:      etcdstorage.APIObjectVersioner{},
+			Versioner:      etcd3.APIObjectVersioner{},
 			ResourcePrefix: podPrefix,
 			KeyFunc:        func(obj runtime.Object) (string, error) { return storage.NoNamespaceKeyFunc(podPrefix, obj) },
 			GetAttrsFunc:   getPodAttrs,
@@ -1561,7 +1561,10 @@ func newTestGenericStoreRegistry(t *testing.T, scheme *runtime.Scheme, hasCacheE
 			NewListFunc:    func() runtime.Object { return &example.PodList{} },
 			Codec:          sc.Codec,
 		}
-		cacher := cacherstorage.NewCacherFromConfig(config)
+		cacher, err := cacherstorage.NewCacherFromConfig(config)
+		if err != nil {
+			t.Fatalf("Couldn't create cacher: %v", err)
+		}
 		d := destroyFunc
 		s = cacher
 		destroyFunc = func() {
@@ -1710,11 +1713,11 @@ func TestQualifiedResource(t *testing.T) {
 	}
 }
 
-func denyCreateValidation(obj runtime.Object) error {
+func denyCreateValidation(ctx context.Context, obj runtime.Object) error {
 	return fmt.Errorf("admission denied")
 }
 
-func denyUpdateValidation(obj, old runtime.Object) error {
+func denyUpdateValidation(ctx context.Context, obj, old runtime.Object) error {
 	return fmt.Errorf("admission denied")
 }
 
@@ -1978,7 +1981,7 @@ func TestRetryDeleteValidation(t *testing.T) {
 		updated := make(chan struct{})
 		var readyOnce, updatedOnce sync.Once
 		var called int
-		deleteValidation := func(runtime.Object) error {
+		deleteValidation := func(ctx context.Context, obj runtime.Object) error {
 			readyOnce.Do(func() {
 				close(ready)
 			})

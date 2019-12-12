@@ -1,6 +1,6 @@
 DOCKER_REGISTRY   ?= gcr.io
 IMAGE_PREFIX      ?= kubernetes-helm
-DEV_IMAGE         ?= golang:1.12.5
+DEV_IMAGE         ?= golang:1.13.3
 SHORT_NAME        ?= tiller
 SHORT_NAME_RUDDER ?= rudder
 TARGETS           ?= darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/ppc64le linux/s390x windows/amd64
@@ -140,6 +140,10 @@ docker-test-style: check-docker
 .PHONY: protoc
 protoc:
 	$(MAKE) -C _proto/ all
+
+.PHONY: generate
+generate:
+	$(GO) generate ./...
 
 .PHONY: docs
 docs: build

@@ -34,12 +34,14 @@ The tests to be run are defined in the chart that was installed.
 `
 
 type releaseTestCmd struct {
-	name     string
-	out      io.Writer
-	client   helm.Interface
-	timeout  int64
-	cleanup  bool
-	parallel bool
+	name        string
+	out         io.Writer
+	client      helm.Interface
+	timeout     int64
+	cleanup     bool
+	parallel    bool
+	maxParallel uint32
+	logs        bool
 }
 
 func newReleaseTestCmd(c helm.Interface, out io.Writer) *cobra.Command {
@@ -50,7 +52,7 @@ func newReleaseTestCmd(c helm.Interface, out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "test [RELEASE]",
-		Short:   "test a release",
+		Short:   "Test a release",
 		Long:    releaseTestDesc,
 		PreRunE: func(_ *cobra.Command, _ []string) error { return setupConnection() },
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -66,9 +68,11 @@ func newReleaseTestCmd(c helm.Interface, out io.Writer) *cobra.Command {
 
 	f := cmd.Flags()
 	settings.AddFlagsTLS(f)
-	f.Int64Var(&rlsTest.timeout, "timeout", 300, "time in seconds to wait for any individual Kubernetes operation (like Jobs for hooks)")
-	f.BoolVar(&rlsTest.cleanup, "cleanup", false, "delete test pods upon completion")
-	f.BoolVar(&rlsTest.parallel, "parallel", false, "run test pods in parallel")
+	f.Int64Var(&rlsTest.timeout, "timeout", 300, "Time in seconds to wait for any individual Kubernetes operation (like Jobs for hooks)")
+	f.BoolVar(&rlsTest.cleanup, "cleanup", false, "Delete test pods upon completion")
+	f.BoolVar(&rlsTest.parallel, "parallel", false, "Run test pods in parallel")
+	f.Uint32Var(&rlsTest.maxParallel, "max", 20, "Maximum number of test pods to run in parallel")
+	f.BoolVar(&rlsTest.logs, "logs", false, "Dump the logs from test pods (this runs after all tests are complete, but before any cleanup")
 
 	// set defaults from environment
 	settings.InitTLS(f)
@@ -82,6 +86,8 @@ func (t *releaseTestCmd) run() (err error) {
 		helm.ReleaseTestTimeout(t.timeout),
 		helm.ReleaseTestCleanup(t.cleanup),
 		helm.ReleaseTestParallel(t.parallel),
+		helm.ReleaseTestMaxParallel(t.maxParallel),
+		helm.ReleaseTestLogs(t.logs),
 	)
 	testErr := &testErr{}
 

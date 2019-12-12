@@ -28,10 +28,8 @@ fi
 VERSION=
 if [[ -n "${CIRCLE_TAG:-}" ]]; then
   VERSION="${CIRCLE_TAG}"
-elif [[ "${CIRCLE_BRANCH:-}" == "master" ]]; then
-  VERSION="canary"
 else
-  echo "Skipping deploy step; this is neither master or a tag"
+  echo "Skipping deploy step; this is not a tag"
   exit
 fi
 
@@ -75,3 +73,6 @@ ${HOME}/google-cloud-sdk/bin/gsutil cp ./_dist/* "gs://${PROJECT_NAME}"
 
 echo "Pushing binaries to Azure"
 az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'helm-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING"
+
+echo "Pushing KEYS file to Azure"
+az storage blob upload -f "KEYS" -n "KEYS" -c "$AZURE_STORAGE_CONTAINER_NAME" --connection-string "$AZURE_STORAGE_CONNECTION_STRING"

@@ -16,7 +16,7 @@ import (
 func TestUpgradeTiller(t *testing.T) {
 	ctx := context.Background()
 
-	currentTillerImage := "quay.io/giantswarm/tiller:v2.14.3"
+	currentTillerImage := "quay.io/giantswarm/tiller:v2.16.1"
 
 	labelSelector := "app=helm,name=tiller"
 	tillerNamespace := "giantswarm"

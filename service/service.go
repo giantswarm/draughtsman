@@ -130,6 +130,13 @@ func New(config Config) (*Service, error) {
 
 			RestConfig:      restConfig,
 			TillerNamespace: metav1.NamespaceSystem,
+			// TODO: Remove once app CRs are used in all control plane
+			// clusters. As chart-operator will then take care of upgrading
+			// Tiller.
+			//
+			//	https://github.com/giantswarm/giantswarm/issues/8068
+			//
+			TillerUpgradeEnabled: true,
 		}
 
 		helmClient, err = helmclient.New(c)
