@@ -4,16 +4,13 @@ package service
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/k8sclient/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -44,9 +41,8 @@ type Config struct {
 
 type Service struct {
 	// Dependencies.
-	Deployer   deployer.Deployer
-	HelmClient helmclient.Interface
-	Version    *version.Service
+	Deployer deployer.Deployer
+	Version  *version.Service
 }
 
 // New creates a new configured service object.
@@ -122,29 +118,6 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	var helmClient helmclient.Interface
-	{
-		c := helmclient.Config{
-			K8sClient: k8sClient,
-			Logger:    config.Logger,
-
-			RestConfig:      restConfig,
-			TillerNamespace: metav1.NamespaceSystem,
-			// TODO: Remove once app CRs are used in all control plane
-			// clusters. As chart-operator will then take care of upgrading
-			// Tiller.
-			//
-			//	https://github.com/giantswarm/giantswarm/issues/8068
-			//
-			TillerUpgradeEnabled: true,
-		}
-
-		helmClient, err = helmclient.New(c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-
 	var versionService *version.Service
 	{
 		versionConfig := version.Config{
@@ -163,24 +136,14 @@ func New(config Config) (*Service, error) {
 
 	newService := &Service{
 		// Dependencies.
-		Deployer:   deployerService,
-		HelmClient: helmClient,
-		Version:    versionService,
+		Deployer: deployerService,
+		Version:  versionService,
 	}
 
 	return newService, nil
 }
 
 func (s *Service) Boot(ctx context.Context) error {
-	// TODO: Improve error handling in Boot method.
-	//
-	//	See https://github.com/giantswarm/giantswarm/issues/4965
-	//
-	err := s.HelmClient.EnsureTillerInstalled(ctx)
-	if err != nil {
-		panic(fmt.Sprintf("%#v\n", microerror.Maskf(err, "service.Boot")))
-	}
-
 	s.Deployer.Boot()
 
 	return nil
