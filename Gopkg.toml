@@ -49,10 +49,6 @@
   version = "kubernetes-1.16.3"
 
 [[constraint]]
-  name = "github.com/giantswarm/helmclient"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/giantswarm/k8sclient"
   branch = "master"
 
@@ -72,34 +68,12 @@
   name = "github.com/giantswarm/operatorkit"
   branch = "master"
 
+
+
 [[override]]
-  name = "k8s.io/apiextensions-apiserver"
+  name = "k8s.io/api"
   version = "kubernetes-1.16.3"
 
 [[override]]
-  name = "k8s.io/apiserver"
-  version = "kubernetes-1.16.3"
-
-[[override]]
-  name = "k8s.io/cli-runtime"
-  version = "kubernetes-1.16.3"
-
-[[override]]
-  name = "k8s.io/component-base"
-  version = "kubernetes-1.16.3"
-
-[[override]]
-  name = "k8s.io/kubectl"
-  version = "kubernetes-1.16.3"
-
-[[override]]
-  name = "k8s.io/kubernetes"
-  version = "v1.16.3"
-
-[[override]]
-  name = "github.com/russross/blackfriday"
-  version = "v1.5.2"
-
-[[override]]
-  name = "github.com/ghodss/yaml"
-  branch = "master"
+  source = "gopkg.in/fsnotify/fsnotify.v1"
+  name = "gopkg.in/fsnotify.v1"
