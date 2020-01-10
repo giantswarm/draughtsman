@@ -73,7 +73,3 @@
 [[override]]
   name = "k8s.io/api"
   version = "kubernetes-1.16.3"
-
-[[override]]
-  source = "gopkg.in/fsnotify/fsnotify.v1"
-  name = "gopkg.in/fsnotify.v1"
