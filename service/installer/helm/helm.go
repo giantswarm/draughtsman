@@ -266,6 +266,15 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		valuesFilesArgs = append(valuesFilesArgs, "--values", fileName)
 	}
 
+	// We must first delete the current release with that name, since Deployments using apps/v1 have some immutable
+	// fields like the match selector.
+	{
+		err := i.runHelmCommand("delete", project, "--purge")
+		if err != nil {
+			return microerror.Mask(err)
+		}
+	}
+
 	// The arguments used to execute Helm for app installation can take multiple
 	// values files. At the end the command looks something like this.
 	//
