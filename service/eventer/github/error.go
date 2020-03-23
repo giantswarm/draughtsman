@@ -17,15 +17,6 @@ func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
-var missingHeaderError = &microerror.Error{
-	Kind: "missingHeaderError",
-}
-
-// IsMissingHeaderError asserts missingHeaderError.
-func IsMissingHeaderError(err error) bool {
-	return microerror.Cause(err) == missingHeaderError
-}
-
 var unexpectedStatusCode = &microerror.Error{
 	Kind: "unexpectedStatusCode",
 }
