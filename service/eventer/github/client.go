@@ -326,7 +326,7 @@ func (e *GithubEventer) updateRateLimiter(response *http.Response) error {
 func parseRateLimitValue(response *http.Response) (float64, error) {
 	value := response.Header.Get(rateLimitLimitHeader)
 	if value == "" {
-		return 0.0, microerror.Maskf(missingHeaderError, "%#q header is missing", rateLimitLimitHeader)
+		return 0.0, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitLimitHeader)
 	}
 	rateLimitLimitValue, err := strconv.ParseFloat(value, 64)
 	if err != nil {
