@@ -355,7 +355,7 @@ func parseRateLimitRemaining(response *http.Response) (float64, error) {
 func parseRateLimitResetTime(response *http.Response) (time.Time, error) {
 	value := response.Header.Get(rateLimitResetHeader)
 	if value == "" {
-		return time.Time{}, microerror.Maskf(missingHeaderError, "%#q header is missing", rateLimitResetHeader)
+		return time.Time{}, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitResetHeader)
 	}
 	rateLimitResetValue, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
