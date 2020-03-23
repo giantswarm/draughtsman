@@ -340,7 +340,7 @@ func parseRateLimitValue(response *http.Response) (float64, error) {
 func parseRateLimitRemaining(response *http.Response) (float64, error) {
 	value := response.Header.Get(rateLimitRemainingHeader)
 	if value == "" {
-		return 0.0, microerror.Maskf(missingHeaderError, "%#q header is missing", rateLimitRemainingHeader)
+		return 0.0, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitRemainingHeader)
 	}
 	rateLimitRemainingValue, err := strconv.ParseFloat(value, 64)
 	if err != nil {
