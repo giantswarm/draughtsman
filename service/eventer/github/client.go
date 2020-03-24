@@ -324,7 +324,11 @@ func (e *GithubEventer) updateRateLimiter(response *http.Response) error {
 // parseRateLimitValue parses GitHub API rate limit value from response
 // headers.
 func parseRateLimitValue(response *http.Response) (float64, error) {
-	rateLimitLimitValue, err := strconv.ParseFloat(response.Header.Get(rateLimitLimitHeader), 64)
+	value := response.Header.Get(rateLimitLimitHeader)
+	if value == "" {
+		return 0.0, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitLimitHeader)
+	}
+	rateLimitLimitValue, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return 0.0, microerror.Mask(err)
 	}
@@ -334,7 +338,11 @@ func parseRateLimitValue(response *http.Response) (float64, error) {
 // parseRateLimitRemaining parses remaining GitHub API request tokens before
 // rate limiting prevents further requests.
 func parseRateLimitRemaining(response *http.Response) (float64, error) {
-	rateLimitRemainingValue, err := strconv.ParseFloat(response.Header.Get(rateLimitRemainingHeader), 64)
+	value := response.Header.Get(rateLimitRemainingHeader)
+	if value == "" {
+		return 0.0, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitRemainingHeader)
+	}
+	rateLimitRemainingValue, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return 0.0, microerror.Mask(err)
 	}
@@ -345,7 +353,11 @@ func parseRateLimitRemaining(response *http.Response) (float64, error) {
 // parseRateLimitResetTime parses time when GitHub API's rate limit bucket gets
 // refilled.
 func parseRateLimitResetTime(response *http.Response) (time.Time, error) {
-	rateLimitResetValue, err := strconv.ParseInt(response.Header.Get(rateLimitResetHeader), 10, 64)
+	value := response.Header.Get(rateLimitResetHeader)
+	if value == "" {
+		return time.Time{}, microerror.Maskf(executionFailedError, "%#q header is missing", rateLimitResetHeader)
+	}
+	rateLimitResetValue, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
 		return time.Time{}, microerror.Mask(err)
 	}

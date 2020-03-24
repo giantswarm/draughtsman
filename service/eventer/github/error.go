@@ -1,19 +1,27 @@
 package github
 
 import (
-	"github.com/juju/errgo"
+	"github.com/giantswarm/microerror"
 )
 
-var invalidConfigError = errgo.New("invalid config")
+var executionFailedError = &microerror.Error{
+	Kind: "executionFailedError",
+}
+
+var invalidConfigError = &microerror.Error{
+	Kind: "invalidConfigError",
+}
 
 // IsInvalidConfig asserts invalidConfigError.
 func IsInvalidConfig(err error) bool {
-	return errgo.Cause(err) == invalidConfigError
+	return microerror.Cause(err) == invalidConfigError
 }
 
-var unexpectedStatusCode = errgo.New("unexpected status code")
+var unexpectedStatusCode = &microerror.Error{
+	Kind: "unexpectedStatusCode",
+}
 
 // IsUnexpectedStatusCode asserts unexpectedStatusCode.
 func IsUnexpectedStatusCode(err error) bool {
-	return errgo.Cause(err) == unexpectedStatusCode
+	return microerror.Cause(err) == unexpectedStatusCode
 }
