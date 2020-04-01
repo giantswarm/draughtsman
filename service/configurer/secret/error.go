@@ -1,19 +1,23 @@
 package secret
 
 import (
-	"github.com/juju/errgo"
+	"github.com/giantswarm/microerror"
 )
 
-var invalidConfigError = errgo.New("invalid config")
+var invalidConfigError = &microerror.Error{
+	Kind: "invalidConfigError",
+}
 
 // IsInvalidConfig asserts invalidConfigError.
 func IsInvalidConfig(err error) bool {
-	return errgo.Cause(err) == invalidConfigError
+	return microerror.Cause(err) == invalidConfigError
 }
 
-var keyMissingError = errgo.New("key missing")
+var keyMissingError = &microerror.Error{
+	Kind: "keyMissingError",
+}
 
 // IsKeyMissing asserts keyMissingError
 func IsKeyMissing(err error) bool {
-	return errgo.Cause(err) == keyMissingError
+	return microerror.Cause(err) == keyMissingError
 }
