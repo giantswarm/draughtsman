@@ -1,12 +1,23 @@
 package slack
 
 import (
-	"github.com/juju/errgo"
+	"github.com/giantswarm/microerror"
 )
 
-var invalidConfigError = errgo.New("invalid config")
+var invalidConfigError = &microerror.Error{
+	Kind: "invalidConfigError",
+}
 
 // IsInvalidConfig asserts invalidConfigError.
 func IsInvalidConfig(err error) bool {
-	return errgo.Cause(err) == invalidConfigError
+	return microerror.Cause(err) == invalidConfigError
+}
+
+var slackError = &microerror.Error{
+	Kind: "slackError",
+}
+
+// IsSlackError asserts slackError.
+func IsSlackError(err error) bool {
+	return microerror.Cause(err) == slackError
 }

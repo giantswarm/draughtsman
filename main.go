@@ -105,7 +105,7 @@ func mainError() error {
 
 			newServer, err = server.New(c)
 			if err != nil {
-				panic(fmt.Sprintf("%#v\n", microerror.Maskf(err, "server.New")))
+				panic(fmt.Sprintf("%#v\n", microerror.Mask(err)))
 			}
 		}
 
