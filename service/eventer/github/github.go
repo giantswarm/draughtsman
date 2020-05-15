@@ -68,6 +68,7 @@ func New(config Config) (*GithubEventer, error) {
 		for _, p := range projectList {
 			if p == "draughtsman" {
 				found = true
+				break
 			}
 		}
 
