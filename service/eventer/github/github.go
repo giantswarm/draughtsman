@@ -62,6 +62,20 @@ func New(config Config) (*GithubEventer, error) {
 		return nil, microerror.Maskf(invalidConfigError, "project list must not be empty")
 	}
 
+	projectList := config.ProjectList
+	{
+		var found bool
+		for _, p := range projectList {
+			if p == "draughtsman" {
+				found = true
+			}
+		}
+
+		if !found {
+			projectList = append(projectList, "draughtsman")
+		}
+	}
+
 	eventer := &GithubEventer{
 		// Dependencies.
 		client:      config.HTTPClient,
@@ -73,7 +87,7 @@ func New(config Config) (*GithubEventer, error) {
 		oauthToken:   config.OAuthToken,
 		organisation: config.Organisation,
 		pollInterval: config.PollInterval,
-		projectList:  config.ProjectList,
+		projectList:  projectList,
 	}
 
 	return eventer, nil
