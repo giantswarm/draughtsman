@@ -25,6 +25,7 @@ type Config struct {
 	Organisation string
 	PollInterval time.Duration
 	ProjectList  []string
+	Provider     string
 }
 
 // DefaultConfig provides a default configuration to create a new GitHub
@@ -61,6 +62,9 @@ func New(config Config) (*GithubEventer, error) {
 	if len(config.ProjectList) == 0 {
 		return nil, microerror.Maskf(invalidConfigError, "project list must not be empty")
 	}
+	if config.Provider == "" {
+		return nil, microerror.Maskf(invalidConfigError, "provider must not be empty")
+	}
 
 	eventer := &GithubEventer{
 		// Dependencies.
@@ -74,6 +78,7 @@ func New(config Config) (*GithubEventer, error) {
 		organisation: config.Organisation,
 		pollInterval: config.PollInterval,
 		projectList:  config.ProjectList,
+		provider:     config.Provider,
 	}
 
 	return eventer, nil
@@ -93,6 +98,7 @@ type GithubEventer struct {
 	organisation string
 	pollInterval time.Duration
 	projectList  []string
+	provider     string
 }
 
 func (e *GithubEventer) NewDeploymentEvents() (<-chan spec.DeploymentEvent, error) {
