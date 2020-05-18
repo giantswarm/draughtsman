@@ -17,7 +17,6 @@ var (
 	kvmProjectList = []string{
 		"kvm-app-collection",
 		"kvm-operator",
-		"ingress-operator",
 	}
 	azureProjectList = []string{
 		"azure-app-collection",
