@@ -7,7 +7,8 @@ import (
 )
 
 type Flag struct {
-	Service service.Service
+	Provider string
+	Service  service.Service
 }
 
 func New() *Flag {
