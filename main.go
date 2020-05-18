@@ -135,7 +135,7 @@ func mainError() error {
 	daemonCommand := newCommand.DaemonCommand().CobraCommand()
 
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Environment, "", "Environment name that draughtsman is running in.")
-	daemonCommand.PersistentFlags().String(f.Provider, "", "Provider that draughtsman is running in.")
+	daemonCommand.PersistentFlags().String(f.Service.Deployer.Provider, "", "Provider that draughtsman is running in.")
 
 	// Component type selection.
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Type, string(deployer.StandardDeployer), "Which deployer to use for deployment management.")

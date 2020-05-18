@@ -5,7 +5,9 @@ metadata:
   namespace: draughtsman
 data:
   config.yaml: |
-    provider: {{ .Values.Installation.V1.Provider.Kind }}
+    service:
+      deployer:
+        provider: {{ .Values.Installation.V1.Provider.Kind }}
     server:
       listen:
         address: 'http://0.0.0.0:8000'
