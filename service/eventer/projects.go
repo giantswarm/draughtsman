@@ -5,7 +5,7 @@ var (
 		"api",
 		"cluster-operator",
 		"credentiald",
-		"draughsman",
+		"draughtsman",
 		"happa",
 		"passage",
 		"vault-exporter",
