@@ -8,6 +8,7 @@ import (
 
 type Deployer struct {
 	Environment string
+	Provider    string
 	Eventer     eventer.Eventer
 	Installer   installer.Installer
 	Notifier    notifier.Notifier

@@ -1,8 +1,6 @@
 package eventer
 
 import (
-	"strings"
-
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/microerror"
@@ -65,9 +63,27 @@ func New(config Config) (spec.Eventer, error) {
 		githubConfig.OAuthToken = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.OAuthToken)
 		githubConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.Organisation)
 		githubConfig.PollInterval = config.Viper.GetDuration(config.Flag.Service.Deployer.Eventer.GitHub.PollInterval)
+		githubConfig.Provider = config.Viper.GetString(config.Flag.Service.Deployer.Provider)
 
-		projectList := config.Viper.GetString(config.Flag.Service.Deployer.Eventer.GitHub.ProjectList)
-		githubConfig.ProjectList = strings.Split(projectList, ",")
+		{
+			projectList := commonProjectList
+			switch githubConfig.Provider {
+			case "aws":
+				projectList = append(projectList, awsProjectList...)
+			case "kvm":
+				projectList = append(projectList, kvmProjectList...)
+			case "azure":
+				projectList = append(projectList, azureProjectList...)
+			default:
+				return nil, microerror.Maskf(invalidConfigError, "unknown provider %q", githubConfig.Provider)
+			}
+
+			if list, ok := perInstallationProjectLists[githubConfig.Environment]; ok {
+				projectList = append(projectList, list...)
+			}
+
+			githubConfig.ProjectList = projectList
+		}
 
 		newEventer, err = github.New(githubConfig)
 		if err != nil {
