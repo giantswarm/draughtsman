@@ -8,7 +8,6 @@ var (
 		"draughtsman",
 		"happa",
 		"passage",
-		"vault-exporter",
 	}
 	awsProjectList = []string{
 		"aws-app-collection",
