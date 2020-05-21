@@ -24,10 +24,16 @@ var (
 	perInstallationProjectLists = map[string][]string{
 		"argali":  []string{"route53-manager"},
 		"axolotl": []string{"route53-manager"},
-		"gauss":   []string{"release-bot"},
+		"gaia":    []string{"app-operator"},
+		"gauss":   []string{"gauss, release-bot"},
+		"geckon":  []string{"app-operator"},
+		"ghost":   []string{"app-operator"},
+		"ginger":  []string{"app-operator"},
 		"giraffe": []string{
 			"app-operator",
 			"route53-manager",
 		},
+		"godsmack": []string{"app-operator"},
+		"gorgoth":  []string{"app-operator"},
 	}
 )
