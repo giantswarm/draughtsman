@@ -22,9 +22,6 @@ var (
 		"azure-operator",
 	}
 	perInstallationProjectLists = map[string][]string{
-		"argali":  []string{"route53-manager"},
-		"axolotl": []string{"route53-manager"},
-		"gauss":   []string{"release-bot"},
-		"giraffe": []string{"route53-manager"},
+		"gauss": []string{"release-bot"},
 	}
 )
