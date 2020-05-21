@@ -4,7 +4,6 @@ var (
 	commonProjectList = []string{
 		"api",
 		"cluster-operator",
-		"credentiald",
 		"draughtsman",
 		"happa",
 	}
