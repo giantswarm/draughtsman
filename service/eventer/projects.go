@@ -25,6 +25,9 @@ var (
 		"argali":  []string{"route53-manager"},
 		"axolotl": []string{"route53-manager"},
 		"gauss":   []string{"release-bot"},
-		"giraffe": []string{"route53-manager"},
+		"giraffe": []string{
+			"app-operator",
+			"route53-manager",
+		},
 	}
 )
