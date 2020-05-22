@@ -20,6 +20,18 @@ var (
 		"azure-operator",
 	}
 	perInstallationProjectLists = map[string][]string{
-		"gauss": []string{"release-bot"},
+		"gaia": []string{"app-operator"},
+		"gauss": []string{
+			"app-operator",
+			"release-bot",
+		},
+		"geckon": []string{"app-operator"},
+		"ghost":  []string{"app-operator"},
+		"ginger": []string{"app-operator"},
+		"giraffe": []string{
+			"app-operator",
+		},
+		"godsmack": []string{"app-operator"},
+		"gorgoth":  []string{"app-operator"},
 	}
 )
