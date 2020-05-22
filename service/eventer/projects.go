@@ -2,7 +2,6 @@ package eventer
 
 var (
 	commonProjectList = []string{
-		"api",
 		"cluster-operator",
 		"draughtsman",
 		"happa",
