@@ -4,7 +4,6 @@ var (
 	commonProjectList = []string{
 		"cluster-operator",
 		"draughtsman",
-		"happa",
 	}
 	awsProjectList = []string{
 		"aws-app-collection",
