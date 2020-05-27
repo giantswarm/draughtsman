@@ -300,7 +300,7 @@ func (e *GithubEventer) updateRateLimiter(response *http.Response) error {
 	}
 
 	timeToRefill := rateLimitResetTime.Sub(time.Now())
-	//  This is needed because rateLimiter accepts positive intervals only.
+	// This is needed because rateLimiter accepts positive intervals only.
 	if timeToRefill <= 0 {
 		timeToRefill = 1 * time.Second
 	}
