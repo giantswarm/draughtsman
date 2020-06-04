@@ -21,7 +21,6 @@ var (
 		"gaia": []string{"app-operator"},
 		"gauss": []string{
 			"app-operator",
-			"release-bot",
 		},
 		"geckon": []string{"app-operator"},
 		"ghost":  []string{"app-operator"},
