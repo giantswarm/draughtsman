@@ -1,4 +1,4 @@
-package project
+package configuration
 
 var (
 	commonProjectList = []string{

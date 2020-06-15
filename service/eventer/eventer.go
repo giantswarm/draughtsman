@@ -7,7 +7,7 @@ import (
 	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
-	"github.com/giantswarm/draughtsman/pkg/project"
+	"github.com/giantswarm/draughtsman/pkg/project/configuration"
 	"github.com/giantswarm/draughtsman/service/eventer/github"
 	"github.com/giantswarm/draughtsman/service/eventer/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
@@ -67,7 +67,7 @@ func New(config Config) (spec.Eventer, error) {
 		githubConfig.Provider = config.Viper.GetString(config.Flag.Service.Deployer.Provider)
 
 		{
-			projectList := project.GetProjectList(githubConfig.Provider, githubConfig.Environment)
+			projectList := configuration.GetProjectList(githubConfig.Provider, githubConfig.Environment)
 			githubConfig.ProjectList = projectList
 		}
 

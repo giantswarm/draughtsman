@@ -15,7 +15,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	"github.com/spf13/afero"
 
-	"github.com/giantswarm/draughtsman/pkg/project"
+	"github.com/giantswarm/draughtsman/pkg/project/configuration"
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
 	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/installer/spec"
@@ -215,7 +215,7 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 
 func (i *HelmInstaller) fetchMetrics() error {
 	ticker := time.NewTicker(i.pollInterval)
-	projectList := project.GetProjectList(i.provider, i.environment)
+	projectList := configuration.GetProjectList(i.provider, i.environment)
 
 	go func() {
 		for c := ticker.C; ; <-c {
