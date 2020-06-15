@@ -231,7 +231,11 @@ func (i *HelmInstaller) fetchMetrics() error {
 				if err != nil {
 					i.logger.Log("error", "could not parse helm history output", err.Error())
 				}
-				reportHelmRelease(project, v[0]["status"])
+				if len(v) > 0 {
+					reportHelmRelease(project, strings.ToLower(v[0]["status"]))
+				} else {
+					reportHelmRelease(project, "not-found")
+				}
 			}
 			i.logger.Log("debug", "fetched metrics")
 		}
