@@ -28,6 +28,9 @@ const (
 
 	// chartNameFormat is the format for the name of the chart folder.
 	chartNameFormat = "%v_%v-chart_1.0.0-%v/%v-chart"
+
+	// pollInterval is the time interval between checking the status of helm releases
+	pollInterval = 1 * time.Minute
 )
 
 // HelmInstallerType is an Installer that uses Helm.
@@ -45,7 +48,6 @@ type Config struct {
 	HelmBinaryPath string
 	Organisation   string
 	Password       string
-	PollInterval   time.Duration
 	Provider       string
 	Registry       string
 	Username       string
@@ -95,9 +97,6 @@ func New(config Config) (*HelmInstaller, error) {
 	if config.Password == "" {
 		return nil, microerror.Maskf(invalidConfigError, "password must not be empty")
 	}
-	if config.PollInterval.Seconds() == 0 {
-		return nil, microerror.Maskf(invalidConfigError, "interval must be greater than zero")
-	}
 	if config.Provider == "" {
 		return nil, microerror.Maskf(invalidConfigError, "provider must not be empty")
 	}
@@ -124,7 +123,6 @@ func New(config Config) (*HelmInstaller, error) {
 		helmBinaryPath: config.HelmBinaryPath,
 		organisation:   config.Organisation,
 		password:       config.Password,
-		pollInterval:   config.PollInterval,
 		provider:       config.Provider,
 		registry:       config.Registry,
 		username:       config.Username,
@@ -154,7 +152,6 @@ type HelmInstaller struct {
 	helmBinaryPath string
 	organisation   string
 	password       string
-	pollInterval   time.Duration
 	provider       string
 	registry       string
 	username       string
@@ -214,7 +211,7 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 }
 
 func (i *HelmInstaller) fetchMetrics() error {
-	ticker := time.NewTicker(i.pollInterval)
+	ticker := time.NewTicker(pollInterval)
 	projectList := configuration.GetProjectList(i.provider, i.environment)
 
 	go func() {
