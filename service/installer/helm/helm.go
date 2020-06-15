@@ -221,20 +221,29 @@ func (i *HelmInstaller) fetchMetrics() error {
 	go func() {
 		for c := ticker.C; ; <-c {
 			i.logger.Log("debug", "fetching metrics")
-			for _, project := range projectList {
-				cmd := exec.Command(i.helmBinaryPath, "history", project, "--output yaml", "--max 1")
-				var stdOutBuf bytes.Buffer
+			for _, prj := range projectList {
+				cmd := exec.Command(i.helmBinaryPath, "history", prj, "--output", "yaml", "--max", "1")
+
+				var stdOutBuf, stdErrBuf bytes.Buffer
 				cmd.Stdout = &stdOutBuf
+				cmd.Stderr = &stdErrBuf
+
+				err := cmd.Run()
+				if err != nil {
+					i.logger.Log("error", fmt.Sprintf("could not find helm release %#q history", prj), stdErrBuf.String())
+					continue
+				}
 
 				var v []map[string]string
-				err := yaml.Unmarshal(stdOutBuf.Bytes(), &v)
+				err = yaml.Unmarshal(stdOutBuf.Bytes(), &v)
 				if err != nil {
 					i.logger.Log("error", "could not parse helm history output", err.Error())
+					continue
 				}
 				if len(v) > 0 {
-					reportHelmRelease(project, strings.ToLower(v[0]["status"]))
+					reportHelmRelease(prj, strings.ToLower(v[0]["status"]))
 				} else {
-					reportHelmRelease(project, "not-found")
+					reportHelmRelease(prj, "not-found")
 				}
 			}
 			i.logger.Log("debug", "fetched metrics")
