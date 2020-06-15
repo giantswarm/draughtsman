@@ -214,43 +214,44 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 }
 
 func (i *HelmInstaller) fetchMetrics() error {
-
 	ticker := time.NewTicker(i.pollInterval)
 	projectList := project.GetProjectList(i.provider, i.environment)
 
 	go func() {
 		for c := ticker.C; ; <-c {
 			i.logger.Log("debug", "fetching metrics")
-			for _, prj := range projectList {
-				cmd := exec.Command(i.helmBinaryPath, "history", prj, "--output", "yaml", "--max", "1")
-
-				var stdOutBuf, stdErrBuf bytes.Buffer
-				cmd.Stdout = &stdOutBuf
-				cmd.Stderr = &stdErrBuf
-
-				err := cmd.Run()
-				if err != nil {
-					i.logger.Log("error", fmt.Sprintf("could not find helm release %#q history", prj), stdErrBuf.String())
-					continue
-				}
-
-				var v []map[string]string
-				err = yaml.Unmarshal(stdOutBuf.Bytes(), &v)
-				if err != nil {
-					i.logger.Log("error", "could not parse helm history output", err.Error())
-					continue
-				}
-				if len(v) > 0 {
-					reportHelmRelease(prj, strings.ToLower(v[0]["status"]))
-				} else {
-					reportHelmRelease(prj, "not-found")
-				}
-			}
+			i.checkHelmRelease(projectList)
 			i.logger.Log("debug", "fetched metrics")
 		}
 	}()
 
 	return nil
+}
+
+func (i *HelmInstaller) checkHelmRelease(projectList []string) {
+	for _, prj := range projectList {
+		cmd := exec.Command(i.helmBinaryPath, "history", prj, "--output", "yaml", "--max", "1")
+
+		var stdOutBuf, stdErrBuf bytes.Buffer
+		cmd.Stdout = &stdOutBuf
+		cmd.Stderr = &stdErrBuf
+
+		err := cmd.Run()
+		if err != nil {
+			i.logger.Log("error", fmt.Sprintf("could not find helm release %#q history", prj), stdErrBuf.String())
+		}
+
+		var v []map[string]string
+		err = yaml.Unmarshal(stdOutBuf.Bytes(), &v)
+		if err != nil {
+			i.logger.Log("error", "could not parse helm history output", err.Error())
+		}
+		if len(v) > 0 {
+			reportHelmRelease(prj, strings.ToLower(v[0]["status"]))
+		} else {
+			reportHelmRelease(prj, "not-found")
+		}
+	}
 }
 
 // login logs the configured user into the configured registry.
