@@ -10,10 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/spf13/afero"
 
+	"github.com/giantswarm/draughtsman/pkg/project"
 	configurerspec "github.com/giantswarm/draughtsman/service/configurer/spec"
 	eventerspec "github.com/giantswarm/draughtsman/service/eventer/spec"
 	"github.com/giantswarm/draughtsman/service/installer/spec"
@@ -39,9 +41,12 @@ type Config struct {
 	Logger      micrologger.Logger
 
 	// Settings.
+	Environment    string
 	HelmBinaryPath string
 	Organisation   string
 	Password       string
+	PollInterval   time.Duration
+	Provider       string
 	Registry       string
 	Username       string
 }
@@ -78,6 +83,9 @@ func New(config Config) (*HelmInstaller, error) {
 	}
 
 	// Settings.
+	if config.Environment == "" {
+		return nil, microerror.Maskf(invalidConfigError, "environment must not be empty")
+	}
 	if config.HelmBinaryPath == "" {
 		return nil, microerror.Maskf(invalidConfigError, "helm binary path must not be empty")
 	}
@@ -87,6 +95,13 @@ func New(config Config) (*HelmInstaller, error) {
 	if config.Password == "" {
 		return nil, microerror.Maskf(invalidConfigError, "password must not be empty")
 	}
+	if config.PollInterval.Seconds() == 0 {
+		return nil, microerror.Maskf(invalidConfigError, "interval must be greater than zero")
+	}
+	if config.Provider == "" {
+		return nil, microerror.Maskf(invalidConfigError, "provider must not be empty")
+	}
+
 	if config.Registry == "" {
 		return nil, microerror.Maskf(invalidConfigError, "registry must not be empty")
 	}
@@ -105,14 +120,21 @@ func New(config Config) (*HelmInstaller, error) {
 		logger:      config.Logger,
 
 		// Settings.
+		environment:    config.Environment,
 		helmBinaryPath: config.HelmBinaryPath,
 		organisation:   config.Organisation,
 		password:       config.Password,
+		pollInterval:   config.PollInterval,
+		provider:       config.Provider,
 		registry:       config.Registry,
 		username:       config.Username,
 	}
 
 	if err := installer.login(); err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	if err := installer.fetchMetrics(); err != nil {
 		return nil, microerror.Mask(err)
 	}
 
@@ -128,9 +150,12 @@ type HelmInstaller struct {
 	logger      micrologger.Logger
 
 	// Settings.
+	environment    string
 	helmBinaryPath string
 	organisation   string
 	password       string
+	pollInterval   time.Duration
+	provider       string
 	registry       string
 	username       string
 }
@@ -184,6 +209,33 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	if strings.Contains(stdOutBuf.String(), "Error") {
 		return microerror.Maskf(helmError, stdOutBuf.String())
 	}
+
+	return nil
+}
+
+func (i *HelmInstaller) fetchMetrics() error {
+
+	ticker := time.NewTicker(i.pollInterval)
+	projectList := project.GetProjectList(i.provider, i.environment)
+
+	go func() {
+		for c := ticker.C; ; <-c {
+			i.logger.Log("debug", "fetching metrics")
+			for _, project := range projectList {
+				cmd := exec.Command(i.helmBinaryPath, "history", project, "--output yaml", "--max 1")
+				var stdOutBuf bytes.Buffer
+				cmd.Stdout = &stdOutBuf
+
+				var v []map[string]string
+				err := yaml.Unmarshal(stdOutBuf.Bytes(), &v)
+				if err != nil {
+					i.logger.Log("error", "could not parse helm history output", err.Error())
+				}
+				reportHelmRelease(project, v[0]["status"])
+			}
+			i.logger.Log("debug", "fetched metrics")
+		}
+	}()
 
 	return nil
 }
