@@ -3,6 +3,7 @@ module github.com/giantswarm/draughtsman
 go 1.13
 
 require (
+	github.com/ghodss/yaml v1.0.0
 	github.com/giantswarm/k8sclient v0.2.0
 	github.com/giantswarm/microendpoint v0.2.0
 	github.com/giantswarm/microerror v0.2.0

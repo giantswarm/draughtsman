@@ -7,6 +7,8 @@ import (
 )
 
 const (
+	gaugeValue float64 = 1
+
 	// prometheusNamespace is the namespace to use for Prometheus metrics.
 	// See: https://godoc.org/github.com/prometheus/client_golang/prometheus#Opts
 	prometheusNamespace = "draughtsman"
@@ -35,11 +37,21 @@ var (
 		},
 		[]string{"name"},
 	)
+	helmReleaseFailure = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: prometheusNamespace,
+			Subsystem: prometheusSubsystem,
+			Name:      "helm_release_failed",
+			Help:      "the number of failed releases for draughtsman deployments",
+		},
+		[]string{"name", "status"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(helmCommandDuration)
 	prometheus.MustRegister(helmCommandTotal)
+	prometheus.MustRegister(helmReleaseFailure)
 }
 
 // updateHelmMetrics is a utility function for updating metrics related to
@@ -54,4 +66,10 @@ func updateHelmMetrics(name string, startTime time.Time) {
 	helmCommandTotal.WithLabelValues(
 		name,
 	).Inc()
+}
+
+func reportHelmRelease(name, status string) {
+	helmReleaseFailure.WithLabelValues(
+		name, status,
+	).Set(gaugeValue)
 }

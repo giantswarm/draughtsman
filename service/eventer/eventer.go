@@ -7,6 +7,7 @@ import (
 	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/pkg/project/configuration"
 	"github.com/giantswarm/draughtsman/service/eventer/github"
 	"github.com/giantswarm/draughtsman/service/eventer/spec"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
@@ -66,22 +67,7 @@ func New(config Config) (spec.Eventer, error) {
 		githubConfig.Provider = config.Viper.GetString(config.Flag.Service.Deployer.Provider)
 
 		{
-			projectList := commonProjectList
-			switch githubConfig.Provider {
-			case "aws":
-				projectList = append(projectList, awsProjectList...)
-			case "kvm":
-				projectList = append(projectList, kvmProjectList...)
-			case "azure":
-				projectList = append(projectList, azureProjectList...)
-			default:
-				return nil, microerror.Maskf(invalidConfigError, "unknown provider %q", githubConfig.Provider)
-			}
-
-			if list, ok := perInstallationProjectLists[githubConfig.Environment]; ok {
-				projectList = append(projectList, list...)
-			}
-
+			projectList := configuration.GetProjectList(githubConfig.Provider, githubConfig.Environment)
 			githubConfig.ProjectList = projectList
 		}
 
