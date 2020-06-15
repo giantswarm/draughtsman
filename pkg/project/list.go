@@ -26,7 +26,7 @@ var (
 		"gauss": {
 			"app-operator",
 		},
-		"geckon": {"app-operator", "fake-operator"},
+		"geckon": {"app-operator"},
 		"ghost":  {"app-operator"},
 		"ginger": {"app-operator"},
 		"giraffe": {
