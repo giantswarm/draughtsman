@@ -41,8 +41,8 @@ var (
 		prometheus.GaugeOpts{
 			Namespace: prometheusNamespace,
 			Subsystem: prometheusSubsystem,
-			Name:      "helm_release_failure",
-			Help:      "the number of release failure in draughtsman deployment",
+			Name:      "helm_release_failed",
+			Help:      "the number of failed releases for draughtsman deployments",
 		},
 		[]string{"name", "status"},
 	)
