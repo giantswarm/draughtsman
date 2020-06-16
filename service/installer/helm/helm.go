@@ -243,6 +243,9 @@ func (i *HelmInstaller) checkHelmRelease(projectList []string) {
 		if err != nil {
 			i.logger.Log("error", "could not parse helm history output", err.Error())
 		}
+
+		helmReleaseFailure.Reset()
+
 		if len(v) > 0 {
 			reportHelmRelease(prj, strings.ToLower(v[0]["status"]))
 		} else {
