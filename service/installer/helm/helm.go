@@ -226,6 +226,7 @@ func (i *HelmInstaller) fetchMetrics() error {
 }
 
 func (i *HelmInstaller) checkHelmRelease(projectList []string) {
+	// Reset the last metrics in this vector so only new metrics could be reported.
 	helmReleaseFailure.Reset()
 	for _, prj := range projectList {
 		cmd := exec.Command(i.helmBinaryPath, "history", prj, "--output", "yaml", "--max", "1")
