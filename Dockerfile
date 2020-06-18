@@ -1,6 +1,6 @@
 FROM alpine:3.10
 
-ENV HELM_VERSION 2.16.1
+ENV HELM_VERSION v3.2.4
 ENV APPR_PLUGIN_VERSION 0.7.0
 
 # add application user
@@ -12,7 +12,7 @@ RUN set -x \
 
 # install helm
 RUN set -x \
-    && curl -s https://storage.googleapis.com/kubernetes-helm/helm-v$HELM_VERSION-linux-amd64.tar.gz | tar xzf - linux-amd64/helm \
+    && curl -s https://get.helm.sh/helm-$HELM_VERSION-linux-amd64.tar.gz | tar xzf - linux-amd64/helm \
     && chmod +x ./linux-amd64/helm \
     && mv ./linux-amd64/helm /bin/helm \
     && rm -rf ./linux-amd64
