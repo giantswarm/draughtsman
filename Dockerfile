@@ -11,6 +11,7 @@ RUN set -x \
     && apk update && apk --no-cache add ca-certificates openssl curl bash zlib
 
 # install helm
+ENV HELM_EXPERIMENTAL_OCI 1
 RUN set -x \
     && curl -s https://get.helm.sh/helm-$HELM_VERSION-linux-amd64.tar.gz | tar xzf - linux-amd64/helm \
     && chmod +x ./linux-amd64/helm \
