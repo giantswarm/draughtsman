@@ -276,7 +276,6 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	if err := i.runHelmCommand(
 		"pull",
-		"registry",
 		"pull",
 		i.versionedChartName(project, sha),
 	); err != nil {
