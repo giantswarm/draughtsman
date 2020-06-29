@@ -20,24 +20,8 @@ var (
 			"azure-operator",
 		},
 	}
-
-	perInstallationProjectLists = map[string][]string{
-		"gaia": {"app-operator"},
-		"gauss": {
-			"app-operator",
-		},
-		"geckon": {"app-operator"},
-		"ghost":  {"app-operator"},
-		"ginger": {"app-operator"},
-		"giraffe": {
-			"app-operator",
-		},
-		"godsmack": {"app-operator"},
-		"gorgoth":  {"app-operator"},
-	}
 )
 
 func GetProjectList(provider, installation string) []string {
-	list := append(commonProjectList, providerProjectList[provider]...)
-	return append(list, perInstallationProjectLists[installation]...)
+	return append(commonProjectList, providerProjectList[provider]...)
 }
