@@ -15,7 +15,6 @@ var (
 	}
 	azureProjectList = []string{
 		"azure-app-collection",
-		"azure-operator",
 	}
 	perInstallationProjectLists = map[string][]string{
 		"gaia": []string{"app-operator"},
