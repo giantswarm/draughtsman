@@ -6,6 +6,10 @@ var (
 		"draughtsman",
 	}
 
+	conformanceProjectList = []string{
+		"conformance-app-collection",
+	}
+
 	providerProjectList = map[string][]string{
 		"aws": {
 			"aws-app-collection",
@@ -23,5 +27,13 @@ var (
 )
 
 func GetProjectList(provider, installation string) []string {
+	if installation == "gaia" {
+		projects := []string{}
+		projects = append(projects, commonProjectList...)
+		projects = append(projects, providerProjectList[provider]...)
+		projects = append(projects, conformanceProjectList...)
+		return projects
+	}
+
 	return append(commonProjectList, providerProjectList[provider]...)
 }
