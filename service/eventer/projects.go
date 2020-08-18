@@ -17,7 +17,7 @@ var (
 		"azure-app-collection",
 	}
 	perInstallationProjectLists = map[string][]string{
-		"gaia": []string{"app-operator"},
+		"gaia": []string{"app-operator", "conformance-app-collection"},
 		"gauss": []string{
 			"app-operator",
 		},
