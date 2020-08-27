@@ -5,6 +5,8 @@ metadata:
   namespace: draughtsman
   labels:
     app: draughtsman
+    giantswarm.io/monitoring: "true"
+    giantswarm.io/monitoring-port: "8000"
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "8000"
