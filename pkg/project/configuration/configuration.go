@@ -2,7 +2,6 @@ package configuration
 
 var (
 	commonProjectList = []string{
-		"cluster-operator",
 		"draughtsman",
 	}
 
@@ -10,14 +9,15 @@ var (
 		"aws": {
 			"aws-app-collection",
 			"aws-operator",
+			"cluster-operator",
 		},
 		"kvm": {
+			"cluster-operator",
 			"kvm-app-collection",
 			"kvm-operator",
 		},
 		"azure": {
 			"azure-app-collection",
-			"azure-operator",
 		},
 	}
 )
