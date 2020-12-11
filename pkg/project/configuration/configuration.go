@@ -12,9 +12,7 @@ var (
 			"cluster-operator",
 		},
 		"kvm": {
-			"cluster-operator",
 			"kvm-app-collection",
-			"kvm-operator",
 		},
 		"azure": {
 			"azure-app-collection",
