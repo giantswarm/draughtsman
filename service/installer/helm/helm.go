@@ -313,6 +313,15 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		}()
 	}
 
+	namespaceArgs := []string{"--namespace"}
+	{
+		if project == "draughtsman" {
+			namespaceArgs = append(namespaceArgs, "default")
+		} else {
+			namespaceArgs = append(namespaceArgs, "draughtsman")
+		}
+	}
+
 	// The intaller accepts multiple configurers during initialization. Here we
 	// iterate over all of them to get all the values they provide. For each
 	// values file we have to create a file in the tmp dir we created above.
