@@ -163,6 +163,7 @@ func (h *HelmMigration) runHelmCommand(name string, args ...string) (string, err
 
 	h.logger.Log(
 		"debug", "ran helm command", "name", name,
+		"command", cmd.Args,
 		"stdout", stdOutBuf.String(), "stderr", stdErrBuf.String(),
 	)
 	err := cmd.Run()
