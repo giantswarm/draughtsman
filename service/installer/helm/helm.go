@@ -260,9 +260,9 @@ func (i *HelmInstaller) login() error {
 
 	return i.runHelmCommand(
 		"login",
-		"registry",
+		"quay",
 		"login",
-		fmt.Sprintf("--username=%v", i.username),
+		fmt.Sprintf("--user=%v", i.username),
 		fmt.Sprintf("--password=%v", i.password),
 		i.registry,
 	)
@@ -276,7 +276,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	if err := i.runHelmCommand(
 		"pull",
-		"registry",
+		"quay",
 		"pull",
 		i.versionedChartName(project, sha),
 	); err != nil {

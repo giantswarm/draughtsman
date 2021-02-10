@@ -19,19 +19,11 @@ RUN set -x \
     && rm -rf ./linux-amd64
 
 # install helm appr (registry) plugin
-RUN set -x \
-    && mkdir -p /home/draughtsman/.helm/plugins \
-    && curl -L -s https://github.com/app-registry/appr-helm-plugin/releases/download/v$APPR_PLUGIN_VERSION/helm-registry_linux.tar.gz | tar xvzf - registry \
-    && mv ./registry /home/draughtsman/.helm/plugins/registry \
-    && chown -R draughtsman:draughtsman /home/draughtsman/.helm
+RUN helm plugin install https://github.com/app-registry/quay-helmv3-plugin
 
 USER draughtsman
 
 ADD draughtsman /home/draughtsman/
-
-RUN cd /home/draughtsman/.helm/plugins/registry \
-    && ./cnr.sh upgrade-plugin \
-    && helm registry --help > /dev/null
 
 # setup default catalog repo
 RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
