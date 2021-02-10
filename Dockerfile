@@ -1,8 +1,9 @@
 FROM alpine:3.10
 
 ENV HELM_VERSION 3.5.1
-ENV APPR_PLUGIN_VERSION 0.7.0
 ENV HELM_EXPERIMENTAL_OCI 1
+
+RUN apk add --no-cache git
 
 # add application user
 RUN addgroup -S draughtsman && adduser -S -g draughtsman draughtsman
