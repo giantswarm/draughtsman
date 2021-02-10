@@ -262,7 +262,7 @@ func (i *HelmInstaller) login() error {
 		"login",
 		"registry",
 		"login",
-		fmt.Sprintf("--user=%v", i.username),
+		fmt.Sprintf("--username=%v", i.username),
 		fmt.Sprintf("--password=%v", i.password),
 		i.registry,
 	)
