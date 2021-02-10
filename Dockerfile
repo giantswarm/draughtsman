@@ -25,11 +25,6 @@ RUN set -x \
     && mv ./registry /home/draughtsman/.helm/plugins/registry \
     && chown -R draughtsman:draughtsman /home/draughtsman/.helm
 
-# setup default catalog repo
-RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
-
-RUN helm repo update
-
 USER draughtsman
 
 ADD draughtsman /home/draughtsman/
@@ -37,6 +32,11 @@ ADD draughtsman /home/draughtsman/
 RUN cd /home/draughtsman/.helm/plugins/registry \
     && ./cnr.sh upgrade-plugin \
     && helm registry --help > /dev/null
+
+# setup default catalog repo
+RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
+
+RUN helm repo update
 
 WORKDIR /home/draughtsman
 
