@@ -127,7 +127,7 @@ func (h *HelmMigration) installHelm2to3Migration(projectList []string) error {
 		"--namespace",
 		"giantswarm",
 		"--set",
-		fmt.Sprintf("releases=%s", strings.Join(projectList, ",")),
+		fmt.Sprintf("\"releases={%s}\"", strings.Join(projectList, ",")),
 		"--set",
 		fmt.Sprintf("image.registry=%s", h.repository),
 	)
