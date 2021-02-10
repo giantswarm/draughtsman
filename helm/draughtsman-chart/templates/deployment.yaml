@@ -18,7 +18,7 @@ spec:
       labels:
         app: draughtsman
       annotations:
-        releaseRevision: {{ .Release.Revision }}
+        releaseRevision: "{{ .Release.Revision }}"
     spec:
       volumes:
       - name: configmap
