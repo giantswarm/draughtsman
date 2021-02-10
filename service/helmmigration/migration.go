@@ -55,9 +55,10 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 
 	if len(projectList) == 0 {
 		h.logger.Debugf(ctx, "no helm2 releases from draughtsman, quitting now...")
+		return nil
 	}
 
-	h.logger.Debugf(ctx, "Migrating total %s helm2 releases from draughtsman", len(projectList))
+	h.logger.Debugf(ctx, "migrating total %s helm2 releases from draughtsman", len(projectList))
 
 	err = h.installHelm2to3Migration(projectList)
 	if err != nil {
@@ -85,7 +86,7 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 		return microerror.Mask(err)
 	}
 
-	h.logger.Debugf(ctx, "Migrated total %s helm2 releases from draughtsman", len(projectList))
+	h.logger.Debugf(ctx, "migrated total %s helm2 releases from draughtsman", len(projectList))
 
 	h.logger.Debugf(ctx, "deleting migration resources")
 
