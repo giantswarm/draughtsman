@@ -359,6 +359,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
 		installCommand = append(installCommand, valuesFilesArgs...)
+		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
 
 		err := i.runHelmCommand("install", installCommand...)
