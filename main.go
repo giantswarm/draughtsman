@@ -181,6 +181,8 @@ func mainError() error {
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Emoji, ":older_man:", "Emoji to use for Slack notifications.")
 	daemonCommand.PersistentFlags().String(f.Service.Deployer.Notifier.Slack.Username, "draughtsman", "Username to post Slack notifications with.")
 
+	daemonCommand.PersistentFlags().String(f.Service.HelmMigration.Image.Repository, "quay.io", "image repository for helm migration image.")
+
 	newCommand.CobraCommand().Execute()
 
 	return nil

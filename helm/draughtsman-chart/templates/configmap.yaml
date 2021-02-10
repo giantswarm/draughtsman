@@ -8,6 +8,8 @@ data:
     service:
       deployer:
         provider: {{ .Values.Installation.V1.Provider.Kind }}
+      helmmigration:
+        Registry: {{ .Values.Installation.V1.Registry.}}
     server:
       listen:
         address: 'http://0.0.0.0:8000'
