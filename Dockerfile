@@ -26,7 +26,9 @@ RUN set -x \
     && chown -R draughtsman:draughtsman /home/draughtsman/.helm
 
 # setup default catalog repo
-RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/ && helm repo update
+RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
+
+RUN helm repo update
 
 USER draughtsman
 

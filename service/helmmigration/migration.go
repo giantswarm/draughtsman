@@ -58,7 +58,7 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 		return nil
 	}
 
-	h.logger.Debugf(ctx, "migrating total %s helm2 releases from draughtsman", len(projectList))
+	h.logger.Debugf(ctx, "migrating total %d helm2 releases from draughtsman", len(projectList))
 
 	err = h.installHelm2to3Migration(projectList)
 	if err != nil {
