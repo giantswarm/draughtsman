@@ -19,8 +19,7 @@ RUN set -x \
     && mv ./linux-amd64/helm /bin/helm \
     && rm -rf ./linux-amd64
 
-# install helm appr (registry) plugin
-RUN helm plugin install https://github.com/app-registry/quay-helmv3-plugin
+
 
 USER draughtsman
 
@@ -30,6 +29,9 @@ ADD draughtsman /home/draughtsman/
 RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
 
 RUN helm repo update
+
+# install helm appr (registry) plugin
+RUN helm plugin install https://github.com/app-registry/quay-helmv3-plugin
 
 WORKDIR /home/draughtsman
 
