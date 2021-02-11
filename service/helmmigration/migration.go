@@ -69,7 +69,7 @@ func New(c Config) (*HelmMigration, error) {
 }
 
 func (h *HelmMigration) Migrate(ctx context.Context) error {
-	h.logger.Debugf(ctx, "Checking remaining helm2 releases from draughtsman")
+	h.logger.Debugf(ctx, "checking remaining helm2 releases from draughtsman")
 	projectList, err := h.listRemainingHelmRelease()
 	if err != nil {
 		return microerror.Mask(err)

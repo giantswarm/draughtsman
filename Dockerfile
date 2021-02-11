@@ -31,7 +31,7 @@ RUN helm repo add default-catalog https://giantswarm.github.io/default-catalog/
 RUN helm repo update
 
 # install helm appr (registry) plugin
-RUN helm plugin install https://github.com/app-registry/quay-helmv3-plugin && helm quay --help
+RUN helm plugin install https://github.com/app-registry/quay-helmv3-plugin && helm quay --help > /dev/null
 
 WORKDIR /home/draughtsman
 
