@@ -6,34 +6,56 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"time"
+)
+
+const (
+	chartName   = "default-catalog/helm-2to3-migration"
+	releaseName = "draughtsman-helm-migration"
 )
 
 type Config struct {
 	KubernetesClient kubernetes.Interface
 	Logger           micrologger.Logger
 
-	Repository     string
 	HelmBinaryPath string
 	ProjectList    []string
+	Repository     string
 }
 
 type HelmMigration struct {
 	kubernetesClient kubernetes.Interface
 	logger           micrologger.Logger
 
-	repository  string
 	helmBinary  string
+	repository  string
 	projectList []string
 }
 
-func New(c Config) (HelmMigration, error) {
+func New(c Config) (*HelmMigration, error) {
+	if c.KubernetesClient == nil {
+		return nil, microerror.Maskf(invalidConfigError, "kubernetesClient must not be empty")
+	}
+	if c.Logger == nil {
+		return nil, microerror.Maskf(invalidConfigError, "logger must not be empty")
+	}
+
+	if c.HelmBinaryPath == "" {
+		return nil, microerror.Maskf(invalidConfigError, "helmBinaryPath must not be empty")
+	}
+	if c.Repository == "" {
+		return nil, microerror.Maskf(invalidConfigError, "repository must not be empty")
+	}
+	if c.ProjectList == nil {
+		return nil, microerror.Maskf(invalidConfigError, "projectList must not be empty")
+	}
+
 	h := HelmMigration{
 		kubernetesClient: c.KubernetesClient,
 		logger:           c.Logger,
@@ -43,7 +65,7 @@ func New(c Config) (HelmMigration, error) {
 		projectList: c.ProjectList,
 	}
 
-	return h, nil
+	return &h, nil
 }
 
 func (h *HelmMigration) Migrate(ctx context.Context) error {
@@ -100,6 +122,37 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 	return nil
 }
 
+func (h *HelmMigration) deleteHelm2to3Migration() error {
+	_, err := h.runHelmCommand("delete", "delete",
+		releaseName,
+		"--namespace",
+		"giantswarm",
+	)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
+}
+
+func (h *HelmMigration) installHelm2to3Migration(projectList []string) error {
+	_, err := h.runHelmCommand("install", "install",
+		releaseName,
+		chartName,
+		"--namespace",
+		"giantswarm",
+		"--set",
+		fmt.Sprintf("releases={%s}", strings.Join(projectList, ",")),
+		"--set",
+		fmt.Sprintf("image.registry=%s", h.repository),
+	)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
+}
+
 func (h *HelmMigration) listRemainingHelmRelease() ([]string, error) {
 	var remaining []string
 	for _, project := range h.projectList {
@@ -118,37 +171,6 @@ func (h *HelmMigration) listRemainingHelmRelease() ([]string, error) {
 	}
 
 	return remaining, nil
-}
-
-func (h *HelmMigration) installHelm2to3Migration(projectList []string) error {
-	_, err := h.runHelmCommand("install", "install",
-		"draughtsman-helm-migration",
-		"default-catalog/helm-2to3-migration",
-		"--namespace",
-		"giantswarm",
-		"--set",
-		fmt.Sprintf("releases={%s}", strings.Join(projectList, ",")),
-		"--set",
-		fmt.Sprintf("image.registry=%s", h.repository),
-	)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	return nil
-}
-
-func (h *HelmMigration) deleteHelm2to3Migration() error {
-	_, err := h.runHelmCommand("delete", "delete",
-		"draughtsman-helm-migration",
-		"--namespace",
-		"giantswarm",
-	)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	return nil
 }
 
 // runHelmCommand runs the given Helm command.

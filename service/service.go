@@ -45,7 +45,7 @@ type Config struct {
 type Service struct {
 	// Dependencies.
 	Deployer     deployer.Deployer
-	HelmMigrator helmmigration.HelmMigration
+	HelmMigrator *helmmigration.HelmMigration
 	Version      *version.Service
 }
 
@@ -106,7 +106,7 @@ func New(config Config) (*Service, error) {
 		projectList = configuration.GetProjectList(config.Viper.GetString(config.Flag.Service.Deployer.Provider), config.Viper.GetString(config.Flag.Service.Deployer.Environment))
 	}
 
-	var helmMigrationService helmmigration.HelmMigration
+	var helmMigrationService *helmmigration.HelmMigration
 	{
 		c := helmmigration.Config{
 			KubernetesClient: k8sClient,
