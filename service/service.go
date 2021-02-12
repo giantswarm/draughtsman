@@ -4,6 +4,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/giantswarm/k8sclient/k8srestconfig"
 	"github.com/giantswarm/microendpoint/service/version"
@@ -15,7 +16,9 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/giantswarm/draughtsman/flag"
+	"github.com/giantswarm/draughtsman/pkg/project/configuration"
 	"github.com/giantswarm/draughtsman/service/deployer"
+	"github.com/giantswarm/draughtsman/service/helmmigration"
 	httpspec "github.com/giantswarm/draughtsman/service/http"
 	slackspec "github.com/giantswarm/draughtsman/service/slack"
 )
@@ -41,8 +44,9 @@ type Config struct {
 
 type Service struct {
 	// Dependencies.
-	Deployer deployer.Deployer
-	Version  *version.Service
+	Deployer     deployer.Deployer
+	HelmMigrator *helmmigration.HelmMigration
+	Version      *version.Service
 }
 
 // New creates a new configured service object.
@@ -97,6 +101,28 @@ func New(config Config) (*Service, error) {
 		return nil, microerror.Mask(err)
 	}
 
+	var projectList []string
+	{
+		projectList = configuration.GetProjectList(config.Viper.GetString(config.Flag.Service.Deployer.Provider), config.Viper.GetString(config.Flag.Service.Deployer.Environment))
+	}
+
+	var helmMigrationService *helmmigration.HelmMigration
+	{
+		c := helmmigration.Config{
+			KubernetesClient: k8sClient,
+			Logger:           config.Logger,
+
+			Repository:     config.Viper.GetString(config.Flag.Service.HelmMigration.Image.Repository),
+			HelmBinaryPath: config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath),
+			ProjectList:    projectList,
+		}
+
+		helmMigrationService, err = helmmigration.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var deployerService deployer.Deployer
 	{
 		deployerConfig := deployer.DefaultConfig()
@@ -136,14 +162,20 @@ func New(config Config) (*Service, error) {
 
 	newService := &Service{
 		// Dependencies.
-		Deployer: deployerService,
-		Version:  versionService,
+		Deployer:     deployerService,
+		HelmMigrator: helmMigrationService,
+		Version:      versionService,
 	}
 
 	return newService, nil
 }
 
 func (s *Service) Boot(ctx context.Context) error {
+	err := s.HelmMigrator.Migrate(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("%#v", err))
+	}
+
 	s.Deployer.Boot()
 
 	return nil

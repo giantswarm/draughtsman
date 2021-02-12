@@ -1,94 +1,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: draughtsman
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-      - pods
-    verbs:
-      - get
-      - list
-  - apiGroups:
-      - ""
-    resources:
-      - pods/portforward
-    verbs:
-      - create
-  - apiGroups:
-      - "networking.k8s.io"
-    resources:
-      - networkpolicies
-    verbs:
-      - create
-  - apiGroups:
-      - rbac.authorization.k8s.io
-    resources:
-      - clusterrolebindings
-    verbs:
-      - create
-  - apiGroups:
-      - rbac.authorization.k8s.io
-    resources:
-      - clusterroles
-    verbs:
-      - bind
-      - create
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    verbs:
-      - get
-      - create
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    resourceNames:
-      - draughtsman
-      - draughtsman-pull-secret
-      - draughtsman-values-secret
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
-      - services
-      - serviceaccounts
-    verbs:
-      - get
-      - create
-      - update
-  - apiGroups:
-      - extensions
-    resources:
-      - deployments
-    verbs:
-      - get
-      - create
-      - update
-  - apiGroups:
-      - policy
-    resources:
-      - podsecuritypolicies
-    verbs:
-      - create
-      - use
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: draughtsman
+  name: draughtsman-role-binding
 subjects:
   - kind: ServiceAccount
     name: draughtsman
     namespace: draughtsman
 roleRef:
   kind: ClusterRole
-  name: draughtsman
+  name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1

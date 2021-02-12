@@ -229,7 +229,15 @@ func (i *HelmInstaller) checkHelmRelease(projectList []string) {
 	// Reset the last metrics in this vector so only new metrics could be reported.
 	helmReleaseFailure.Reset()
 	for _, prj := range projectList {
-		cmd := exec.Command(i.helmBinaryPath, "history", prj, "--output", "yaml", "--max", "1")
+
+		args := []string{"history", prj, "--output", "yaml", "--max", "1", "--namespace"}
+		if prj == "draughtsman" {
+			args = append(args, "default")
+		} else {
+			args = append(args, "draughtsman")
+		}
+
+		cmd := exec.Command(i.helmBinaryPath, args...)
 
 		var stdOutBuf, stdErrBuf bytes.Buffer
 		cmd.Stdout = &stdOutBuf
@@ -238,6 +246,7 @@ func (i *HelmInstaller) checkHelmRelease(projectList []string) {
 		err := cmd.Run()
 		if err != nil {
 			i.logger.Log("error", fmt.Sprintf("could not find helm release %#q history", prj), stdErrBuf.String())
+			continue
 		}
 
 		var v []map[string]string
@@ -260,7 +269,7 @@ func (i *HelmInstaller) login() error {
 
 	return i.runHelmCommand(
 		"login",
-		"registry",
+		"quay",
 		"login",
 		fmt.Sprintf("--user=%v", i.username),
 		fmt.Sprintf("--password=%v", i.password),
@@ -276,7 +285,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 
 	if err := i.runHelmCommand(
 		"pull",
-		"registry",
+		"quay",
 		"pull",
 		i.versionedChartName(project, sha),
 	); err != nil {
@@ -313,6 +322,15 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		}()
 	}
 
+	namespaceArgs := []string{"--namespace"}
+	{
+		if project == "draughtsman" {
+			namespaceArgs = append(namespaceArgs, "default")
+		} else {
+			namespaceArgs = append(namespaceArgs, "draughtsman")
+		}
+	}
+
 	// The intaller accepts multiple configurers during initialization. Here we
 	// iterate over all of them to get all the values they provide. For each
 	// values file we have to create a file in the tmp dir we created above.
@@ -341,6 +359,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
 		installCommand = append(installCommand, valuesFilesArgs...)
+		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
 
 		err := i.runHelmCommand("install", installCommand...)
