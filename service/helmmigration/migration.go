@@ -11,6 +11,7 @@ import (
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -76,7 +77,13 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 	}
 
 	if len(projectList) == 0 {
-		h.logger.Debugf(ctx, "no helm2 releases from draughtsman, quitting now...")
+		h.logger.Debugf(ctx, "no helm2 releases from draughtsman")
+
+		err = h.ensureTillerDeleted(ctx)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
 		return nil
 	}
 
@@ -131,6 +138,65 @@ func (h *HelmMigration) deleteHelm2to3Migration() error {
 	if err != nil {
 		return microerror.Mask(err)
 	}
+
+	return nil
+}
+
+func (h *HelmMigration) ensureTillerDeleted(ctx context.Context) error {
+	serviceAccounts := []string{"tiller", "tiller-giantswarm"}
+	for _, account := range serviceAccounts {
+		h.logger.Debugf(ctx, "deleting service account %#q in namespace %#q", account, metav1.NamespaceSystem)
+		err := h.kubernetesClient.CoreV1().ServiceAccounts(metav1.NamespaceSystem).Delete(account, &metav1.DeleteOptions{})
+		if apierrors.IsNotFound(err) {
+			// no-op
+		} else if err != nil {
+			return microerror.Mask(err)
+		}
+		h.logger.Debugf(ctx, "deleted service account %#q in namespace %#q", account, metav1.NamespaceSystem)
+	}
+
+	clusterRoleBindings := []string{"tiller", "tiller-giantswarm-psp", "tiller-kube-system"}
+	for _, c := range clusterRoleBindings {
+		h.logger.Debugf(ctx, "deleting cluster role binding %#q", c)
+		err := h.kubernetesClient.RbacV1().ClusterRoleBindings().Delete(c, &metav1.DeleteOptions{})
+		if apierrors.IsNotFound(err) {
+			// no-op
+		} else if err != nil {
+			return microerror.Mask(err)
+		}
+		h.logger.Debugf(ctx, "deleted cluster role binding %#q", c)
+	}
+
+	pspName := "tiller-giantswarm-psp"
+	h.logger.Debugf(ctx, "deleting pod security policy %#q", pspName)
+	err := h.kubernetesClient.PolicyV1beta1().PodSecurityPolicies().Delete(pspName, &metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		// no-op
+	} else if err != nil {
+		return microerror.Mask(err)
+	}
+
+	h.logger.Debugf(ctx, "deleted pod security policy %#q", pspName)
+
+	networkPolicyName := "tiller-giantswarm"
+	h.logger.Debugf(ctx, "deleting network policy %#q in namespace %#q", networkPolicyName, metav1.NamespaceSystem)
+	err = h.kubernetesClient.NetworkingV1().NetworkPolicies(metav1.NamespaceSystem).Delete(networkPolicyName, &metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		// no-op
+	} else if err != nil {
+		return microerror.Mask(err)
+	}
+
+	h.logger.Debugf(ctx, "deleted network policy %#q in namespace %#q", networkPolicyName, metav1.NamespaceSystem)
+
+	h.logger.Debugf(ctx, "deleting deployment `tiller-deploy` in namespace %#q", metav1.NamespaceSystem)
+	err = h.kubernetesClient.AppsV1().Deployments(metav1.NamespaceSystem).Delete("tiller-deploy", &metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		// no-op
+	} else if err != nil {
+		return microerror.Mask(err)
+	}
+	h.logger.Debugf(ctx, "deleted deployment `tiller-deploy` in namespace %#q", metav1.NamespaceSystem)
 
 	return nil
 }
