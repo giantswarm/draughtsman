@@ -84,6 +84,11 @@ func (h *HelmMigration) Migrate(ctx context.Context) error {
 			return microerror.Mask(err)
 		}
 
+		err = h.ensureBackupConfigMapsDeleted(ctx)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
 		return nil
 	}
 
@@ -197,6 +202,28 @@ func (h *HelmMigration) ensureTillerDeleted(ctx context.Context) error {
 		return microerror.Mask(err)
 	}
 	h.logger.Debugf(ctx, "deleted deployment `tiller-deploy` in namespace %#q", metav1.NamespaceSystem)
+
+	return nil
+}
+
+func (h *HelmMigration) ensureBackupConfigMapsDeleted(ctx context.Context) error {
+	lo := metav1.ListOptions{
+		LabelSelector: "OWNER=HELM-BACKUP-V2",
+	}
+
+	cms, err := h.kubernetesClient.CoreV1().ConfigMaps(metav1.NamespaceSystem).List(lo)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	h.logger.Debugf(ctx, "deleting %d helm v2 backup configmaps", len(cms.Items))
+
+	err = h.kubernetesClient.CoreV1().ConfigMaps(metav1.NamespaceSystem).DeleteCollection(&metav1.DeleteOptions{}, lo)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	h.logger.Debugf(ctx, "deleted %d helm v2 backup configmaps", len(cms.Items))
 
 	return nil
 }
