@@ -322,6 +322,13 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		}()
 	}
 
+	var forceArg string
+	{
+		if strings.HasSuffix(project, "app-collection") {
+			forceArg = "--force"
+		}
+	}
+
 	namespaceArgs := []string{"--namespace"}
 	{
 		if project == "draughtsman" {
@@ -358,6 +365,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	var installCommand []string
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
+		installCommand = append(installCommand, forceArg)
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
