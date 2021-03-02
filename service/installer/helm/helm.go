@@ -377,7 +377,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		installCommand = append(installCommand, project, chartPath)
 
 		for n, c := range installCommand {
-			i.logger.Debugf(ctx, "install command: %d, %q", n, c)
+			i.logger.Log("msg", fmt.Sprintf("install command: %d, %q", n, c))
 		}
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
