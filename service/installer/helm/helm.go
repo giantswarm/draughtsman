@@ -371,7 +371,9 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	var installCommand []string
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
-		installCommand = append(installCommand, forceArg)
+		if forceArg != "" {
+			installCommand = append(installCommand, forceArg)
+		}
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
