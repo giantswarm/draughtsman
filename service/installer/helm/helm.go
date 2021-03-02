@@ -376,6 +376,9 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
 
+		for n, c := range installCommand {
+			i.logger.Debugf(ctx, "install command: %d, %q", n, c)
+		}
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
 			return microerror.Mask(err)
