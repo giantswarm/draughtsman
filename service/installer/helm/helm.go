@@ -188,7 +188,7 @@ func (i *HelmInstaller) chartName(project, sha string) string {
 
 // runHelmCommand runs the given Helm command.
 func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
-	i.logger.Log("debug", "running helm command", "name", name, "command", args)
+	i.logger.Log("debug", "running helm command", "name", name)
 
 	defer updateHelmMetrics(name, time.Now())
 
@@ -378,9 +378,6 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
 
-		for n, c := range installCommand {
-			i.logger.Log("msg", fmt.Sprintf("install command: %d, %q", n, c))
-		}
 		err := i.runHelmCommand("install", installCommand...)
 		if err != nil {
 			return microerror.Mask(err)
