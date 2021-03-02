@@ -5,6 +5,8 @@ metadata:
   namespace: draughtsman
 data:
   config.yaml: |
+    release:
+      namespace: {{ .Release.Namespace }}
     service:
       deployer:
         provider: {{ .Values.Installation.V1.Provider.Kind }}
