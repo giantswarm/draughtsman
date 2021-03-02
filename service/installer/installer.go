@@ -90,6 +90,7 @@ func New(config Config) (spec.Installer, error) {
 
 		helmConfig.Environment = config.Viper.GetString(config.Flag.Service.Deployer.Environment)
 		helmConfig.HelmBinaryPath = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.HelmBinaryPath)
+		helmConfig.Namespace = config.Viper.GetString(config.Flag.Release.Namespace)
 		helmConfig.Organisation = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Organisation)
 		helmConfig.Password = config.Viper.GetString(config.Flag.Service.Deployer.Installer.Helm.Password)
 		helmConfig.Provider = config.Viper.GetString(config.Flag.Service.Deployer.Provider)
