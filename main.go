@@ -183,6 +183,8 @@ func mainError() error {
 
 	daemonCommand.PersistentFlags().String(f.Service.HelmMigration.Image.Repository, "quay.io", "image repository for helm migration image.")
 
+	daemonCommand.PersistentFlags().String(f.Release.Namespace, "draughtsman", "release namespace where draughtsman reside.")
+
 	newCommand.CobraCommand().Execute()
 
 	return nil
