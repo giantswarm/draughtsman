@@ -188,7 +188,7 @@ func (i *HelmInstaller) chartName(project, sha string) string {
 
 // runHelmCommand runs the given Helm command.
 func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
-	i.logger.Log("debug", "running helm command", "name", name)
+	i.logger.Log("debug", "running helm command", "name", name, "command", args)
 
 	defer updateHelmMetrics(name, time.Now())
 
