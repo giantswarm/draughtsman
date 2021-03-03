@@ -46,6 +46,7 @@ type Config struct {
 	// Settings.
 	Environment    string
 	HelmBinaryPath string
+	Namespace      string
 	Organisation   string
 	Password       string
 	Provider       string
@@ -91,6 +92,9 @@ func New(config Config) (*HelmInstaller, error) {
 	if config.HelmBinaryPath == "" {
 		return nil, microerror.Maskf(invalidConfigError, "helm binary path must not be empty")
 	}
+	if config.Namespace == "" {
+		return nil, microerror.Maskf(invalidConfigError, "release namespace must not be empty")
+	}
 	if config.Organisation == "" {
 		return nil, microerror.Maskf(invalidConfigError, "organisation must not be empty")
 	}
@@ -121,6 +125,7 @@ func New(config Config) (*HelmInstaller, error) {
 		// Settings.
 		environment:    config.Environment,
 		helmBinaryPath: config.HelmBinaryPath,
+		namespace:      config.Namespace,
 		organisation:   config.Organisation,
 		password:       config.Password,
 		provider:       config.Provider,
@@ -150,6 +155,7 @@ type HelmInstaller struct {
 	// Settings.
 	environment    string
 	helmBinaryPath string
+	namespace      string
 	organisation   string
 	password       string
 	provider       string
@@ -232,7 +238,7 @@ func (i *HelmInstaller) checkHelmRelease(projectList []string) {
 
 		args := []string{"history", prj, "--output", "yaml", "--max", "1", "--namespace"}
 		if prj == "draughtsman" {
-			args = append(args, "default")
+			args = append(args, i.namespace)
 		} else {
 			args = append(args, "draughtsman")
 		}
@@ -332,7 +338,7 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	namespaceArgs := []string{"--namespace"}
 	{
 		if project == "draughtsman" {
-			namespaceArgs = append(namespaceArgs, "default")
+			namespaceArgs = append(namespaceArgs, i.namespace)
 		} else {
 			namespaceArgs = append(namespaceArgs, "draughtsman")
 		}
@@ -365,7 +371,9 @@ func (i *HelmInstaller) Install(event eventerspec.DeploymentEvent) error {
 	var installCommand []string
 	{
 		installCommand = append(installCommand, "upgrade", "--install")
-		installCommand = append(installCommand, forceArg)
+		if forceArg != "" {
+			installCommand = append(installCommand, forceArg)
+		}
 		installCommand = append(installCommand, valuesFilesArgs...)
 		installCommand = append(installCommand, namespaceArgs...)
 		installCommand = append(installCommand, project, chartPath)
