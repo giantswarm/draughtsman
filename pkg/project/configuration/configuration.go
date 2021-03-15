@@ -17,6 +17,9 @@ var (
 		"azure": {
 			"azure-app-collection",
 		},
+		"vmware": {
+			"vmware-app-collection",
+		},
 	}
 )
 
