@@ -15,6 +15,9 @@ var (
 	azureProjectList = []string{
 		"azure-app-collection",
 	}
+	vmwareProjectList = []string{
+		"vmware-app-collection",
+	}
 	perInstallationProjectLists = map[string][]string{
 		"gaia": []string{"app-operator"},
 		"gauss": []string{
