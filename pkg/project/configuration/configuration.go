@@ -2,6 +2,7 @@ package configuration
 
 var (
 	commonProjectList = []string{
+		"shared-app-collection",
 		"draughtsman",
 	}
 
