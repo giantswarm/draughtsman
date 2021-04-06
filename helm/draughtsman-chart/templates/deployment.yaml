@@ -68,6 +68,6 @@ spec:
             memory: 150Mi
           limits:
             cpu: 100m
-            memory: 150Mi
+            memory: 200Mi
       imagePullSecrets:
       - name: draughtsman-pull-secret
