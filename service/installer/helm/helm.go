@@ -206,8 +206,8 @@ func (i *HelmInstaller) runHelmCommand(name string, args ...string) error {
 	)
 
 	if exiterr, ok := err.(*exec.ExitError); ok {
-		// if exit code is 137, than means it had been killed by kernel OOM.
-		// recreating the pod to avoid from reaching the memory limitation.
+		// If exit code is 137, then it had been killed by a kernel OOM.
+		// Recreating the pod to prevent it reaching the memory limit.
 		if exiterr.ExitCode() == 137 {
 			panic("restarting the pod due to OOM issues from helm binary")
 		}
