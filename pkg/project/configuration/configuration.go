@@ -9,8 +9,6 @@ var (
 	providerProjectList = map[string][]string{
 		"aws": {
 			"aws-app-collection",
-			"aws-operator",
-			"cluster-operator",
 		},
 		"kvm": {
 			"kvm-app-collection",
